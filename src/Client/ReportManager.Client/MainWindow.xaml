@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:behaviors="clr-namespace:ReportManager.Client.Behaviors"
         xmlns:local="clr-namespace:ReportManager.Client"
         xmlns:vm="clr-namespace:ReportManager.Client.ViewModels"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:MainViewModel}"
@@ -71,8 +72,10 @@
                                              DisplayMemberPath="Text"
                                              SelectionMode="Extended"
                                              Visibility="{Binding LookupMultiVisibility}"
-                                             ToolTip="Vyber více hodnot (CTRL/SHIFT)"
-                                             local:LookupMultiSelectBehavior.BoundText="{Binding Value1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                             ToolTip="Vyber více hodnot (CTRL/SHIFT)">
+                                        <behaviors:LookupMultiSelectBehavior.LookupMultiSelector>
+                                            <behaviors:LookupMultiSelectBehavior BoundText="{Binding Value1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </behaviors:LookupMultiSelectBehavior.LookupMultiSelector>
                                     </ListBox>
 
                                     <TextBox Margin="0,6,0,0"
