@@ -83,6 +83,7 @@ namespace ReportManager.Client.ViewModels
 			if (Manifest == null) return;
 
 			var query = BuildQuerySpec(Manifest);
+			if (query == null) return;
 			var req = new ReportDownloadRequestDto
 			{
 				ReportKey = ReportKey,
@@ -207,6 +208,7 @@ namespace ReportManager.Client.ViewModels
 			try
 			{
 				var query = BuildQuerySpec(Manifest);
+				if (query == null) return;
 
 				var req = new ReportQueryRequestDto
 				{
@@ -228,7 +230,7 @@ namespace ReportManager.Client.ViewModels
 			}
 		}
 
-		private QuerySpecDto BuildQuerySpec(ReportManifestDto manifest)
+		private QuerySpecDto? BuildQuerySpec(ReportManifestDto manifest)
 		{
 			var q = new QuerySpecDto();
 
@@ -264,11 +266,17 @@ namespace ReportManager.Client.ViewModels
 			{
 				if (c.SelectedColumn == null) continue;
 
+				if (!c.TryGetValuesForDto(out var values, out var error))
+				{
+					StatusText = "Query validation error: " + error;
+					return null;
+				}
+
 				var f = new FilterSpecDto
 				{
 					ColumnKey = c.SelectedColumn.Key,
 					Operation = c.SelectedOp,
-					Values = c.GetValuesForDto()
+					Values = values
 				};
 				q.Filters.Add(f);
 			}
@@ -420,6 +428,9 @@ namespace ReportManager.Client.ViewModels
 
 			try
 			{
+				var query = BuildQuerySpec(Manifest);
+				if (query == null) return;
+
 				var content = new PresetContentDto
 				{
 					Version = 1,
@@ -427,7 +438,7 @@ namespace ReportManager.Client.ViewModels
 					{
 						HiddenColumns = ColumnVisibility.Where(x => !x.IsVisible).Select(x => x.Key).ToList()
 					},
-					Query = BuildQuerySpec(Manifest)
+					Query = query
 				};
 
 				var preset = new PresetDto

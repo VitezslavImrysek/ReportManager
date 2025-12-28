@@ -1,5 +1,7 @@
 ﻿using ReportManager.ApiContracts.Dto;
+using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
 
@@ -122,6 +124,112 @@ namespace ReportManager.Client.ViewModels
 				return new List<string>();
 
 			return new List<string> { Value1 ?? string.Empty };
+		}
+
+		public bool TryGetValuesForDto(out List<string> values, out string? error)
+		{
+			values = new List<string>();
+			error = null;
+
+			if (SelectedColumn == null)
+			{
+				error = "No column selected.";
+				return false;
+			}
+
+			if (SelectedOp == FilterOperation.In || SelectedOp == FilterOperation.NotIn)
+			{
+				var parts = GetValuesForDto();
+				if (parts.Count == 0)
+				{
+					error = $"Column '{SelectedColumn.DisplayName}': missing value.";
+					return false;
+				}
+
+				foreach (var part in parts)
+				{
+					if (!IsValidValue(SelectedColumn.Type, part))
+					{
+						error = $"Column '{SelectedColumn.DisplayName}': '{part}' is not a valid {SelectedColumn.Type}.";
+						return false;
+					}
+				}
+
+				values = parts;
+				return true;
+			}
+
+			if (SelectedOp == FilterOperation.Between)
+			{
+				if (string.IsNullOrWhiteSpace(Value1) || string.IsNullOrWhiteSpace(Value2))
+				{
+					error = $"Column '{SelectedColumn.DisplayName}': both values are required.";
+					return false;
+				}
+
+				if (!IsValidValue(SelectedColumn.Type, Value1))
+				{
+					error = $"Column '{SelectedColumn.DisplayName}': '{Value1}' is not a valid {SelectedColumn.Type}.";
+					return false;
+				}
+
+				if (!IsValidValue(SelectedColumn.Type, Value2))
+				{
+					error = $"Column '{SelectedColumn.DisplayName}': '{Value2}' is not a valid {SelectedColumn.Type}.";
+					return false;
+				}
+
+				values = new List<string> { Value1, Value2 };
+				return true;
+			}
+
+			if (SelectedOp == FilterOperation.IsNull || SelectedOp == FilterOperation.NotNull)
+			{
+				return true;
+			}
+
+			if (string.IsNullOrWhiteSpace(Value1))
+			{
+				error = $"Column '{SelectedColumn.DisplayName}': value is required.";
+				return false;
+			}
+
+			if (!IsValidValue(SelectedColumn.Type, Value1))
+			{
+				error = $"Column '{SelectedColumn.DisplayName}': '{Value1}' is not a valid {SelectedColumn.Type}.";
+				return false;
+			}
+
+			values = new List<string> { Value1 };
+			return true;
+		}
+
+		private static bool IsValidValue(ReportColumnType type, string raw)
+		{
+			if (raw == null) return false;
+			raw = raw.Trim();
+
+			switch (type)
+			{
+				case ReportColumnType.Int32:
+					return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
+				case ReportColumnType.Int64:
+					return long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
+				case ReportColumnType.Decimal:
+					return decimal.TryParse(raw, NumberStyles.Number, CultureInfo.InvariantCulture, out _);
+				case ReportColumnType.Double:
+					return double.TryParse(raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out _);
+				case ReportColumnType.Bool:
+					return bool.TryParse(raw, out _);
+				case ReportColumnType.Guid:
+					return Guid.TryParse(raw, out _);
+				case ReportColumnType.Date:
+				case ReportColumnType.DateTime:
+					return DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out _);
+				case ReportColumnType.String:
+				default:
+					return true;
+			}
 		}
 	}
 }
