@@ -66,7 +66,7 @@ namespace ReportManager.Server.Repository
 					case FilterOperation.Lt:
 					case FilterOperation.Le:
 						if (f.Values == null || f.Values.Count < 1) break;
-						var val = ConvertValue(col.Type, f.Values[0]);
+						if (!TryConvertValue(col.Type, f.Values[0], out var val)) break;
 						string op = f.Operation == FilterOperation.Eq ? "=" :
 									f.Operation == FilterOperation.Ne ? "<>" :
 									f.Operation == FilterOperation.Gt ? ">" :
@@ -79,8 +79,8 @@ namespace ReportManager.Server.Repository
 
 					case FilterOperation.Between:
 						if (f.Values == null || f.Values.Count < 2) break;
-						var v1 = ConvertValue(col.Type, f.Values[0]);
-						var v2 = ConvertValue(col.Type, f.Values[1]);
+						if (!TryConvertValue(col.Type, f.Values[0], out var v1)) break;
+						if (!TryConvertValue(col.Type, f.Values[1], out var v2)) break;
 						string p1 = "@p" + (p++);
 						string p2 = "@p" + (p++);
 						parameters.Add(new SqlParameter(p1, v1 ?? DBNull.Value));
@@ -116,10 +116,12 @@ namespace ReportManager.Server.Repository
 						var inParams = new List<string>();
 						foreach (var s in vals)
 						{
+							if (!TryConvertValue(col.Type, s, out var inVal)) continue;
 							string ip = "@p" + (p++);
-							parameters.Add(new SqlParameter(ip, ConvertValue(col.Type, s) ?? DBNull.Value));
+							parameters.Add(new SqlParameter(ip, inVal ?? DBNull.Value));
 							inParams.Add(ip);
 						}
+						if (inParams.Count == 0) break;
 						string inSql = colSql + (f.Operation == FilterOperation.NotIn ? " NOT IN (" : " IN (") + string.Join(",", inParams) + ")";
 						where.Add(inSql);
 						break;
@@ -184,7 +186,7 @@ namespace ReportManager.Server.Repository
 					case FilterOperation.Lt:
 					case FilterOperation.Le:
 						if (f.Values == null || f.Values.Count < 1) break;
-						var val = ConvertValue(col.Type, f.Values[0]);
+						if (!TryConvertValue(col.Type, f.Values[0], out var val)) break;
 						string op = f.Operation == FilterOperation.Eq ? "=" :
 									f.Operation == FilterOperation.Ne ? "<>" :
 									f.Operation == FilterOperation.Gt ? ">" :
@@ -196,8 +198,8 @@ namespace ReportManager.Server.Repository
 						break;
 					case FilterOperation.Between:
 						if (f.Values == null || f.Values.Count < 2) break;
-						var v1 = ConvertValue(col.Type, f.Values[0]);
-						var v2 = ConvertValue(col.Type, f.Values[1]);
+						if (!TryConvertValue(col.Type, f.Values[0], out var v1)) break;
+						if (!TryConvertValue(col.Type, f.Values[1], out var v2)) break;
 						string p1 = "@p" + (p++);
 						string p2 = "@p" + (p++);
 						parameters.Add(new SqlParameter(p1, v1 ?? DBNull.Value));
@@ -230,10 +232,12 @@ namespace ReportManager.Server.Repository
 						var inParams = new List<string>();
 						foreach (var s in vals)
 						{
+							if (!TryConvertValue(col.Type, s, out var inVal)) continue;
 							string ip = "@p" + (p++);
-							parameters.Add(new SqlParameter(ip, ConvertValue(col.Type, s) ?? DBNull.Value));
+							parameters.Add(new SqlParameter(ip, inVal ?? DBNull.Value));
 							inParams.Add(ip);
 						}
+						if (inParams.Count == 0) break;
 						where.Add(colSql + (f.Operation == FilterOperation.NotIn ? " NOT IN (" : " IN (") + string.Join(",", inParams) + ")");
 						break;
 				}
@@ -245,31 +249,47 @@ namespace ReportManager.Server.Repository
 			return (sb.ToString(), parameters);
 		}
 
-		private static object? ConvertValue(ReportColumnType type, string raw)
+		private static bool TryConvertValue(ReportColumnType type, string raw, out object? value)
 		{
-			if (raw == null) return null;
+			value = null;
+			if (raw == null) return false;
 			raw = raw.Trim();
 
 			switch (type)
 			{
 				case ReportColumnType.Int32:
-					return int.Parse(raw, CultureInfo.InvariantCulture);
+					if (!int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i32)) return false;
+					value = i32;
+					return true;
 				case ReportColumnType.Int64:
-					return long.Parse(raw, CultureInfo.InvariantCulture);
+					if (!long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i64)) return false;
+					value = i64;
+					return true;
 				case ReportColumnType.Decimal:
-					return decimal.Parse(raw, CultureInfo.InvariantCulture);
+					if (!decimal.TryParse(raw, NumberStyles.Number, CultureInfo.InvariantCulture, out var dec)) return false;
+					value = dec;
+					return true;
 				case ReportColumnType.Double:
-					return double.Parse(raw, CultureInfo.InvariantCulture);
+					if (!double.TryParse(raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var dbl)) return false;
+					value = dbl;
+					return true;
 				case ReportColumnType.Bool:
-					return bool.Parse(raw);
+					if (!bool.TryParse(raw, out var b)) return false;
+					value = b;
+					return true;
 				case ReportColumnType.Guid:
-					return Guid.Parse(raw);
+					if (!Guid.TryParse(raw, out var g)) return false;
+					value = g;
+					return true;
 				case ReportColumnType.Date:
 				case ReportColumnType.DateTime:
-					return DateTime.Parse(raw, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
+					if (!DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var dt)) return false;
+					value = dt;
+					return true;
 				case ReportColumnType.String:
 				default:
-					return raw;
+					value = raw;
+					return true;
 			}
 		}
 	}

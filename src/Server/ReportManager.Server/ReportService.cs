@@ -2,6 +2,7 @@
 using ReportManager.ApiContracts.Services;
 using ReportManager.DefinitionModel.Json;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
+using ReportManager.DefinitionModel.Utils;
 using ReportManager.Server.Repository;
 using System.Configuration;
 
@@ -77,6 +78,9 @@ namespace ReportManager.Server
 					{
 						// For demo: trust admin-provided SELECT.
 						// In production: validate it's a SELECT-only statement and forbid dangerous tokens.
+						if (!SqlLookupValidator.TryValidate(lk.Sql.CommandText, out var error))
+							throw new InvalidOperationException($"Lookup SQL for column '{c.Key}' is not allowed: {error}");
+
 						var items = _repo.ExecuteLookup(lk.Sql.CommandText, lk.Sql.KeyColumn, lk.Sql.TextColumn);
 						col.Lookup = new LookupDto { Items = items };
 					}

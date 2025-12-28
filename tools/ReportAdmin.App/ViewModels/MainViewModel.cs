@@ -9,6 +9,9 @@ using ReportManager.ApiContracts.Dto;
 using ReportManager.DefinitionModel.Json;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.DefinitionModel.Models.ReportPreset;
+using ReportManager.DefinitionModel.Utils;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -331,6 +334,8 @@ public sealed class MainViewModel : NotificationObject
 				p.PresetId = GuidUtil.FromPresetKey(p.PresetKey);
 			}
 
+			ValidateLookupSqls();
+
 			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 
 			if (string.IsNullOrWhiteSpace(RepoPath) || RepoPath == "(no folder)")
@@ -362,6 +367,7 @@ public sealed class MainViewModel : NotificationObject
 			CommitCultureEntries();
 			if (SelectedPreset != null)
 				SelectedPreset.Content = PresetEditor.BuildContent();
+			ValidateLookupSqls();
 			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 
 			StatusText = "Applying to DB...";
@@ -548,6 +554,25 @@ public sealed class MainViewModel : NotificationObject
 	private void RefreshPresetJson()
 	{
 		SelectedPresetJson = SelectedPreset == null ? "" : JsonUtil.Serialize(SelectedPreset.Content);
+	}
+
+	private void ValidateLookupSqls()
+	{
+		if (Current?.Definition == null) return;
+
+		var errors = new List<string>();
+		foreach (var column in Current.Definition.Columns)
+		{
+			var lookup = column.Filter?.Lookup;
+			if (lookup?.Mode != LookupMode.Sql || lookup.Sql == null)
+				continue;
+
+			if (!SqlLookupValidator.TryValidate(lookup.Sql.CommandText, out var error))
+				errors.Add($"{column.Key}: {error}");
+		}
+
+		if (errors.Count > 0)
+			throw new InvalidOperationException("Lookup SQL validation failed:\n" + string.Join(Environment.NewLine, errors));
 	}
 
 	private static string Humanize(string key)
