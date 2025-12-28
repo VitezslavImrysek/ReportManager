@@ -25,13 +25,13 @@ namespace ReportManager.DefinitionModel.Utils
 				return false;
 			}
 
-			if (statements == null || statements.Count != 1)
+			if (statements?.Statements == null || statements.Statements.Count != 1)
 			{
 				error = "Lookup SQL must contain exactly one SELECT statement.";
 				return false;
 			}
 
-			if (statements[0] is not SelectStatement select)
+			if (statements.Statements[0] is not SelectStatement select)
 			{
 				error = "Lookup SQL must be a SELECT statement.";
 				return false;
