@@ -1,0 +1,382 @@
+﻿<Window x:Class="ReportAdmin.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:converters="clr-namespace:ReportAdmin.App.Converters"
+        xmlns:vm="clr-namespace:ReportAdmin.App.ViewModels"
+        mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:MainViewModel}"
+        Title="Report Admin (.NET 8)"
+        Height="900" Width="1450">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:LookupPresenceConverter x:Key="LookupPresenceConverter"/>
+    </Window.Resources>
+    
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="340"/>
+            <ColumnDefinition Width="12"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0">
+            <StackPanel DockPanel.Dock="Top">
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Reports"/>
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Padding="10,4" Content="Open folder" Command="{Binding OpenFolderCommand}"/>
+                    <Button Margin="8,0,0,0" Padding="10,4" Content="New report" Command="{Binding NewReportCommand}"/>
+                </StackPanel>
+                <TextBlock Margin="0,10,0,0" Foreground="#666" TextWrapping="Wrap" Text="{Binding RepoPath}"/>
+                <Separator Margin="0,10,0,10"/>
+                <TextBlock FontWeight="SemiBold" Text="Files"/>
+            </StackPanel>
+
+            <ListBox ItemsSource="{Binding ReportFiles}"
+                     SelectedItem="{Binding SelectedFile}"
+                     DisplayMemberPath="FileName" />
+        </DockPanel>
+
+        <GridSplitter Grid.Column="1" Width="12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <DockPanel Grid.Column="2">
+            <StackPanel DockPanel.Dock="Top">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding StatusText}"/>
+                    <Button Margin="12,0,0,0" Padding="10,4" Content="Save &amp; Generate SQL" Command="{Binding SaveGenerateCommand}"/>
+                    <Button Margin="8,0,0,0" Padding="10,4" Content="Apply to DB" Command="{Binding ApplyToDbCommand}"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <TextBlock VerticalAlignment="Center" Text="Apply connection string:"/>
+                    <TextBox Margin="8,0,0,0" Width="980" Text="{Binding ApplyConnectionString, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+                <Separator Margin="0,10,0,10"/>
+            </StackPanel>
+
+            <TabControl>
+                <TabItem Header="Header">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="240"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="ReportKey:" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Current.ReportKey, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,6,0,0" Text="ReportName:" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,6,0,0" Text="{Binding Current.ReportName, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,6,0,0" Text="ReportNameTextKey:" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,6,0,0" Text="{Binding Current.Definition.TextKey, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,6,0,0" Text="ViewSchema:" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Margin="0,6,0,0" Text="{Binding Current.ViewSchema, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,6,0,0" Text="ViewName:" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Margin="0,6,0,0" Text="{Binding Current.ViewName, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Margin="0,6,0,0" Text="Version:" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="5" Grid.Column="1" Margin="0,6,0,0" Width="120" HorizontalAlignment="Left"
+                                 Text="{Binding Current.Version, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button Padding="10,4" Content="Import columns from DB view..." Command="{Binding ImportColumnsCommand}"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="7" Grid.ColumnSpan="2" Margin="0,12,0,0" Foreground="#666" TextWrapping="Wrap"
+                                   Text="Tip: ReportKey is used as filename (Reports\{ReportKey}.sql). The SQL file is generated in a strict template for reliable parsing."/>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Columns">
+                    <TabItem.Resources>
+                        <CollectionViewSource x:Key="ColumnTypeValues" Source="{Binding ColumnTypeValues}" />
+                    </TabItem.Resources>
+                    
+                    <DockPanel Margin="10">
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                            <Button Padding="10,4" Content="+ Add column" Command="{Binding AddColumnCommand}"/>
+                            <Button Margin="8,0,0,0" Padding="10,4" Content="- Remove selected" Command="{Binding RemoveSelectedColumnCommand}"/>
+                        </StackPanel>
+
+                        <DataGrid x:Name="dataGrid" Margin="0,10,0,0"
+                                  ItemsSource="{Binding Current.Definition.Columns}"
+                                  SelectedItem="{Binding SelectedColumn}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  IsReadOnly="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Key" Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}" Width="220"/>
+                                <DataGridTextColumn Header="TextKey" Binding="{Binding TextKey, UpdateSourceTrigger=PropertyChanged}" Width="260"/>
+                                <DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding Type}" Width="150"
+                                                        ItemsSource="{Binding Source={StaticResource ColumnTypeValues}}"/>
+                                <DataGridCheckBoxColumn Header="Hidden" Binding="{Binding Hidden}" Width="120"/>
+                                <DataGridCheckBoxColumn Header="AlwaysSelect" Binding="{Binding AlwaysSelect}" Width="120"/>
+                                <DataGridCheckBoxColumn Header="Filter" Binding="{Binding Filter.Enabled}" Width="80"/>
+                                <DataGridCheckBoxColumn Header="Sort" Binding="{Binding Sort.Enabled}" Width="80"/>
+                                <DataGridTemplateColumn Header="HasLookup" Width="90">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding Filter.Lookup, Converter={StaticResource LookupPresenceConverter}}"
+                                                      IsEnabled="{Binding Filter.Enabled}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Margin="0,10,0,0" Foreground="#666" TextWrapping="Wrap"
+                                   Text="HasLookup creates/removes SQL lookup config (used to populate combobox filters)."/>
+                    </DockPanel>
+                </TabItem>
+
+                <TabItem Header="Lookup">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="280"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock FontWeight="SemiBold" Text="Select column"/>
+                            <ListBox Margin="0,8,0,0"
+                                     ItemsSource="{Binding Current.Definition.Columns}"
+                                     SelectedItem="{Binding SelectedColumn}"
+                                     DisplayMemberPath="Key"/>
+                            <CheckBox Margin="0,10,0,0" Content="Has lookup"
+                                      IsChecked="{Binding SelectedColumnHasLookup}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0" Visibility="{Binding SelectedColumnHasLookup, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock FontWeight="SemiBold" Text="SQL lookup"/>
+                            <TextBlock Margin="0,8,0,0" Text="CommandText:"/>
+                            <TextBox AcceptsReturn="True" Height="200"
+                                     Text="{Binding SelectedLookupCommandText, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <TextBlock VerticalAlignment="Center" Text="KeyColumn:"/>
+                                <TextBox Margin="8,0,0,0" Width="160"
+                                         Text="{Binding SelectedLookupKeyColumn, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Margin="16,0,0,0" VerticalAlignment="Center" Text="TextColumn:"/>
+                                <TextBox Margin="8,0,0,0" Width="160"
+                                         Text="{Binding SelectedLookupTextColumn, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Texts">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock FontWeight="SemiBold" Text="Culture"/>
+                            <ListBox ItemsSource="{Binding CultureKeys}"
+                                     SelectedItem="{Binding SelectedCultureKey}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Padding="10,4" Content="+ Culture" Command="{Binding AddCultureCommand}"/>
+                                <Button Margin="8,0,0,0" Padding="10,4" Content="- Culture" Command="{Binding RemoveCultureCommand}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <DockPanel Grid.Column="1" Margin="12,0,0,0">
+                            <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" Text="{Binding SelectedCultureTitle}"/>
+                            <DataGrid Margin="0,10,0,0"
+                                      ItemsSource="{Binding CultureEntries}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="True"
+                                      IsReadOnly="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Key" Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}" Width="280"/>
+                                    <DataGridTextColumn Header="Text" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="System Presets">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="340"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <StackPanel Orientation="Horizontal">
+                                <Button Padding="10,4" Content="+ Add preset" Command="{Binding AddPresetCommand}"/>
+                                <Button Margin="8,0,0,0" Padding="10,4" Content="- Remove" Command="{Binding RemovePresetCommand}"/>
+                            </StackPanel>
+
+                            <ListBox Margin="0,10,0,0" 
+                                     ItemsSource="{Binding Current.SystemPresets}"
+                                     SelectedItem="{Binding SelectedPreset}"
+                                     DisplayMemberPath="Name"/>
+                        </StackPanel>
+
+                        <Grid Grid.Column="1" Margin="12,0,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="PresetKey:"/>
+                                <TextBox Margin="8,0,0,0" Width="520" Text="{Binding SelectedPreset.PresetKey, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Margin="16,0,0,0" VerticalAlignment="Center" Text="IsDefault:"/>
+                                <CheckBox Margin="8,0,0,0" IsChecked="{Binding SelectedPreset.IsDefault}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+                                <TextBlock VerticalAlignment="Center" Text="Name:"/>
+                                <TextBox Margin="8,0,0,0" Width="600" Text="{Binding SelectedPreset.Name, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+
+                            <TabControl Grid.Row="2" Margin="0,10,0,0">
+                                <TabItem Header="Columns">
+                                    <DockPanel Margin="10">
+                                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                            <Button Padding="10,4" Content="Show all" Command="{Binding PresetEditor.ShowAllColumnsCommand}"/>
+                                            <Button Margin="8,0,0,0" Padding="10,4" Content="Hide all" Command="{Binding PresetEditor.HideAllColumnsCommand}"/>
+                                            <TextBlock Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#666"
+                                                       Text="Toggles only columns that are normally visible (not Hidden / AlwaysSelect)."/>
+                                        </StackPanel>
+
+                                        <DataGrid Margin="0,10,0,0"
+                                                  ItemsSource="{Binding PresetEditor.Columns}"
+                                                  AutoGenerateColumns="False"
+                                                  CanUserAddRows="False">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="260" IsReadOnly="True"/>
+                                                <DataGridTextColumn Header="Caption" Binding="{Binding Caption}" Width="*" IsReadOnly="True"/>
+                                                <DataGridCheckBoxColumn Header="Visible" Binding="{Binding IsVisible}" Width="90"/>
+                                                <DataGridCheckBoxColumn Header="CanToggle" Binding="{Binding CanToggle}" Width="90" IsReadOnly="True"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </DockPanel>
+                                </TabItem>
+
+                                <TabItem Header="Sorting">
+                                    <TabItem.Resources>
+                                        <CollectionViewSource x:Key="SortableColumns" Source="{Binding PresetEditor.SortableColumns}" />
+                                        <CollectionViewSource x:Key="SortDirectionValues" Source="{Binding PresetEditor.SortDirectionValues}" />
+                                    </TabItem.Resources>
+                                    
+                                    <DockPanel Margin="10">
+                                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                            <Button Padding="10,4" Content="+ Add sort" Command="{Binding PresetEditor.AddSortCommand}"/>
+                                            <Button Margin="8,0,0,0" Padding="10,4" Content="- Remove" Command="{Binding PresetEditor.RemoveSortCommand}"/>
+                                            <Button Margin="16,0,0,0" Padding="10,4" Content="Up" Command="{Binding PresetEditor.MoveSortUpCommand}"/>
+                                            <Button Margin="8,0,0,0" Padding="10,4" Content="Down" Command="{Binding PresetEditor.MoveSortDownCommand}"/>
+                                        </StackPanel>
+
+                                        <DataGrid Margin="0,10,0,0"
+                                                  ItemsSource="{Binding PresetEditor.Sorting}"
+                                                  SelectedItem="{Binding PresetEditor.SelectedSort}"
+                                                  AutoGenerateColumns="False"
+                                                  CanUserAddRows="False">
+                                            <DataGrid.Columns>
+                                                <DataGridComboBoxColumn Header="Column" Width="320"
+                                                                        SelectedValueBinding="{Binding ColumnKey, UpdateSourceTrigger=PropertyChanged}"
+                                                                        SelectedValuePath="Key"
+                                                                        DisplayMemberPath="Key"
+                                                                        ItemsSource="{Binding Source={StaticResource SortableColumns}}"/>
+                                                <DataGridComboBoxColumn Header="Direction" Width="140"
+                                                                        SelectedItemBinding="{Binding Direction, UpdateSourceTrigger=PropertyChanged}"
+                                                                        ItemsSource="{Binding Source={StaticResource SortDirectionValues}}"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+
+                                        <TextBlock Margin="0,10,0,0" Foreground="#666" TextWrapping="Wrap"
+                                                   Text="Only columns with Sort.Enabled=true are selectable."/>
+                                    </DockPanel>
+                                </TabItem>
+
+                                <TabItem Header="Filters">
+                                    <TabItem.Resources>
+                                        <CollectionViewSource x:Key="FilterableColumns" Source="{Binding PresetEditor.FilterableColumns}" />
+                                        <CollectionViewSource x:Key="FilterOperationValues" Source="{Binding PresetEditor.FilterOperationValues}" />
+                                    </TabItem.Resources>
+                                    
+                                    <DockPanel Margin="10">
+                                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                            <Button Padding="10,4" Content="+ Add filter" Command="{Binding PresetEditor.AddFilterCommand}"/>
+                                            <Button Margin="8,0,0,0" Padding="10,4" Content="- Remove" Command="{Binding PresetEditor.RemoveFilterCommand}"/>
+                                            <TextBlock Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#666"
+                                                       Text="Values: one per line. BETWEEN requires 2 lines. IS NULL ignores values."/>
+                                        </StackPanel>
+
+                                        <DataGrid Margin="0,10,0,0"
+                                                  ItemsSource="{Binding PresetEditor.Filters}"
+                                                  SelectedItem="{Binding PresetEditor.SelectedFilter}"
+                                                  AutoGenerateColumns="False"
+                                                  CanUserAddRows="False">
+                                            <DataGrid.Columns>
+                                                <DataGridComboBoxColumn Header="Column" Width="320"
+                                                                        SelectedValueBinding="{Binding ColumnKey, UpdateSourceTrigger=PropertyChanged}"
+                                                                        SelectedValuePath="Key"
+                                                                        DisplayMemberPath="Key"
+                                                                        ItemsSource="{Binding Source={StaticResource FilterableColumns}}"/>
+                                                <DataGridComboBoxColumn Header="Op" Width="170"
+                                                                        SelectedItemBinding="{Binding Operation, UpdateSourceTrigger=PropertyChanged}"
+                                                                        ItemsSource="{Binding Source={StaticResource FilterOperationValues}}"/>
+                                                <DataGridTemplateColumn Header="Values" Width="*">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBox AcceptsReturn="True"
+                                                                     MinHeight="60"
+                                                                     VerticalScrollBarVisibility="Auto"
+                                                                     Text="{Binding ValuesText, UpdateSourceTrigger=PropertyChanged}"/>
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </DockPanel>
+                                </TabItem>
+
+                                <TabItem Header="Advanced (JSON)">
+                                    <Grid Margin="10">
+                                        <TextBlock Foreground="#666" TextWrapping="Wrap"
+                                                   Text="Readonly preview of the generated typed preset content."/>
+                                        <TextBox Margin="0,30,0,0"
+                                                 AcceptsReturn="True"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 Text="{Binding SelectedPresetJson}"
+                                                 IsReadOnly="True"/>
+                                    </Grid>
+                                </TabItem>
+                            </TabControl>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Generated SQL">
+                    <TextBox Margin="10"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             Text="{Binding GeneratedSql}"
+                             IsReadOnly="True"/>
+                </TabItem>
+            </TabControl>
+        </DockPanel>
+    </Grid>
+</Window>

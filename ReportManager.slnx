@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Client/">
+    <Project Path="src/Client/ReportManager.Client/ReportManager.Client.csproj" />
+  </Folder>
+  <Folder Name="/Contracts/">
+    <Project Path="src/Contracts/ReportManager.Contracts/ReportManager.ApiContracts.csproj" />
+    <Project Path="src/Contracts/ReportManager.DefinitionModel/ReportManager.DefinitionModel.csproj" Id="90ba23ed-350f-440e-a49d-98e76b7bc6f1" />
+  </Folder>
+  <Folder Name="/Server/">
+    <Project Path="src/Server/ReportManager.Host/ReportManager.Host.csproj" />
+    <Project Path="src/Server/ReportManager.Server/ReportManager.Server.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="tools/ReportAdmin.App/ReportAdmin.App.csproj" />
+    <Project Path="tools/ReportAdmin.Core/ReportAdmin.Core.csproj" />
+  </Folder>
+</Solution>

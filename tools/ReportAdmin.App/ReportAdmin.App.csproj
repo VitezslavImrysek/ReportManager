@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+	<OutputType>WinExe</OutputType>
+	<UseWPF>true</UseWPF>
+  </PropertyGroup>
+  <ItemGroup>
+	<ProjectReference Include="..\ReportAdmin.Core\ReportAdmin.Core.csproj" />
+	<PackageReference Include="Newtonsoft.Json" />
+	<PackageReference Include="PolySharp">
+	  <PrivateAssets>all</PrivateAssets>
+	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+	<Reference Include="Microsoft.VisualBasic" />
+  </ItemGroup>
+</Project>

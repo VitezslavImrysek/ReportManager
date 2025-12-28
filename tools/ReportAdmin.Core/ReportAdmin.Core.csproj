@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+	<PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" />
+	<PackageReference Include="Microsoft.Data.SqlClient" />
+	<PackageReference Include="PolySharp">
+	  <PrivateAssets>all</PrivateAssets>
+	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+	<ProjectReference Include="..\..\src\Contracts\ReportManager.Contracts\ReportManager.ApiContracts.csproj" />
+	<ProjectReference Include="..\..\src\Contracts\ReportManager.DefinitionModel\ReportManager.DefinitionModel.csproj" />
+  </ItemGroup>
+</Project>

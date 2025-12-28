@@ -1,0 +1,184 @@
+﻿<Window x:Class="ReportManager.Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:local="clr-namespace:ReportManager.Client"
+        xmlns:vm="clr-namespace:ReportManager.Client.ViewModels"
+        mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:MainViewModel}"
+        Title="ReportManager" Height="720" Width="1200">
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="360"/>
+            <ColumnDefinition Width="12"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Server Query Panel -->
+        <DockPanel Grid.Column="0">
+            <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="DB filtr / třídění (server query)"/>
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <TextBlock VerticalAlignment="Center" Text="ReportKey:"/>
+                    <TextBox Width="180" Margin="8,0,0,0" Text="{Binding ReportKey, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Margin="8,0,0,0" Padding="10,4" Content="Načíst definici" Command="{Binding LoadManifestCommand}"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <TextBlock VerticalAlignment="Center" Text="UserId:"/>
+                    <TextBox Width="240" Margin="8,0,0,0" Text="{Binding UserIdText, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Padding="10,4" Content="Načíst data" Command="{Binding QueryCommand}"/>
+                    <Button Margin="8,0,0,0" Padding="10,4" Content="Vyčistit DB filtr" Command="{Binding ClearServerQueryCommand}"/>
+                </StackPanel>
+
+                <Separator Margin="0,10,0,10"/>
+
+                <TextBlock FontWeight="SemiBold" Text="Podmínky"/>
+                <ItemsControl ItemsSource="{Binding Conditions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,6,0,0">
+                                <StackPanel>
+                                    <ComboBox ItemsSource="{Binding AvailableColumns}"
+                                              DisplayMemberPath="DisplayName"
+                                              SelectedItem="{Binding SelectedColumn, Mode=TwoWay}"/>
+
+                                    <ComboBox Margin="0,6,0,0"
+                                              ItemsSource="{Binding AvailableOps}"
+                                              SelectedItem="{Binding SelectedOp, Mode=TwoWay}"/>
+
+                                    <!-- Value1: non-lookup -->
+                                    <TextBox Margin="0,6,0,0"
+                                             Height="24"
+                                             Text="{Binding Value1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Visibility="{Binding TextValue1Visibility}"
+                                             ToolTip="Hodnota 1 (pro IN můžeš dát: A,B,C nebo po řádcích)"/>
+
+                                    <!-- Lookup: single (Eq/Ne) -->
+                                    <ComboBox Margin="0,6,0,0"
+                                              ItemsSource="{Binding SelectedColumn.LookupItems}"
+                                              DisplayMemberPath="Text"
+                                              SelectedItem="{Binding SelectedLookupItem, Mode=TwoWay}"
+                                              Visibility="{Binding LookupSingleVisibility}"
+                                              ToolTip="Vyber hodnotu z číselníku"/>
+
+                                    <!-- Lookup: multiselect pro In/NotIn -->
+                                    <ListBox Margin="0,6,0,0"
+                                             ItemsSource="{Binding SelectedColumn.LookupItems}"
+                                             DisplayMemberPath="Text"
+                                             SelectionMode="Extended"
+                                             Visibility="{Binding LookupMultiVisibility}"
+                                             ToolTip="Vyber více hodnot (CTRL/SHIFT)"
+                                             local:LookupMultiSelectBehavior.BoundText="{Binding Value1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                    </ListBox>
+
+                                    <TextBox Margin="0,6,0,0"
+                                             Height="24"
+                                             Text="{Binding Value2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Visibility="{Binding BetweenValue2Visibility}"
+                                             ToolTip="Hodnota 2 (jen pro BETWEEN)"/>
+
+                                    <Button Margin="0,8,0,0" Padding="8,3" Content="Odebrat" Command="{Binding RemoveCommand}"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Button Margin="0,8,0,0" Padding="10,4" Content="+ Přidat podmínku" Command="{Binding AddConditionCommand}"/>
+
+                <Separator Margin="0,10,0,10"/>
+
+                <TextBlock FontWeight="SemiBold" Text="Řazení"/>
+                <ItemsControl ItemsSource="{Binding Sorts}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,6,0,0">
+                                <StackPanel>
+                                    <ComboBox ItemsSource="{Binding AvailableColumns}"
+                                              DisplayMemberPath="DisplayName"
+                                              SelectedItem="{Binding SelectedColumn, Mode=TwoWay}"/>
+                                    <ComboBox Margin="0,6,0,0"
+                                              ItemsSource="{Binding Directions}"
+                                              SelectedItem="{Binding SelectedDirection, Mode=TwoWay}"/>
+                                    <Button Margin="0,8,0,0" Padding="8,3" Content="Odebrat" Command="{Binding RemoveCommand}"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Margin="0,8,0,0" Padding="10,4" Content="+ Přidat řazení" Command="{Binding AddSortCommand}"/>
+
+                <Separator Margin="0,10,0,10"/>
+
+                <TextBlock FontWeight="SemiBold" Text="Sloupce"/>
+                <ItemsControl ItemsSource="{Binding ColumnVisibility}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsVisible, Mode=TwoWay}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+                <Separator Margin="0,10,0,10"/>
+
+                <TextBlock FontWeight="SemiBold" Text="Presety"/>
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <ComboBox Width="230"
+                              ItemsSource="{Binding Presets}"
+                              DisplayMemberPath="Name"
+                              SelectedItem="{Binding SelectedPreset}"/>
+                    <Button Margin="8,0,0,0" Padding="8,3" Content="Načíst" Command="{Binding LoadPresetCommand}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <TextBox Width="230" Text="{Binding NewPresetName, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Margin="8,0,0,0" Padding="8,3" Content="Uložit" Command="{Binding SavePresetCommand}"/>
+                </StackPanel>
+
+                <TextBlock Margin="0,10,0,0" Foreground="#666" TextWrapping="Wrap"
+                           Text="Pozn.: DataGrid můžeš dál používat pro rychlé lokální filtrování nad aktuální stránkou (Built-in)."/>
+            </StackPanel>
+        </DockPanel>
+
+        <GridSplitter Grid.Column="1" Width="12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <!-- DataGrid -->
+        <DockPanel Grid.Column="2">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding StatusText}"/>
+                <Button Margin="12,0,0,0" Padding="10,4" Content="&lt;&lt; Předchozí" Command="{Binding PrevPageCommand}"/>
+                <Button Margin="8,0,0,0" Padding="10,4" Content="Další >>" Command="{Binding NextPageCommand}"/>
+                <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Text="PageSize:"/>
+                <TextBox Width="60" Margin="6,0,0,0" Text="{Binding PageSizeText, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Margin="8,0,0,0" local:ContextMenuServiceEx.OpenOnLeftClick="True" Padding="10,4">
+                    <Button.Content>
+                        <DockPanel LastChildFill="True">
+                            <TextBlock Text="Stáhnout" />
+                            <TextBlock Text=" ▼" Margin="6,0,0,0" />
+                        </DockPanel>
+                    </Button.Content>
+
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Csv" Command="{Binding DownloadReportCsvCommand}"/>
+                            <MenuItem Header="Xlsx" Command="{Binding DownloadReportXlsxCommand}"/>
+                            <MenuItem Header="Pdf" Command="{Binding DownloadReportPdfCommand}"/>
+                            <MenuItem Header="Json" Command="{Binding DownloadReportJsonCommand}"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+            </StackPanel>
+
+            <DataGrid x:Name="ReportGrid"
+                      ItemsSource="{Binding RowsView}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserSortColumns="True"
+                      CanUserReorderColumns="True"
+                      CanUserResizeColumns="True"/>
+        </DockPanel>
+    </Grid>
+</Window>
