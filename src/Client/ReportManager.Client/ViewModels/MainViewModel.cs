@@ -86,8 +86,12 @@ namespace ReportManager.Client.ViewModels
 			if (query == null) return;
 			var req = new ReportDownloadRequestDto
 			{
-				ReportKey = ReportKey,
-				Query = query,
+				ReportQuery = new ReportQueryRequestDto()
+				{
+                    ReportKey = ReportKey,
+                    Query = query,
+					PageSize = null,
+                },
 				FileFormat = format
 			};
 			using var stream = _downloadSvc.DownloadReport(req);

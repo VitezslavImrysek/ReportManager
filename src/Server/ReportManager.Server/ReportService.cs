@@ -107,50 +107,64 @@ namespace ReportManager.Server
 		public ReportPageDto QueryReport(ReportQueryRequestDto request)
 		{
 			if (request == null) throw new ArgumentNullException(nameof(request));
-			if (request.PageSize <= 0) request.PageSize = 100;
-			if (request.PageSize > 500) request.PageSize = 500;
-			if (request.PageIndex < 0) request.PageIndex = 0;
+			if (request.PageSize == null) throw new ArgumentException("Page size must be specified", nameof(ReportQueryRequestDto.PageSize));
 
-			var def = _repo.GetReportDefinitionByKey(request.ReportKey);
-			var model = JsonUtil.Deserialize<ReportDefinitionJson>(def.DefinitionJson) ?? throw new InvalidOperationException("Report definition JSON is invalid.");
+			return QueryReportInternal(request);
+        }
 
-			// allowed columns
-			var allowed = model.Columns.Select(c => new SqlQueryBuilder.ColumnInfo
+        /// <summary>
+        /// Internal query method allowing null PageSize (used for downloads).
+        /// </summary>
+        internal ReportPageDto QueryReportInternal(ReportQueryRequestDto request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+			if (request.PageSize != null)
 			{
-				Key = c.Key,
-				Type = c.Type,
-				FilterEnabled = c.Filter != null && c.Filter.Enabled,
-				SortEnabled = c.Sort != null && c.Sort.Enabled
-			}).ToList();
+                if (request.PageSize <= 0) request.PageSize = 100;
+                if (request.PageSize > 500) request.PageSize = 500;
+                if (request.PageIndex < 0) request.PageIndex = 0;
+            }
 
-			// select list: requested or all non-hidden + alwaysSelect
-			var selected = new List<string>();
-			if (request.Query != null && request.Query.SelectedColumns != null && request.Query.SelectedColumns.Count > 0)
-				selected.AddRange(request.Query.SelectedColumns);
+            var def = _repo.GetReportDefinitionByKey(request.ReportKey);
+            var model = JsonUtil.Deserialize<ReportDefinitionJson>(def.DefinitionJson) ?? throw new InvalidOperationException("Report definition JSON is invalid.");
 
-			if (selected.Count == 0)
-			{
-				foreach (var c in model.Columns)
-					if (!c.Hidden || c.AlwaysSelect)
-						selected.Add(c.Key);
-			}
+            // allowed columns
+            var allowed = model.Columns.Select(c => new SqlQueryBuilder.ColumnInfo
+            {
+                Key = c.Key,
+                Type = c.Type,
+                FilterEnabled = c.Filter != null && c.Filter.Enabled,
+                SortEnabled = c.Sort != null && c.Sort.Enabled
+            }).ToList();
 
-			// ensure alwaysSelect
-			foreach (var c in model.Columns.Where(x => x.AlwaysSelect))
-				if (!selected.Contains(c.Key, StringComparer.OrdinalIgnoreCase))
-					selected.Add(c.Key);
+            // select list: requested or all non-hidden + alwaysSelect
+            var selected = new List<string>();
+            if (request.Query != null && request.Query.SelectedColumns != null && request.Query.SelectedColumns.Count > 0)
+                selected.AddRange(request.Query.SelectedColumns);
 
-			var (countSql, countParams) = SqlQueryBuilder.BuildCount(def.ViewSchema, def.ViewName, allowed, request.Query ?? new QuerySpecDto());
-			int total = _repo.ExecuteScalarInt(countSql, countParams);
+            if (selected.Count == 0)
+            {
+                foreach (var c in model.Columns)
+                    if (!c.Hidden || c.AlwaysSelect)
+                        selected.Add(c.Key);
+            }
 
-			var (sql, prms) = SqlQueryBuilder.BuildPagedSelect(def.ViewSchema, def.ViewName, selected, allowed, request.Query ?? new QuerySpecDto(), request.PageIndex, request.PageSize);
-			var dt = _repo.ExecuteDataTable(sql, prms);
-			dt.TableName = "Rows";
+            // ensure alwaysSelect
+            foreach (var c in model.Columns.Where(x => x.AlwaysSelect))
+                if (!selected.Contains(c.Key, StringComparer.OrdinalIgnoreCase))
+                    selected.Add(c.Key);
 
-			return new ReportPageDto { Rows = dt, TotalCount = total };
-		}
+            var (countSql, countParams) = SqlQueryBuilder.BuildCount(def.ViewSchema, def.ViewName, allowed, request.Query ?? new QuerySpecDto());
+            int total = _repo.ExecuteScalarInt(countSql, countParams);
 
-		public List<PresetInfoDto> GetPresets(string reportKey, Guid userId)
+            var (sql, prms) = SqlQueryBuilder.BuildPagedSelect(def.ViewSchema, def.ViewName, selected, allowed, request.Query ?? new QuerySpecDto(), request.PageIndex, request.PageSize);
+            var dt = _repo.ExecuteDataTable(sql, prms);
+            dt.TableName = "Rows";
+
+            return new ReportPageDto { Rows = dt, TotalCount = total };
+        }
+
+        public List<PresetInfoDto> GetPresets(string reportKey, Guid userId)
 			=> _repo.GetPresets(reportKey, userId);
 
 		public PresetDto GetPreset(Guid presetId, Guid userId)

@@ -23,7 +23,7 @@ namespace ReportManager.Server.Repository
 			List<ColumnInfo> allowedColumns,
 			QuerySpecDto query,
 			int pageIndex,
-			int pageSize)
+			int? pageSize)
 		{
 			var cols = allowedColumns.ToDictionary(c => c.Key, StringComparer.OrdinalIgnoreCase);
 
@@ -144,7 +144,11 @@ namespace ReportManager.Server.Repository
 				order.Add("(SELECT 1)"); // stable order required by OFFSET/FETCH
 
 			sb.Append(" ORDER BY ").Append(string.Join(", ", order));
-			sb.Append(" OFFSET ").Append(pageIndex * pageSize).Append(" ROWS FETCH NEXT ").Append(pageSize).Append(" ROWS ONLY;");
+
+			if (pageSize != null)
+			{
+                sb.Append(" OFFSET ").Append(pageIndex * pageSize).Append(" ROWS FETCH NEXT ").Append(pageSize).Append(" ROWS ONLY;");
+            }
 
 			return (sb.ToString(), parameters);
 		}

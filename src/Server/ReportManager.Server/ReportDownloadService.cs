@@ -3,10 +3,7 @@ using ReportManager.ApiContracts;
 using ReportManager.ApiContracts.Dto;
 using ReportManager.ApiContracts.Services;
 using ReportManager.Server.ReportExporters;
-using System;
 using System.Data;
-using System.IO;
-using System.Linq;
 
 namespace ReportManager.Server
 {
@@ -21,17 +18,10 @@ namespace ReportManager.Server
 
 		public Stream DownloadReport(ReportDownloadRequestDto request)
 		{
-			var manifest = new ReportService().GetReportManifest(request.ReportKey, Constants.DefaultLanguage);
+			var reportQuery = request.ReportQuery ?? throw new ArgumentNullException(nameof(request.ReportQuery));
 
-			var queryData = new ReportQueryRequestDto()
-			{
-				PageIndex = 0,
-				PageSize = int.MaxValue,
-				ReportKey = request.ReportKey,
-				Query = request.Query
-			};
-
-			var data = new ReportService().QueryReport(queryData);
+            var manifest = new ReportService().GetReportManifest(reportQuery.ReportKey, Constants.DefaultLanguage);
+			var data = new ReportService().QueryReportInternal(reportQuery);
 
 			var hiddenColumns = manifest.Columns.Where(c => c.Hidden).ToList();
 			var visibleColumns = manifest.Columns.Where(c => !c.Hidden).ToDictionary(x => x.Key);
