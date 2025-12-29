@@ -17,5 +17,6 @@
     <PackageVersion Include="System.ServiceModel.Http" Version="8.1.2" />
     <PackageVersion Include="System.ServiceModel.NetTcp" Version="8.1.2" />
     <PackageVersion Include="System.ServiceModel.Primitives" Version="8.1.2" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="8.1.4" />
   </ItemGroup>
 </Project>
