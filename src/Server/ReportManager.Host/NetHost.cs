@@ -23,6 +23,10 @@ namespace ReportManager.Host
             builder.Services.AddServiceModelServices()
                 .AddServiceModelMetadata();
             builder.WebHost.UseUrls(ServicesConfiguration.GetBaseUrl());
+            builder.WebHost.ConfigureKestrel((context, options) =>
+            {
+                options.AllowSynchronousIO = true;
+            });
 
             var app = builder.Build();
 
