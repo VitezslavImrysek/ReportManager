@@ -1,0 +1,8 @@
+<Project>
+	<ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkVersion)'">
+		<PackageReference Include="PolySharp">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+</Project>

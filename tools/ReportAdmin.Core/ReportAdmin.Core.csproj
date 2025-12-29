@@ -1,10 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkVersion)'">
-    <PackageReference Include="PolySharp">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
   <ItemGroup>
 	<PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" />
 	<PackageReference Include="Microsoft.Data.SqlClient" />

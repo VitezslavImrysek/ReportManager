@@ -5,10 +5,6 @@
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkVersion)'">
     <Reference Include="System.ServiceModel" />
-    <PackageReference Include="PolySharp">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Contracts\ReportManager.Proxy\ReportManager.Proxy.csproj" />
