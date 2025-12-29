@@ -1,7 +1,7 @@
 # ReportManager
 
 Simple implementation of:
-- WCF (.NET Framework 4.8) report service
+- WCF and REST (.NET Framework / .NET) report service
 - WPF client (DataGrid) with separate *server query panel* (DB filters/sort) + grid still supports local UX
 - SQL scripts to create DB + sample view + report definition/preset in JSON
 
@@ -28,10 +28,8 @@ Default ReportKey is `Contracts`.
 
 ## Notes
 - Query paging is implemented with OFFSET/FETCH and hard limit PageSize <= 500.
-- IN uses individual parameters (demo). For production, switch to TVP for larger lists.
-- SQL lookup is evaluated inside GetReportManifest (as requested).
 
-# ReportAdmin (.NET Framework 4.8 WPF)
+# ReportAdmin (.NET Framework / .NET WPF)
 
 Admin tool to manage report definitions + system presets as **one SQL file per report**.
 Edits should be done **only via this tool**, not by hand.

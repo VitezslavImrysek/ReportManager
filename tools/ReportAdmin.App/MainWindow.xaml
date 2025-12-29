@@ -6,7 +6,7 @@
         xmlns:converters="clr-namespace:ReportAdmin.App.Converters"
         xmlns:vm="clr-namespace:ReportAdmin.App.ViewModels"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:MainViewModel}"
-        Title="Report Admin (.NET 8)"
+        Title="Report Admin"
         Height="900" Width="1450">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
