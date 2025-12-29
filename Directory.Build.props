@@ -3,7 +3,6 @@
 		<NetFrameworkVersion>net48</NetFrameworkVersion>
 		<NetCoreVersion>net8.0</NetCoreVersion>
 		<NetCoreWindowsVersion>$(NetCoreVersion)-windows</NetCoreWindowsVersion>
-		<TargetFrameworks>$(NetFrameworkVersion);$(NetCoreWindowsVersion)</TargetFrameworks>
 		<LangVersion>14</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>

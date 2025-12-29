@@ -8,7 +8,7 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
 	
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetCoreWindowsVersion)'">
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetCoreVersion)'">
 	<FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="CoreWCF.Http" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />

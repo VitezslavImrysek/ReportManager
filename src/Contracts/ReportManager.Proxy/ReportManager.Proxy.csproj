@@ -7,7 +7,7 @@
     <Reference Include="System.Configuration" />
 	<Reference Include="System.ServiceModel" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetCoreWindowsVersion)'">
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetCoreVersion)'">
 	<PackageReference Include="System.Configuration.ConfigurationManager" />
 	<PackageReference Include="System.ServiceModel.Http" />
     <PackageReference Include="System.ServiceModel.NetTcp" />
