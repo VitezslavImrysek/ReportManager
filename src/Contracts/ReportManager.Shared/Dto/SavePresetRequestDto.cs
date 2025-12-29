@@ -7,7 +7,7 @@ namespace ReportManager.Shared.Dto
 	public sealed class SavePresetRequestDto
 	{
 		[DataMember(Order = 1)] public PresetDto Preset { get; set; }
-		[DataMember(Order = 2)] public Guid UserId { get; set; } // for demo; in real app from auth context
+		[DataMember(Order = 2)] public Guid UserId { get; set; } // Temp; in real app from auth context
 
 		public SavePresetRequestDto()
 		{

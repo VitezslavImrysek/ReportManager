@@ -48,7 +48,7 @@ namespace ReportManager.Server.Repository
 				if (!cols.TryGetValue(f.ColumnKey ?? "", out var col) || !col.FilterEnabled)
 					continue;
 
-				// Basic whitelist of operations by type is assumed done earlier; here just implement a subset for demo.
+				// Basic whitelist of operations by type is assumed done earlier; here just implement a subset.
 				string colSql = SqlUtil.QuoteIdentifier(col.Key);
 
 				switch (f.Operation)
@@ -110,7 +110,7 @@ namespace ReportManager.Server.Repository
 					case FilterOperation.In:
 					case FilterOperation.NotIn:
 						if (f.Values == null || f.Values.Count < 1) break;
-						// demo: parameters list. For production, switch to TVP for larger lists.
+						// TODO: For now using parameters list. Possible improvement is to switch to TVP for larger lists.
 						var vals = f.Values.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 						if (vals.Count == 0) break;
 						var inParams = new List<string>();

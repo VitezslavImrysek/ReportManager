@@ -139,7 +139,7 @@ WHERE PresetId = @id AND (OwnerUserId IS NULL OR OwnerUserId = @uid);
 
 		public Guid SavePreset(PresetDto preset, Guid userId)
 		{
-			// system presets not supported in demo (OwnerUserId NULL) - assume user preset
+			// Only save user preset. Admin presets are created using admin app.
 			using (var con = new SqlConnection(_connectionString))
 			using (var cmd = con.CreateCommand())
 			{

@@ -292,7 +292,7 @@ namespace ReportManager.Client.ViewModels
 				q.Sorting.Add(new SortSpecDto { ColumnKey = s.SelectedColumn.Key, Direction = s.SelectedDirection });
 			}
 
-			// Selected columns: use currently visible columns from manifest defaults (demo: empty => server decides)
+			// Selected columns: use currently visible columns from manifest defaults (empty => server decides)
 			return q;
 		}
 

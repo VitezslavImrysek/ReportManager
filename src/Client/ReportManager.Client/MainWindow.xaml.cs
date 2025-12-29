@@ -53,7 +53,7 @@ namespace ReportManager.Client
                 if (col.Hidden)
                     continue;
 
-                // 2) typově zvol editor/column type (pro demo stačí TextColumn)
+                // 2) typově zvol editor/column type
                 var gridCol = new DataGridTextColumn
                 {
                     Header = col.DisplayName,

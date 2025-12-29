@@ -10,7 +10,6 @@ namespace ReportManager.Server
 {
 	public sealed class ReportService : IReportService
 	{
-		// For demo: hardcoded connection string name injected by host
 		private readonly ReportRepository _repo;
 
 		public ReportService()
@@ -76,8 +75,7 @@ namespace ReportManager.Server
 					}
 					else if (lk.Mode == LookupMode.Sql && lk.Sql != null)
 					{
-						// For demo: trust admin-provided SELECT.
-						// In production: validate it's a SELECT-only statement and forbid dangerous tokens.
+						// validate it's a SELECT-only statement and forbid dangerous tokens.
 						if (!SqlLookupValidator.TryValidate(lk.Sql.CommandText, out var error))
 							throw new InvalidOperationException($"Lookup SQL for column '{c.Key}' is not allowed: {error}");
 
@@ -176,7 +174,7 @@ namespace ReportManager.Server
 			if (request.Preset == null) throw new ArgumentNullException(nameof(request.Preset));
 			if (string.IsNullOrWhiteSpace(request.Preset.ReportKey)) throw new ArgumentException("ReportKey is required");
 
-			// user presets only in demo
+			// user presets only
 			request.Preset.IsSystem = false;
 
 			// Validate+normalize content against report definition

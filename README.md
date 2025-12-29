@@ -1,6 +1,6 @@
-# ReportManagerDemo
+# ReportManager
 
-Minimal demo of:
+Simple implementation of:
 - WCF (.NET Framework 4.8) report service
 - WPF client (DataGrid) with separate *server query panel* (DB filters/sort) + grid still supports local UX
 - SQL scripts to create DB + sample view + report definition/preset in JSON
@@ -10,6 +10,7 @@ Run scripts in order on SQL Server:
 
 - db/01_CreateDb.sql
 - db/02_Schema.sql
+- db/03_Seed.sql
 - db/Reports/Contracts.sql
 
 ## 2) Configure connection string
