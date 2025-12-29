@@ -1,4 +1,4 @@
-﻿namespace ReportManager.ApiContracts
+﻿namespace ReportManager.Shared
 {
     public static class Constants
     {

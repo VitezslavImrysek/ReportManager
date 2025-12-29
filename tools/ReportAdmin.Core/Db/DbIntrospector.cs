@@ -1,5 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using ReportManager.ApiContracts.Dto;
+using ReportManager.Shared.Dto;
 
 namespace ReportAdmin.Core.Db;
 

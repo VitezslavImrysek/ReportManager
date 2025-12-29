@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace ReportManager.ApiContracts.Dto
+namespace ReportManager.Shared.Dto
 {
     [DataContract]
     public enum SortDirection

@@ -3,16 +3,15 @@
     <OutputType>WinExe</OutputType>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkVersion)'">
+    <Reference Include="System.ServiceModel" />
     <PackageReference Include="PolySharp">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.ServiceModel" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Contracts\ReportManager.Contracts\ReportManager.ApiContracts.csproj" />
+    <ProjectReference Include="..\..\Contracts\ReportManager.Proxy\ReportManager.Proxy.csproj" />
+    <ProjectReference Include="..\..\Contracts\ReportManager.Shared\ReportManager.Shared.csproj" />
   </ItemGroup>
 </Project>

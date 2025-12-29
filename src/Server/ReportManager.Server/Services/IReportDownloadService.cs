@@ -1,8 +1,17 @@
-﻿using ReportManager.ApiContracts.Dto;
+﻿using ReportManager.Shared.Dto;
+
+#if Server && NET
+using CoreWCF;
+#else
 using System.IO;
 using System.ServiceModel;
+#endif
 
-namespace ReportManager.ApiContracts.Services
+#if Server
+namespace ReportManager.Server.Services
+#else
+namespace ReportManager.Proxy.Services
+#endif
 {
 	[ServiceContract]
 	public interface IReportDownloadService

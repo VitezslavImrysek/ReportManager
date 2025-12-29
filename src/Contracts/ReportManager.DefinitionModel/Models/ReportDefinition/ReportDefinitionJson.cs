@@ -1,4 +1,4 @@
-﻿using ReportManager.ApiContracts;
+﻿using ReportManager.Shared;
 
 namespace ReportManager.DefinitionModel.Models.ReportDefinition;
 

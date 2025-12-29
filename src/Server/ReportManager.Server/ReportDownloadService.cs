@@ -1,8 +1,8 @@
 ﻿using PdfSharp.Fonts;
-using ReportManager.ApiContracts;
-using ReportManager.ApiContracts.Dto;
-using ReportManager.ApiContracts.Services;
+using ReportManager.Shared;
+using ReportManager.Shared.Dto;
 using ReportManager.Server.ReportExporters;
+using ReportManager.Server.Services;
 using System.Data;
 
 namespace ReportManager.Server

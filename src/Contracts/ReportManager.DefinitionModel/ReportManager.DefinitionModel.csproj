@@ -1,13 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" />
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkVersion)'">
     <PackageReference Include="PolySharp">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ReportManager.Contracts\ReportManager.ApiContracts.csproj" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ReportManager.Shared\ReportManager.Shared.csproj" />
   </ItemGroup>
 </Project>

@@ -3,15 +3,15 @@
 	<OutputType>WinExe</OutputType>
 	<UseWPF>true</UseWPF>
   </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkVersion)'">
+	<Reference Include="Microsoft.VisualBasic" />
+    <PackageReference Include="PolySharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
   <ItemGroup>
 	<ProjectReference Include="..\ReportAdmin.Core\ReportAdmin.Core.csproj" />
 	<PackageReference Include="Newtonsoft.Json" />
-	<PackageReference Include="PolySharp">
-	  <PrivateAssets>all</PrivateAssets>
-	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	</PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-	<Reference Include="Microsoft.VisualBasic" />
   </ItemGroup>
 </Project>

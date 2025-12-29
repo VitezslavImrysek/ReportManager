@@ -1,4 +1,4 @@
-﻿using ReportManager.ApiContracts.Dto;
+﻿using ReportManager.Shared.Dto;
 using ReportManager.Client.ViewModels;
 using System.ComponentModel;
 using System.Windows;
@@ -27,8 +27,13 @@ namespace ReportManager.Client
                 BuildColumns(vm.Manifest);
         }
 
-        private void VmOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void VmOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
+            if (sender == null)
+            {
+                return;
+            }
+
             if (e.PropertyName == nameof(MainViewModel.Manifest))
             {
                 var vm = (MainViewModel)sender;
@@ -76,7 +81,7 @@ namespace ReportManager.Client
             ApplyColumnVisibility(vm);
         }
 
-        private void ColumnVisibilityItemOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void ColumnVisibilityItemOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(MainViewModel.ColumnVisibilityItem.IsVisible))
             {

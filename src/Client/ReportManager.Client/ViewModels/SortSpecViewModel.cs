@@ -1,4 +1,4 @@
-﻿using ReportManager.ApiContracts.Dto;
+﻿using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 

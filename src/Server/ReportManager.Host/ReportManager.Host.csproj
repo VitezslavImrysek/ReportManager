@@ -2,12 +2,16 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.ServiceModel" />
+	
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkVersion)'">
     <Reference Include="System.Configuration" />
+    <Reference Include="System.ServiceModel" />
+  </ItemGroup>
+	
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetCoreWindowsVersion)'">
+	<FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReportManager.Server\ReportManager.Server.csproj" />
-    <ProjectReference Include="..\..\Contracts\ReportManager.Contracts\ReportManager.ApiContracts.csproj" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿using ReportManager.ApiContracts.Dto;
+﻿using ReportManager.Shared.Dto;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.DefinitionModel.Models.ReportPreset;
 using System.Collections.ObjectModel;

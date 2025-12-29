@@ -1,4 +1,4 @@
-﻿using ReportManager.ApiContracts.Dto;
+﻿using ReportManager.Shared.Dto;
 
 namespace ReportManager.DefinitionModel.Models.ReportPreset;
 

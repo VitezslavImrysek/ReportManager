@@ -2,13 +2,14 @@
   <Folder Name="/Client/">
     <Project Path="src/Client/ReportManager.Client/ReportManager.Client.csproj" />
   </Folder>
-  <Folder Name="/Contracts/">
-    <Project Path="src/Contracts/ReportManager.Contracts/ReportManager.ApiContracts.csproj" />
-    <Project Path="src/Contracts/ReportManager.DefinitionModel/ReportManager.DefinitionModel.csproj" Id="90ba23ed-350f-440e-a49d-98e76b7bc6f1" />
-  </Folder>
   <Folder Name="/Server/">
     <Project Path="src/Server/ReportManager.Host/ReportManager.Host.csproj" />
     <Project Path="src/Server/ReportManager.Server/ReportManager.Server.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="src/Contracts/ReportManager.DefinitionModel/ReportManager.DefinitionModel.csproj" Id="90ba23ed-350f-440e-a49d-98e76b7bc6f1" />
+    <Project Path="src/Contracts/ReportManager.Proxy/ReportManager.Proxy.csproj" Id="e20e85dd-bf4a-4081-9b18-094c758d4074" />
+    <Project Path="src/Contracts/ReportManager.Shared/ReportManager.Shared.csproj" Id="7730d36c-291f-443f-a014-d82c4d09db84" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path="Directory.Build.props" />

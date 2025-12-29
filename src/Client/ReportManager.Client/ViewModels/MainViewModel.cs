@@ -1,6 +1,6 @@
-﻿using ReportManager.ApiContracts;
-using ReportManager.ApiContracts.Dto;
-using ReportManager.ApiContracts.Services;
+﻿using ReportManager.Shared;
+using ReportManager.Shared.Dto;
+using ReportManager.Proxy.Services;
 using ReportManager.Client.Extensions;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -54,8 +54,8 @@ namespace ReportManager.Client.ViewModels
 
 		public MainViewModel()
 		{
-			_factory = new ChannelFactory<IReportService>("ReportServiceEndpoint");
-			_reportDownloadFactory = new ChannelFactory<IReportDownloadService>("ReportDownloadServiceEndpoint");
+			_factory = ServicesConfiguration.CreateChannelFactory<IReportService>();
+			_reportDownloadFactory = ServicesConfiguration.CreateChannelFactory<IReportDownloadService>();
 			_svc = _factory.CreateChannel();
 			_downloadSvc = _reportDownloadFactory.CreateChannel();
 

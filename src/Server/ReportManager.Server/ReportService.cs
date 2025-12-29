@@ -1,9 +1,9 @@
-﻿using ReportManager.ApiContracts.Dto;
-using ReportManager.ApiContracts.Services;
+﻿using ReportManager.Shared.Dto;
 using ReportManager.DefinitionModel.Json;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.DefinitionModel.Utils;
 using ReportManager.Server.Repository;
+using ReportManager.Server.Services;
 using System.Configuration;
 
 namespace ReportManager.Server

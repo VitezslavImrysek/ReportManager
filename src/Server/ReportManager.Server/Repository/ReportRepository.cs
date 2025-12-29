@@ -1,4 +1,4 @@
-﻿using ReportManager.ApiContracts.Dto;
+﻿using ReportManager.Shared.Dto;
 using ReportManager.DefinitionModel.Json;
 using System.Data;
 using System.Data.SqlClient;

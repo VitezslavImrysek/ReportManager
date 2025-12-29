@@ -1,18 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <PackageReference Include="ClosedXML" />
-    <PackageReference Include="PDFsharp" />
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);Server</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkVersion)'">
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.ServiceModel" />
     <PackageReference Include="PolySharp">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+	
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetCoreWindowsVersion)'">
+    <PackageReference Include="CoreWCF.Http" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
+    <PackageReference Include="System.Data.SqlClient" />
+  </ItemGroup>
+	
   <ItemGroup>
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.ServiceModel" />
+    <PackageReference Include="ClosedXML" />
+    <PackageReference Include="PDFsharp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Contracts\ReportManager.Contracts\ReportManager.ApiContracts.csproj" />
     <ProjectReference Include="..\..\Contracts\ReportManager.DefinitionModel\ReportManager.DefinitionModel.csproj" />
   </ItemGroup>
 </Project>

@@ -1,11 +1,26 @@
 ﻿using ReportManager.Server;
+using ReportManager.Server.Services;
+using System.Configuration;
+
+
+
+#if NET
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+#else
 using System.ServiceModel;
+#endif
 
 namespace ReportManager.Host
 {
 	internal static class Program
 	{
-		static void Main()
+#if NETFRAMEWORK
+		static void Main(string[] args)
 		{
 			var serviceTypes = new List<Type>
 			{
@@ -51,5 +66,47 @@ namespace ReportManager.Host
 				}
 			}
 		}
-	}
+#else
+        static void Main(string[] args)
+		{
+            IWebHost host = CreateWebHostBuilder(args).Build();
+            host.Run();
+        }
+
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+           WebHost.CreateDefaultBuilder(args)
+            .UseUrls(ConfigurationManager.AppSettings["ApiBaseUrl"])
+            .UseStartup<BasicHttpBindingStartup>();
+
+        public class BasicHttpBindingStartup
+        {
+            public void ConfigureServices(IServiceCollection services)
+            {
+                //Enable CoreWCF Services, with metadata (WSDL) support
+                services.AddServiceModelServices()
+                    .AddServiceModelMetadata();
+            }
+
+            public void Configure(IApplicationBuilder app)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    // Add the Calculator Service
+                    builder.AddService<ReportService>(serviceOptions => { })
+                    // Add BasicHttpBinding endpoint
+                    .AddServiceEndpoint<ReportService, IReportService>(ServicesConfiguration.CreateReportServiceBinding(), "/ReportService");
+
+                    // Add the Calculator Service
+                    builder.AddService<ReportDownloadService>(serviceOptions => { })
+                    // Add BasicHttpBinding endpoint
+                    .AddServiceEndpoint<ReportDownloadService, IReportDownloadService>(ServicesConfiguration.CreateReportDownloadServiceBinding(), "/ReportDownloadService");
+
+                    // Configure WSDL to be available
+                    var serviceMetadataBehavior = app.ApplicationServices.GetRequiredService<CoreWCF.Description.ServiceMetadataBehavior>();
+                    serviceMetadataBehavior.HttpGetEnabled = true;
+                });
+            }
+        }
+#endif
+    }
 }

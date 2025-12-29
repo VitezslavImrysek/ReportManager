@@ -1,4 +1,4 @@
-﻿using ReportManager.ApiContracts.Dto;
+﻿using ReportManager.Shared.Dto;
 using ReportManager.Server.Utils;
 using System.Data.SqlClient;
 using System.Globalization;
