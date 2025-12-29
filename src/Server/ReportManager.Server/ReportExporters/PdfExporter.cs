@@ -1,8 +1,6 @@
 ﻿using PdfSharp.Drawing;
 using PdfSharp.Pdf;
-using System;
 using System.Data;
-using System.IO;
 
 namespace ReportManager.Server.ReportExporters
 {

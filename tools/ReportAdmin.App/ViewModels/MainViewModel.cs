@@ -243,7 +243,7 @@ public sealed class MainViewModel : NotificationObject
 
 		if (dialog.ShowDialog() == true)
 		{
-			string folderPath = System.IO.Path.GetDirectoryName(dialog.FileName);
+			string folderPath = Path.GetDirectoryName(dialog.FileName);
 			if (Directory.Exists(folderPath))
 			{
 				LoadFolder(folderPath);

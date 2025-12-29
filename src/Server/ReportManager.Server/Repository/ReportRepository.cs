@@ -218,9 +218,9 @@ UPDATE dbo.ReportViewPreset SET IsDefault=1 WHERE PresetId=@id AND ReportKey=@rk
 						var text = rdr.GetValue(textOrdinal);
 						result.Add(new LookupItemDto
 						{
-							Key = key == null || key is DBNull ? "" : Convert.ToString(key),
-							Text = text == null || text is DBNull ? "" : Convert.ToString(text)
-						});
+							Key = key == null || key is DBNull ? string.Empty : Convert.ToString(key) ?? string.Empty,
+							Text = text == null || text is DBNull ? string.Empty : Convert.ToString(text) ?? string.Empty
+                        });
 					}
 				}
 			}

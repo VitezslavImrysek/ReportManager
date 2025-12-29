@@ -214,7 +214,7 @@ namespace ReportManager.Server
 
 			if (model.Texts != null)
 			{
-				Dictionary<string, string> dict;
+				Dictionary<string, string>? dict;
 				if (model.Texts.TryGetValue(culture, out dict) && dict != null && dict.TryGetValue(textKey!, out var t) && !string.IsNullOrEmpty(t))
 					return t;
 
