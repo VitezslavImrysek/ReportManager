@@ -5,14 +5,15 @@ namespace ReportManager.Shared.Dto
 	[DataContract]
 	public sealed class ReportColumnManifestDto
 	{
-		[DataMember(Order = 1)] public required string Key { get; set; }
-		[DataMember(Order = 2)] public required string DisplayName { get; set; }
-		[DataMember(Order = 3)] public ReportColumnType Type { get; set; }
-		[DataMember(Order = 4)] public bool Hidden { get; set; }
-		[DataMember(Order = 5)] public bool AlwaysSelect { get; set; }
-		[DataMember(Order = 6)] public bool FilterEnabled { get; set; }
-		[DataMember(Order = 7)] public required List<FilterOperation> FilterOps { get; set; }
-		[DataMember(Order = 8)] public bool SortEnabled { get; set; }
-		[DataMember(Order = 9)] public LookupDto? Lookup { get; set; } 
+		[DataMember] public required string Key { get; set; }
+		[DataMember] public required string DisplayName { get; set; }
+		[DataMember] public ReportColumnType Type { get; set; }
+		[DataMember] public bool Hidden { get; set; }
+		[DataMember] public bool AlwaysSelect { get; set; }
+		[DataMember] public bool FilterEnabled { get; set; }
+		[DataMember] public bool PrimaryKey { get; set; }
+        [DataMember] public required List<FilterOperation> FilterOps { get; set; }
+		[DataMember] public bool SortEnabled { get; set; }
+		[DataMember] public LookupDto? Lookup { get; set; } 
 	}
 }

@@ -47,7 +47,8 @@ namespace ReportManager.Server
 					Type = colType,
 					Hidden = c.Flags.HasFlag(ReportColumnFlagsJson.Hidden),
 					AlwaysSelect = c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect),
-					FilterEnabled = filterEnabled,
+					PrimaryKey = c.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey),
+                    FilterEnabled = filterEnabled,
 					SortEnabled = c.Sort != null && c.Sort.Enabled,
 					FilterOps = filterEnabled ? ComputeOps(colType, hasLookup) : [],
 					Lookup = null
