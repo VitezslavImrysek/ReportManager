@@ -20,6 +20,7 @@ namespace ReportAdmin.App.ViewModels;
 public sealed class MainViewModel : NotificationObject
 {
 	public PresetEditorViewModel PresetEditor { get; } = new();
+	public ReportColumnViewModel ColumnEditor { get; } = new();
 
 	public string RepoPath { get; set => SetValue(ref field, value); } = "(no folder)";
 
@@ -58,6 +59,7 @@ public sealed class MainViewModel : NotificationObject
 		{
 			if (SetValue(ref field, value))
 			{
+				ColumnEditor.Column = value;
 				OnPropertyChanged(nameof(SelectedColumnHasLookup));
 				OnPropertyChanged(nameof(SelectedLookupCommandText));
 				OnPropertyChanged(nameof(SelectedLookupKeyColumn));
@@ -192,6 +194,7 @@ public sealed class MainViewModel : NotificationObject
 		RemoveCultureCommand = new RelayCommand(RemoveCulture);
 		AddPresetCommand = new RelayCommand(AddPreset);
 		RemovePresetCommand = new RelayCommand(RemovePreset);
+		ColumnEditor.ColumnTypeValues = ColumnTypeValues;
 
 		var defaultReports = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Reports");
 		if (Directory.Exists(defaultReports))

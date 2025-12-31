@@ -3,10 +3,88 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:ReportAdmin.App.Views"
+            xmlns:local="clr-namespace:ReportAdmin.App.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-            
+        <Grid.Resources>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock FontSize="14" FontWeight="SemiBold" Text="Column details"/>
+
+        <TextBlock Grid.Row="1" Margin="0,8,0,0" Foreground="#666"
+                   Text="Select a column in the grid above to edit its details.">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasColumn}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <Grid Grid.Row="2" Margin="0,8,0,0"
+              Visibility="{Binding HasColumn, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Key:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Margin="8,0,0,0"
+                     Text="{Binding Column.Key, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <TextBlock Grid.Row="0" Grid.Column="2" Margin="16,0,0,0" Text="Type:" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="0" Grid.Column="3" Margin="8,0,0,0"
+                      ItemsSource="{Binding ColumnTypeValues}"
+                      SelectedItem="{Binding Column.Type, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,6,0,0" Text="TextKey:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,6,0,0"
+                     Text="{Binding Column.TextKey, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,8,0,0" Text="Flags:" VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
+                <CheckBox Content="AlwaysSelect" IsChecked="{Binding Column.AlwaysSelect}"/>
+                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Hidden}"/>
+                <CheckBox Margin="12,0,0,0" Content="PrimaryKey" IsChecked="{Binding Column.PrimaryKey}"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,8,0,0" Text="Filter:" VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
+                <CheckBox Content="Enabled" IsChecked="{Binding Column.Filter.Enabled}"/>
+                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Filter.Hidden}"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,8,0,0" Text="Sort:" VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
+                <CheckBox Content="Enabled" IsChecked="{Binding Column.Sort.Enabled}"/>
+                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Sort.Hidden}"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>
