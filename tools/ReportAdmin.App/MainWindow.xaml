@@ -5,6 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:converters="clr-namespace:ReportAdmin.App.Converters"
         xmlns:vm="clr-namespace:ReportAdmin.App.ViewModels"
+        xmlns:views="clr-namespace:ReportAdmin.App.Views"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:MainViewModel}"
         Title="Report Admin"
         Height="900" Width="1450">
@@ -138,6 +139,9 @@
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
+
+                        <views:ReportColumnView Margin="0,12,0,0"
+                                                DataContext="{Binding ColumnEditor}"/>
 
                         <TextBlock Margin="0,10,0,0" Foreground="#666" TextWrapping="Wrap"
                                    Text="HasLookup creates/removes SQL lookup config (used to populate combobox filters)."/>
