@@ -1,13 +1,15 @@
 ﻿using ReportAdmin.Core.Models;
 using ReportAdmin.Core.Utils;
 using ReportManager.DefinitionModel.Json;
+using ReportManager.DefinitionModel.Models.ReportDefinition;
+using ReportManager.DefinitionModel.Models.ReportPreset;
 using System.Text;
 
 namespace ReportAdmin.Core.Sql;
 
 public static class ReportSqlGenerator
 {
-	public static string GenerateSql(ReportSqlDocument doc)
+	public static string GenerateSql(ReportSqlDocumentUi doc)
 	{
 		foreach (var p in doc.SystemPresets)
 			p.PresetId = GuidUtil.FromPresetKey(p.PresetKey);
@@ -38,7 +40,7 @@ public static class ReportSqlGenerator
 		sb.AppendLine($"DECLARE @Version int = {doc.Version};");
 		sb.AppendLine();
 		sb.AppendLine("/* === ReportDefinitionJson BEGIN === */");
-		var defJson = JsonUtil.Serialize(doc.Definition);
+		var defJson = JsonUtil.Serialize((ReportDefinitionJson)doc.Definition);
 		sb.AppendLine($"DECLARE @DefinitionJson nvarchar(max) = N'{Esc(defJson)}';");
 		sb.AppendLine("/* === ReportDefinitionJson END === */");
 		sb.AppendLine();
@@ -73,7 +75,7 @@ WHEN NOT MATCHED THEN
 			sb.AppendLine($"DECLARE @PresetId_{idx} uniqueidentifier = '{p.PresetId}';");
 			sb.AppendLine($"DECLARE @IsDefault_{idx} bit = {(p.IsDefault ? 1 : 0)};");
 			sb.AppendLine();
-			var pJson = JsonUtil.Serialize(p.Content);
+			var pJson = JsonUtil.Serialize((PresetContentJson)p.Content);
 			sb.AppendLine($"DECLARE @PresetJson_{idx} nvarchar(max) = N'{Esc(pJson)}';");
 			sb.AppendLine();
 			sb.AppendLine(@"MERGE dbo.ReportViewPreset AS pv

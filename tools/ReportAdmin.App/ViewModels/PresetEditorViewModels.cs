@@ -1,18 +1,20 @@
-﻿using ReportManager.Shared.Dto;
-using ReportManager.DefinitionModel.Models.ReportDefinition;
-using ReportManager.DefinitionModel.Models.ReportPreset;
+﻿using ReportAdmin.App.Extensions;
+using ReportAdmin.Core;
+using ReportAdmin.Core.Models.Definition;
+using ReportAdmin.Core.Models.Preset;
+using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace ReportAdmin.App.ViewModels;
 
 /// <summary>
-/// UI editor for PresetContentJson (no manual JSON editing).
+/// UI editor for PresetContentJson.
 /// </summary>
 public sealed class PresetEditorViewModel : NotificationObject
 {
-	private ReportDefinitionJson? _definition;
-	private SystemPreset? _preset;
+	private ReportDefinitionUi? _definition;
+	private SystemPresetUi? _preset;
 
     public PresetEditorViewModel()
     {
@@ -41,8 +43,8 @@ public sealed class PresetEditorViewModel : NotificationObject
 	public ObservableCollection<SortRuleVm> Sorting { get; } = new();
 	public ObservableCollection<FilterRuleVm> Filters { get; } = new();
 
-	public ObservableCollection<ReportColumnJson> FilterableColumns { get; } = new();
-	public ObservableCollection<ReportColumnJson> SortableColumns { get; } = new();
+	public ObservableCollection<ReportColumnUi> FilterableColumns { get; } = new();
+	public ObservableCollection<ReportColumnUi> SortableColumns { get; } = new();
 
 	public ObservableCollection<SortDirection> SortDirectionValues { get; } = new(Enum.GetValues(typeof(SortDirection)).Cast<SortDirection>());
 	public ObservableCollection<FilterOperation> FilterOperationValues { get; } = new(Enum.GetValues(typeof(FilterOperation)).Cast<FilterOperation>());
@@ -64,7 +66,7 @@ public sealed class PresetEditorViewModel : NotificationObject
 	public RelayCommand ShowAllColumnsCommand { get; }
 	public RelayCommand HideAllColumnsCommand { get; }
 
-	public void Load(ReportDefinitionJson? definition, SystemPreset? preset)
+	public void Load(ReportDefinitionUi? definition, SystemPresetUi? preset)
 	{
 		_definition = definition;
 		_preset = preset;
@@ -81,7 +83,7 @@ public sealed class PresetEditorViewModel : NotificationObject
 			return;
 		}
 
-		var hidden = new HashSet<string>(preset.Content?.Grid?.HiddenColumns ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+		var hidden = new HashSet<string>(preset.Content.Grid.HiddenColumns, StringComparer.OrdinalIgnoreCase);
 
 		foreach (var col in definition.Columns)
 		{
@@ -97,22 +99,22 @@ public sealed class PresetEditorViewModel : NotificationObject
 			});
 		}
 
-		foreach (var col in definition.Columns.Where(c => c.Filter?.Enabled == true))
+		foreach (var col in definition.Columns.Where(c => c.Filter.Enabled == true))
 			FilterableColumns.Add(col);
 
-		foreach (var col in definition.Columns.Where(c => c.Sort?.Enabled == true))
+		foreach (var col in definition.Columns.Where(c => c.Sort.Enabled == true))
 			SortableColumns.Add(col);
 
-		foreach (var s in preset.Content?.Query?.Sorting ?? [])
+		foreach (var s in preset.Content.Query.Sorting)
 			Sorting.Add(new SortRuleVm { ColumnKey = s.ColumnKey, Direction = s.Direction });
 
-		foreach (var f in preset.Content?.Query?.Filters ?? [])
+		foreach (var f in preset.Content.Query.Filters)
 		{
 			var vm = new FilterRuleVm
 			{
 				ColumnKey = f.ColumnKey,
 				Operation = f.Operation,
-				ValuesText = string.Join(Environment.NewLine, f.Values ?? new List<string>())
+				ValuesText = string.Join(Environment.NewLine, f.Values)
 			};
 			vm.PropertyChanged += FilterVm_PropertyChanged;
 			Filters.Add(vm);
@@ -121,24 +123,24 @@ public sealed class PresetEditorViewModel : NotificationObject
 		RaiseCanExec();
 	}
 
-	public PresetContentJson BuildContent()
+	public PresetContentUi BuildContent()
 	{
 		if (_definition == null || _preset == null)
-			return new PresetContentJson();
+			return new PresetContentUi();
 
 		var hidden = Columns
 			.Where(c => c.CanToggle && !c.IsVisible)
 			.Select(c => c.Key)
 			.Distinct(StringComparer.OrdinalIgnoreCase)
-			.ToList();
+			.ToObservable();
 
-		var sorting = new ObservableCollection<SortSpec2Json>(
+		var sorting = new ObservableCollection<Core.Models.Preset.SortSpecUi>(
 			Sorting
 				.Where(s => !string.IsNullOrWhiteSpace(s.ColumnKey))
-				.Select(s => new SortSpec2Json { ColumnKey = s.ColumnKey, Direction = s.Direction })
+				.Select(s => new Core.Models.Preset.SortSpecUi { ColumnKey = s.ColumnKey, Direction = s.Direction })
 		);
 
-		var filters = new ObservableCollection<FilterSpecJson>();
+		var filters = new ObservableCollection<Core.Models.Preset.FilterSpecUi>();
 		foreach (var f in Filters)
 		{
 			if (string.IsNullOrWhiteSpace(f.ColumnKey)) continue;
@@ -156,27 +158,27 @@ public sealed class PresetEditorViewModel : NotificationObject
 			if (RequiresValues(f.Operation) && values.Count == 0)
 				continue;
 
-			filters.Add(new FilterSpecJson
+			filters.Add(new Core.Models.Preset.FilterSpecUi
 			{
 				ColumnKey = f.ColumnKey,
 				Operation = f.Operation,
-				Values = values
+				Values = values.ToObservable()
 			});
 		}
 
-		return new PresetContentJson
+		return new PresetContentUi
 		{
 			Version = _preset.Content?.Version ?? 1,
-			Grid = new GridStateJson
-			{
+			Grid = new GridStateUi
+            {
 				HiddenColumns = hidden,
-				Order = _preset.Content?.Grid?.Order ?? new List<string>()
+				Order = _preset.Content?.Grid?.Order ?? []
 			},
-			Query = new QuerySpecJson
-			{
-				Filters = filters.ToList(),
-				Sorting = sorting.ToList(),
-				SelectedColumns = _preset.Content?.Query?.SelectedColumns ?? new List<string>()
+			Query = new QuerySpecUi
+            {
+				Filters = filters,
+				Sorting = sorting,
+				SelectedColumns = _preset.Content?.Query?.SelectedColumns ?? []
 			}
 		};
 	}
@@ -245,7 +247,7 @@ public sealed class PresetEditorViewModel : NotificationObject
 			.Where(x => x.Length > 0)
 			.ToList();
 
-	private static string ResolveCaption(ReportDefinitionJson def, string textKey, string fallback)
+	private static string ResolveCaption(ReportDefinitionUi def, string textKey, string fallback)
 	{
 		if (def.Texts.TryGetValue(def.DefaultCulture, out var dict) &&
 			dict.TryGetValue(textKey, out var s) &&

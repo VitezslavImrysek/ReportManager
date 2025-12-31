@@ -1,4 +1,6 @@
-﻿namespace ReportAdmin.App.ViewModels;
+﻿using ReportAdmin.Core;
+
+namespace ReportAdmin.App.ViewModels;
 
 public sealed class KvRowVm : NotificationObject
 {

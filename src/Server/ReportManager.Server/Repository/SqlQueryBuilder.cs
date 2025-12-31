@@ -261,11 +261,11 @@ namespace ReportManager.Server.Repository
 
 			switch (type)
 			{
-				case ReportColumnType.Int32:
+				case ReportColumnType.Integer:
 					if (!int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i32)) return false;
 					value = i32;
 					return true;
-				case ReportColumnType.Int64:
+				case ReportColumnType.Long:
 					if (!long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i64)) return false;
 					value = i64;
 					return true;
@@ -277,7 +277,7 @@ namespace ReportManager.Server.Repository
 					if (!double.TryParse(raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var dbl)) return false;
 					value = dbl;
 					return true;
-				case ReportColumnType.Bool:
+				case ReportColumnType.Boolean:
 					if (!bool.TryParse(raw, out var b)) return false;
 					value = b;
 					return true;

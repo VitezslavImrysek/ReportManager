@@ -210,15 +210,15 @@ namespace ReportManager.Client.ViewModels
 
 			switch (type)
 			{
-				case ReportColumnType.Int32:
+				case ReportColumnType.Integer:
 					return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
-				case ReportColumnType.Int64:
+				case ReportColumnType.Long:
 					return long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
 				case ReportColumnType.Decimal:
 					return decimal.TryParse(raw, NumberStyles.Number, CultureInfo.InvariantCulture, out _);
 				case ReportColumnType.Double:
 					return double.TryParse(raw, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out _);
-				case ReportColumnType.Bool:
+				case ReportColumnType.Boolean:
 					return bool.TryParse(raw, out _);
 				case ReportColumnType.Guid:
 					return Guid.TryParse(raw, out _);

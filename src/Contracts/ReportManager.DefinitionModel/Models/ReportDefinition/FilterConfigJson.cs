@@ -2,6 +2,7 @@
 
 public sealed class FilterConfigJson 
 { 
-	public bool Enabled { get; set; } = true;
+	public bool Enabled { get; set; }
 	public LookupConfigJson? Lookup { get; set; }
+	public FilterConfigFlagsJson Flags { get; set; }
 }

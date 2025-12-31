@@ -1,5 +1,7 @@
 ﻿using Microsoft.SqlServer.TransactSql.ScriptDom;
 using ReportAdmin.Core.Models;
+using ReportAdmin.Core.Models.Definition;
+using ReportAdmin.Core.Models.Preset;
 using ReportManager.DefinitionModel.Json;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.DefinitionModel.Models.ReportPreset;
@@ -10,7 +12,7 @@ namespace ReportAdmin.Core.Sql;
 
 public static class ReportSqlParser
 {
-	public static ReportSqlDocument LoadFromFile(string path)
+	public static ReportSqlDocumentUi LoadFromFile(string path)
 	{
 		var sql = File.ReadAllText(path, Encoding.UTF8);
 		var doc = Parse(sql);
@@ -18,7 +20,7 @@ public static class ReportSqlParser
 		return doc;
 	}
 
-	public static ReportSqlDocument Parse(string sql)
+	public static ReportSqlDocumentUi Parse(string sql)
 	{
 		var parser = new TSql160Parser(initialQuotedIdentifiers: true);
 		IList<ParseError> errors;
@@ -39,8 +41,8 @@ public static class ReportSqlParser
 		int GetInt(string name, int fallback = 1) =>
 			declares.TryGetValue(name, out var v) && int.TryParse(Convert.ToString(v, CultureInfo.InvariantCulture), out var i) ? i : fallback;
 
-		var model = new ReportSqlDocument
-		{
+		var model = new ReportSqlDocumentUi
+        {
 			ReportKey = GetStr("@ReportKey"),
 			ReportName = GetStr("@ReportName"),
 			ViewSchema = GetStr("@ViewSchema", "dbo"),
@@ -49,7 +51,7 @@ public static class ReportSqlParser
 		};
 
 		var defJson = GetStr("@DefinitionJson");
-		model.Definition = JsonUtil.Deserialize<ReportDefinitionJson>(defJson) ?? new ReportDefinitionJson();
+        model.Definition = (ReportDefinitionUi)JsonUtil.Deserialize<ReportDefinitionJson>(defJson);
 
 		// Presets: indexed variables
 		var idxs = declares.Keys
@@ -69,15 +71,15 @@ public static class ReportSqlParser
 			var isDefStr = GetStr("@IsDefault_" + idx, "0");
 			var json = GetStr("@PresetJson_" + idx, "{}");
 
-			var content = JsonUtil.Deserialize<PresetContentJson>(json) ?? new PresetContentJson();
+			var content = JsonUtil.Deserialize<PresetContentJson>(json);
 
-			model.SystemPresets.Add(new SystemPreset
+			model.SystemPresets.Add(new SystemPresetUi
 			{
 				PresetKey = key,
 				Name = name,
 				PresetId = Guid.TryParse(idStr, out var g) ? g : Guid.Empty,
 				IsDefault = isDefStr.Equals("1") || isDefStr.Equals("true", StringComparison.OrdinalIgnoreCase),
-				Content = content
+				Content = (PresetContentUi)content
 			});
 		}
 

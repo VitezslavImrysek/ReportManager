@@ -1,5 +1,5 @@
 /* REPORT: Contracts */
-/* GENERATED: 2025-12-27T17:29:42Z */
+/* GENERATED: 2025-12-31T19:06:58Z */
 /* DO NOT EDIT BY HAND */
 
 BEGIN TRY
@@ -13,136 +13,117 @@ DECLARE @Version int = 1;
 
 /* === ReportDefinitionJson BEGIN === */
 DECLARE @DefinitionJson nvarchar(max) = N'{
-    "version": 1,
-    "defaultCulture": "cs",
-    "textKey": "report.title",
-    "texts": {
-        "cs": {
-            "col.IdSmlouva": "ID smlouvy",
-            "col.CisloSmlouvy": "Číslo smlouvy",
-            "col.Zakaznik": "Zákazník",
-            "col.TypZakaznika": "Typ zákazníka",
-            "col.Castka": "Částka",
-            "col.DatumOd": "Datum od",
-            "report.title": "Smlouvy"
-        },
-        "en": {
-            "col.IdSmlouva": "Contract ID",
-            "col.CisloSmlouvy": "Contract number",
-            "col.Zakaznik": "Customer",
-            "col.TypZakaznika": "Customer type",
-            "col.Castka": "Amount",
-            "col.DatumOd": "Start date",
-            "report.title": "Contracts"
-        }
+  "version": 1,
+  "defaultCulture": "cs",
+  "textKey": "report.title",
+  "texts": {
+    "cs": {
+      "col.Castka": "Částka",
+      "col.CisloSmlouvy": "Číslo smlouvy",
+      "col.DatumOd": "Datum od",
+      "col.IdSmlouva": "ID smlouvy",
+      "col.TypZakaznika": "Typ zákazníka",
+      "col.Zakaznik": "Zákazník",
+      "report.title": "Smlouvy"
     },
-    "columns": [
-        {
-            "key": "id_smlouva",
-            "textKey": "col.IdSmlouva",
-            "type": "int32",
-            "hidden": true,
-            "alwaysSelect": true,
-            "filter": {
-                "enabled": false
-            },
-            "sort": {
-                "enabled": false
-            }
-        },
-        {
-            "key": "cislo_smlouvy",
-            "textKey": "col.CisloSmlouvy",
-            "type": "string",
-            "hidden": false,
-            "alwaysSelect": false,
-            "filter": {
-                "enabled": true
-            },
-            "sort": {
-                "enabled": true
-            }
-        },
-        {
-            "key": "zakaznik",
-            "textKey": "col.Zakaznik",
-            "type": "string",
-            "hidden": false,
-            "alwaysSelect": false,
-            "filter": {
-                "enabled": true
-            },
-            "sort": {
-                "enabled": true
-            }
-        },
-        {
-            "key": "typ_zakaznika",
-            "textKey": "col.TypZakaznika",
-            "type": "int32",
-            "hidden": true,
-            "alwaysSelect": false,
-            "filter": {
-                "enabled": true,
-                "lookup": {
-                    "mode": "sql",
-                    "sql": {
-                        "commandText": "SELECT Id, Nazev FROM dbo.CustomerType_Loc WHERE IsActive=1 ORDER BY Nazev",
-                        "keyColumn": "Id",
-                        "textColumn": "Nazev"
-                    }
-                }
-            },
-            "sort": {
-                "enabled": false
-            }
-        },
-        {
-            "key": "typ_zakaznika_text",
-            "textKey": "col.TypZakaznika",
-            "type": "string",
-            "hidden": false,
-            "alwaysSelect": false,
-            "filter": {
-                "enabled": false
-            },
-            "sort": {
-                "enabled": true
-            }
-        },
-        {
-            "key": "castka",
-            "textKey": "col.Castka",
-            "type": "decimal",
-            "hidden": false,
-            "alwaysSelect": false,
-            "filter": {
-                "enabled": true
-            },
-            "sort": {
-                "enabled": true
-            }
-        },
-        {
-            "key": "datum_od",
-            "textKey": "col.DatumOd",
-            "type": "date",
-            "hidden": false,
-            "alwaysSelect": false,
-            "filter": {
-                "enabled": true
-            },
-            "sort": {
-                "enabled": true
-            }
+    "en": {
+      "col.IdSmlouva": "Contract ID",
+      "col.CisloSmlouvy": "Contract number",
+      "col.Zakaznik": "Customer",
+      "col.TypZakaznika": "Customer type",
+      "col.Castka": "Amount",
+      "col.DatumOd": "Start date",
+      "report.title": "Contracts"
+    }
+  },
+  "columns": [
+    {
+      "key": "id_smlouva",
+      "textKey": "col.IdSmlouva",
+      "type": "integer",
+      "flags": "alwaysSelect, hidden",
+      "filter": {},
+      "sort": {}
+    },
+    {
+      "key": "cislo_smlouvy",
+      "textKey": "col.CisloSmlouvy",
+      "type": "string",
+      "filter": {
+        "enabled": true
+      },
+      "sort": {
+        "enabled": true
+      }
+    },
+    {
+      "key": "zakaznik",
+      "textKey": "col.Zakaznik",
+      "type": "string",
+      "filter": {
+        "enabled": true
+      },
+      "sort": {
+        "enabled": true
+      }
+    },
+    {
+      "key": "typ_zakaznika",
+      "textKey": "col.TypZakaznika",
+      "type": "integer",
+      "flags": "hidden",
+      "filter": {
+        "enabled": true,
+        "lookup": {
+          "mode": "sql",
+          "sql": {
+            "commandText": "SELECT Id, Nazev FROM dbo.CustomerType_Loc WHERE IsActive=1 ORDER BY Nazev",
+            "keyColumn": "Id",
+            "textColumn": "Nazev"
+          },
+          "items": []
         }
-    ],
-    "defaultSort": [
-        {
-            "column": "cislo_smlouvy",
-            "dir": "asc"
-        }
-    ]
+      },
+      "sort": {}
+    },
+    {
+      "key": "typ_zakaznika_text",
+      "textKey": "col.TypZakaznika",
+      "type": "string",
+      "filter": {},
+      "sort": {
+        "enabled": true
+      }
+    },
+    {
+      "key": "castka",
+      "textKey": "col.Castka",
+      "type": "decimal",
+      "filter": {
+        "enabled": true
+      },
+      "sort": {
+        "enabled": true
+      }
+    },
+    {
+      "key": "datum_od",
+      "textKey": "col.DatumOd",
+      "type": "date",
+      "filter": {
+        "enabled": true
+      },
+      "sort": {
+        "enabled": true
+      }
+    }
+  ],
+  "defaultSort": [
+    {
+      "column": "cislo_smlouvy",
+      "dir": "asc"
+    }
+  ]
 }';
 /* === ReportDefinitionJson END === */
 
@@ -152,13 +133,13 @@ USING (SELECT @ReportKey AS [Key]) AS s
 ON t.[Key] = s.[Key]
 WHEN MATCHED THEN
   UPDATE SET
-    t.[Name] = @ReportName,
-    t.ViewSchema = @ViewSchema,
-    t.ViewName = @ViewName,
-    t.DefinitionJson = @DefinitionJson,
-    t.Version = @Version,
-    t.IsActive = 1,
-    t.UpdatedUtc = SYSUTCDATETIME()
+	t.[Name] = @ReportName,
+	t.ViewSchema = @ViewSchema,
+	t.ViewName = @ViewName,
+	t.DefinitionJson = @DefinitionJson,
+	t.Version = @Version,
+	t.IsActive = 1,
+	t.UpdatedUtc = SYSUTCDATETIME()
 WHEN NOT MATCHED THEN
   INSERT ([Key],[Name],ViewSchema,ViewName,DefinitionJson,Version,IsActive)
   VALUES (@ReportKey,@ReportName,@ViewSchema,@ViewName,@DefinitionJson,@Version,1);
@@ -182,7 +163,12 @@ DECLARE @PresetJson_1 nvarchar(max) = N'{
   },
   "query": {
     "filters": [],
-    "sorting": [{ "columnKey": "cislo_smlouvy", "direction": "Asc" }],
+    "sorting": [
+      {
+        "columnKey": "cislo_smlouvy",
+        "direction": "asc"
+      }
+    ],
     "selectedColumns": []
   }
 }';
@@ -192,12 +178,12 @@ USING (SELECT @PresetId_1 AS PresetId) AS s
 ON pv.PresetId = s.PresetId
 WHEN MATCHED THEN
   UPDATE SET
-    pv.ReportKey = @ReportKey,
-    pv.[Name] = @PresetName_1,
-    pv.OwnerUserId = NULL,
-    pv.PresetJson = @PresetJson_1,
-    pv.IsDefault = @IsDefault_1,
-    pv.UpdatedUtc = SYSUTCDATETIME()
+	pv.ReportKey = @ReportKey,
+	pv.[Name] = @PresetName_1,
+	pv.OwnerUserId = NULL,
+	pv.PresetJson = @PresetJson_1,
+	pv.IsDefault = @IsDefault_1,
+	pv.UpdatedUtc = SYSUTCDATETIME()
 WHEN NOT MATCHED THEN
   INSERT (PresetId, ReportKey, [Name], OwnerUserId, PresetJson, IsDefault, CreatedUtc, UpdatedUtc)
   VALUES (@PresetId_1, @ReportKey, @PresetName_1, NULL, @PresetJson_1, @IsDefault_1, SYSUTCDATETIME(), SYSUTCDATETIME());

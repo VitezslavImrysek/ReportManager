@@ -1,3 +1,7 @@
 ﻿namespace ReportManager.DefinitionModel.Models.ReportDefinition;
 
-public sealed class SortConfigJson { public bool Enabled { get; set; } = true; }
+public sealed class SortConfigJson
+{ 
+    public bool Enabled { get; set; }
+    public SortConfigFlagsJson Flags { get; set; }
+}

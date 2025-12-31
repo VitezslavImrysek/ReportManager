@@ -39,17 +39,17 @@ ORDER BY c.column_id;";
         sqlType = sqlType.ToLowerInvariant();
         return sqlType switch
         {
-            "int" => ReportColumnType.Int32,
-            "bigint" => ReportColumnType.Int64,
-            "smallint" => ReportColumnType.Int32,
-            "tinyint" => ReportColumnType.Int32,
+            "int" => ReportColumnType.Integer,
+            "bigint" => ReportColumnType.Long,
+            "smallint" => ReportColumnType.Integer,
+            "tinyint" => ReportColumnType.Integer,
             "decimal" => ReportColumnType.Decimal,
             "numeric" => ReportColumnType.Decimal,
             "money" => ReportColumnType.Decimal,
             "smallmoney" => ReportColumnType.Decimal,
             "float" => ReportColumnType.Double,
             "real" => ReportColumnType.Double,
-            "bit" => ReportColumnType.Bool,
+            "bit" => ReportColumnType.Boolean,
             "uniqueidentifier" => ReportColumnType.Guid,
             "date" => ReportColumnType.Date,
             "datetime" => ReportColumnType.DateTime,

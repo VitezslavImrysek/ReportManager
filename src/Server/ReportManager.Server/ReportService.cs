@@ -45,8 +45,8 @@ namespace ReportManager.Server
 					Key = c.Key,
 					DisplayName = displayName,
 					Type = colType,
-					Hidden = c.Hidden,
-					AlwaysSelect = c.AlwaysSelect,
+					Hidden = c.Flags.HasFlag(ReportColumnFlagsJson.Hidden),
+					AlwaysSelect = c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect),
 					FilterEnabled = filterEnabled,
 					SortEnabled = c.Sort != null && c.Sort.Enabled,
 					FilterOps = filterEnabled ? ComputeOps(colType, hasLookup) : [],
@@ -143,12 +143,12 @@ namespace ReportManager.Server
             if (selected.Count == 0)
             {
                 foreach (var c in model.Columns)
-                    if (!c.Hidden || c.AlwaysSelect)
+                    if (!c.Flags.HasFlag(ReportColumnFlagsJson.Hidden) || c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect))
                         selected.Add(c.Key);
             }
 
             // ensure alwaysSelect
-            foreach (var c in model.Columns.Where(x => x.AlwaysSelect))
+            foreach (var c in model.Columns.Where(x => x.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect)))
                 if (!selected.Contains(c.Key, StringComparer.OrdinalIgnoreCase))
                     selected.Add(c.Key);
 
@@ -250,8 +250,8 @@ namespace ReportManager.Server
 			// Simple default rules
 			switch (type)
 			{
-				case ReportColumnType.Int32:
-				case ReportColumnType.Int64:
+				case ReportColumnType.Integer:
+				case ReportColumnType.Long:
 				case ReportColumnType.Decimal:
 				case ReportColumnType.Double:
 					return new List<FilterOperation>
@@ -273,7 +273,7 @@ namespace ReportManager.Server
 						FilterOperation.IsNull, FilterOperation.NotNull
 					};
 
-				case ReportColumnType.Bool:
+				case ReportColumnType.Boolean:
 					return new List<FilterOperation>
 					{
 						FilterOperation.Eq, FilterOperation.Ne,
@@ -312,7 +312,7 @@ namespace ReportManager.Server
 
 			// 1) Grid.HiddenColumns: dovol jen sloupce, které jsou default-visible a nejsou alwaysSelect
 			var allowedHide = model.Columns
-				.Where(c => !c.Hidden && !c.AlwaysSelect)
+				.Where(c => !c.Flags.HasFlag(ReportColumnFlagsJson.Hidden) && !c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect))
 				.Select(c => c.Key)
 				.ToHashSet(StringComparer.OrdinalIgnoreCase);
 

@@ -1,17 +1,15 @@
 ﻿using Microsoft.Win32;
 using ReportAdmin.App.Dialogs;
+using ReportAdmin.Core;
 using ReportAdmin.Core.Db;
 using ReportAdmin.Core.Models;
+using ReportAdmin.Core.Models.Definition;
+using ReportAdmin.Core.Models.Preset;
 using ReportAdmin.Core.Sql;
 using ReportAdmin.Core.Utils;
+using ReportManager.DefinitionModel.Utils;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
-using ReportManager.DefinitionModel.Json;
-using ReportManager.DefinitionModel.Models.ReportDefinition;
-using ReportManager.DefinitionModel.Models.ReportPreset;
-using ReportManager.DefinitionModel.Utils;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -38,8 +36,8 @@ public sealed class MainViewModel : NotificationObject
 		}
 	}
 
-	private ReportSqlDocument? _current;
-	public ReportSqlDocument? Current
+	private ReportSqlDocumentUi? _current;
+	public ReportSqlDocumentUi? Current
 	{
 		get => _current;
 		set
@@ -53,7 +51,7 @@ public sealed class MainViewModel : NotificationObject
 
 	public ObservableCollection<ReportColumnType> ColumnTypeValues { get; } = new(Enum.GetValues(typeof(ReportColumnType)).Cast<ReportColumnType>());
 
-	public ReportColumnJson? SelectedColumn
+	public ReportColumnUi? SelectedColumn
 	{
 		get;
 		set
@@ -68,36 +66,7 @@ public sealed class MainViewModel : NotificationObject
 		}
 	}
 
-	public SystemPreset? SelectedPreset
-	{
-		get;
-		set
-		{
-			if (SetValue(ref field, value))
-				RefreshPresetJson();
-		}
-	}
-
-	public string SelectedPresetJson
-	{
-		get;
-		set
-		{
-			if (SetValue(ref field, value))
-			{
-				if (SelectedPreset != null)
-				{
-					try
-					{
-						var m = JsonUtil.Deserialize<PresetContentJson>(value);
-						if (m != null) SelectedPreset.Content = m;
-					}
-					catch { }
-				}
-			}
-		}
-	} = string.Empty;
-
+	public SystemPresetUi? SelectedPreset { get; set => SetValue(ref field, value); }
 	public string GeneratedSql { get; set => SetValue(ref field, value); } = string.Empty;
 	public string StatusText { get; set => SetValue(ref field, value); } = "Ready";
 	public string ApplyConnectionString { get; set => SetValue(ref field, value); } = string.Empty;
@@ -137,10 +106,10 @@ public sealed class MainViewModel : NotificationObject
 
 			if (value)
 			{
-				SelectedColumn.Filter.Lookup ??= new LookupConfigJson
+				SelectedColumn.Filter.Lookup ??= new LookupConfigUi
 				{
 					Mode = LookupMode.Sql,
-					Sql = new SqlLookupJson()
+					Sql = new SqlLookupUi()
 				};
 			}
 			else
@@ -163,8 +132,8 @@ public sealed class MainViewModel : NotificationObject
 			if (SelectedColumn?.Filter == null) return;
 			if (!SelectedColumn.Filter.Enabled) return;
 
-			SelectedColumn.Filter.Lookup ??= new LookupConfigJson { Mode = LookupMode.Sql, Sql = new SqlLookupJson() };
-			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupJson();
+			SelectedColumn.Filter.Lookup ??= new LookupConfigUi { Mode = LookupMode.Sql, Sql = new SqlLookupUi() };
+			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupUi();
 			SelectedColumn.Filter.Lookup.Sql.CommandText = value;
 			OnPropertyChanged();
 		}
@@ -177,8 +146,8 @@ public sealed class MainViewModel : NotificationObject
 			if (SelectedColumn?.Filter == null) return;
 			if (!SelectedColumn.Filter.Enabled) return;
 
-			SelectedColumn.Filter.Lookup ??= new LookupConfigJson { Mode = LookupMode.Sql, Sql = new SqlLookupJson() };
-			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupJson();
+			SelectedColumn.Filter.Lookup ??= new LookupConfigUi { Mode = LookupMode.Sql, Sql = new SqlLookupUi() };
+			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupUi();
 			SelectedColumn.Filter.Lookup.Sql.KeyColumn = value;
 			OnPropertyChanged();
 		}
@@ -191,8 +160,8 @@ public sealed class MainViewModel : NotificationObject
 			if (SelectedColumn?.Filter == null) return;
 			if (!SelectedColumn.Filter.Enabled) return;
 
-			SelectedColumn.Filter.Lookup ??= new LookupConfigJson { Mode = LookupMode.Sql, Sql = new SqlLookupJson() };
-			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupJson();
+			SelectedColumn.Filter.Lookup ??= new LookupConfigUi { Mode = LookupMode.Sql, Sql = new SqlLookupUi() };
+			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupUi();
 			SelectedColumn.Filter.Lookup.Sql.TextColumn = value;
 			OnPropertyChanged();
 		}
@@ -266,8 +235,13 @@ public sealed class MainViewModel : NotificationObject
 		try
 		{
 			Current = ReportSqlParser.LoadFromFile(path);
-			Current.Definition ??= new ReportDefinitionJson();
-
+			if (Current.Definition == null)
+			{
+                // Contains no or invalid definition.
+				MessageBox.Show("The report SQL file does not contain a valid report definition.");
+				return;
+            }
+            
 			CultureKeys.Clear();
 			foreach (var c in Current.Definition.Texts.Keys.OrderBy(x => x))
 				CultureKeys.Add(c);
@@ -276,8 +250,10 @@ public sealed class MainViewModel : NotificationObject
 				SelectedCultureKey = CultureKeys.FirstOrDefault() ?? Current.Definition.DefaultCulture;
 
 			SelectedPreset = Current.SystemPresets.FirstOrDefault();
-			PresetEditor.Load(Current.Definition, SelectedPreset);
-			SelectedColumn = Current.Definition.Columns.FirstOrDefault();
+			// pass UI model into preset editor
+			PresetEditor.Load((ReportDefinitionUi)Current.Definition, SelectedPreset);
+			// map selected column to UI model
+			SelectedColumn = Current.Definition.Columns.FirstOrDefault() is var firstCol && firstCol != null ? (ReportColumnUi)firstCol : null;
 
 			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 			StatusText = $"Loaded: {Path.GetFileName(path)}";
@@ -291,15 +267,23 @@ public sealed class MainViewModel : NotificationObject
 
 	private void NewReport()
 	{
-		Current = new ReportSqlDocument
+		Current = new ReportSqlDocumentUi
 		{
 			ReportKey = "NewReport",
 			ReportName = "New report",
 			ViewSchema = "dbo",
 			ViewName = "v_YourView",
 			Version = 1,
-			Definition = new ReportDefinitionJson { Version = 1, DefaultCulture = Constants.DefaultLanguage, TextKey = "report.title" },
-			SystemPresets = new List<SystemPreset>()
+			Definition = new ReportDefinitionUi 
+			{ 
+				Version = 1, 
+				DefaultCulture = Constants.DefaultLanguage, 
+				TextKey = "report.title",
+				Columns = [],
+				DefaultSort = [],
+				Texts = []
+			},
+			SystemPresets = []
 		};
 
 		Current.Definition.Texts[Constants.DefaultLanguage] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -408,15 +392,13 @@ public sealed class MainViewModel : NotificationObject
 			{
 				var type = DbIntrospector.MapSqlType(c.SqlType);
 				var textKey = $"col.{ToPascal(c.Name)}";
-				Current.Definition.Columns.Add(new ReportColumnJson
+				Current.Definition.Columns.Add(new ReportColumnUi
 				{
 					Key = c.Name,
 					TextKey = textKey,
 					Type = type,
-					Hidden = false,
-					AlwaysSelect = false,
-					Filter = new FilterConfigJson { Enabled = true },
-					Sort = new SortConfigJson { Enabled = true }
+					Filter = new () { Enabled = true },
+					Sort = new () { Enabled = true }
 				});
 
 				EnsureCulture(Current.Definition.DefaultCulture);
@@ -440,13 +422,13 @@ public sealed class MainViewModel : NotificationObject
 	{
 		if (Current?.Definition == null) return;
 
-		Current.Definition.Columns.Add(new ReportColumnJson
+		Current.Definition.Columns.Add(new ReportColumnUi
 		{
 			Key = "new_column",
 			TextKey = "col.NewColumn",
 			Type = ReportColumnType.String,
-			Filter = new FilterConfigJson { Enabled = true },
-			Sort = new SortConfigJson { Enabled = true }
+			Filter = new () { Enabled = true },
+			Sort = new () { Enabled = true }
 		});
 		StatusText = "Column added.";
 	}
@@ -455,7 +437,9 @@ public sealed class MainViewModel : NotificationObject
 	{
 		if (Current?.Definition == null) return;
 		if (SelectedColumn == null) return;
-		Current.Definition.Columns.Remove(SelectedColumn);
+		// remove underlying json column by key
+		var toRemove = Current.Definition.Columns.FirstOrDefault(c => string.Equals(c.Key, SelectedColumn.Key, StringComparison.OrdinalIgnoreCase));
+		if (toRemove != null) Current.Definition.Columns.Remove(toRemove);
 		SelectedColumn = Current.Definition.Columns.FirstOrDefault();
 		StatusText = "Column removed.";
 	}
@@ -515,9 +499,9 @@ public sealed class MainViewModel : NotificationObject
 		var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		foreach (var row in CultureEntries)
 		{
-			var k = (row.Key ?? "").Trim();
+			var k = (row.Key ?? string.Empty).Trim();
 			if (k.Length == 0) continue;
-			dict[k] = row.Value ?? "";
+			dict[k] = row.Value ?? string.Empty;
 		}
 		Current.Definition.Texts[SelectedCultureKey] = dict;
 	}
@@ -526,17 +510,16 @@ public sealed class MainViewModel : NotificationObject
 	{
 		if (Current == null) return;
 		var key = $"{Current.ReportKey}_{Guid.NewGuid():N}";
-		var p = new SystemPreset
+		var p = new SystemPresetUi
 		{
 			PresetKey = key,
 			Name = "New preset",
 			IsDefault = Current.SystemPresets.Count == 0,
 			PresetId = GuidUtil.FromPresetKey(key),
-			Content = new PresetContentJson()
+			Content = new PresetContentUi()
 		};
 		Current.SystemPresets.Add(p);
 		SelectedPreset = p;
-		RefreshPresetJson();
 		StatusText = "Preset added.";
 	}
 
@@ -546,14 +529,9 @@ public sealed class MainViewModel : NotificationObject
 		if (SelectedPreset == null) return;
 		Current.SystemPresets.Remove(SelectedPreset);
 		SelectedPreset = Current.SystemPresets.FirstOrDefault();
+		// reload preset editor with UI model
 		PresetEditor.Load(Current.Definition, SelectedPreset);
-		RefreshPresetJson();
 		StatusText = "Preset removed.";
-	}
-
-	private void RefreshPresetJson()
-	{
-		SelectedPresetJson = SelectedPreset == null ? "" : JsonUtil.Serialize(SelectedPreset.Content);
 	}
 
 	private void ValidateLookupSqls()
