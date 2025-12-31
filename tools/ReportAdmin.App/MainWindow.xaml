@@ -358,6 +358,7 @@
                 </TabItem>
 
                 <TabItem Header="Generated SQL">
+                    <!-- TODO: Add regenerate button -->
                     <TextBox Margin="10"
                              AcceptsReturn="True"
                              VerticalScrollBarVisibility="Auto"
