@@ -108,13 +108,19 @@
                         <CollectionViewSource x:Key="ColumnTypeValues" Source="{Binding ColumnTypeValues}" />
                     </TabItem.Resources>
                     
-                    <DockPanel Margin="10">
-                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
                             <Button Padding="10,4" Content="+ Add column" Command="{Binding AddColumnCommand}"/>
                             <Button Margin="8,0,0,0" Padding="10,4" Content="- Remove selected" Command="{Binding RemoveSelectedColumnCommand}"/>
                         </StackPanel>
 
-                        <DataGrid x:Name="dataGrid" Margin="0,10,0,0"
+                        <DataGrid x:Name="dataGrid" Grid.Row="1" Margin="0,10,0,0"
                                   ItemsSource="{Binding Current.Definition.Columns}"
                                   SelectedItem="{Binding SelectedColumn}"
                                   AutoGenerateColumns="False"
@@ -129,23 +135,13 @@
                                 <DataGridCheckBoxColumn Header="AlwaysSelect" Binding="{Binding AlwaysSelect}" Width="120"/>
                                 <DataGridCheckBoxColumn Header="Filter" Binding="{Binding Filter.Enabled}" Width="80"/>
                                 <DataGridCheckBoxColumn Header="Sort" Binding="{Binding Sort.Enabled}" Width="80"/>
-                                <DataGridTemplateColumn Header="HasLookup" Width="90">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <CheckBox IsChecked="{Binding Filter.Lookup, Converter={StaticResource LookupPresenceConverter}}"
-                                                      IsEnabled="{Binding Filter.Enabled}"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <views:ReportColumnView Margin="0,12,0,0"
+                        <views:ReportColumnView Grid.Row="2"
+                                                Margin="0,12,0,0"
                                                 DataContext="{Binding ColumnEditor}"/>
-
-                        <TextBlock Margin="0,10,0,0" Foreground="#666" TextWrapping="Wrap"
-                                   Text="HasLookup creates/removes SQL lookup config (used to populate combobox filters)."/>
-                    </DockPanel>
+                    </Grid>
                 </TabItem>
 
                 <TabItem Header="Lookup">

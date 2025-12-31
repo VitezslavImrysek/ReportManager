@@ -3,8 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-            xmlns:local="clr-namespace:ReportAdmin.App.Views"
-             mc:Ignorable="d" 
+             xmlns:local="clr-namespace:ReportAdmin.App.Views"
+             xmlns:vm="clr-namespace:ReportAdmin.App.ViewModels"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:ReportColumnViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.Resources>
@@ -77,13 +78,13 @@
             <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,8,0,0" Text="Filter:" VerticalAlignment="Center"/>
             <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
                 <CheckBox Content="Enabled" IsChecked="{Binding Column.Filter.Enabled}"/>
-                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Filter.Hidden}"/>
+                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Filter.Hidden}" Visibility="{Binding Column.Filter.Enabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
 
             <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,8,0,0" Text="Sort:" VerticalAlignment="Center"/>
             <StackPanel Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
                 <CheckBox Content="Enabled" IsChecked="{Binding Column.Sort.Enabled}"/>
-                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Sort.Hidden}"/>
+                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Sort.Hidden}" Visibility="{Binding Column.Sort.Enabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Grid>
     </Grid>
