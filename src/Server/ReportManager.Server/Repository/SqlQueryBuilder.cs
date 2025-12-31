@@ -8,13 +8,7 @@ namespace ReportManager.Server.Repository
 {
 	public sealed class SqlQueryBuilder
 	{
-		public sealed class ColumnInfo
-		{
-			public required string Key;
-			public ReportColumnType Type;
-			public bool FilterEnabled;
-			public bool SortEnabled;
-		}
+		public record ColumnInfo(string Key, ReportColumnType Type, bool FilterEnabled, bool SortEnabled, bool PrimaryKey);
 
 		public static (string Sql, List<SqlParameter> Parameters) BuildPagedSelect(
 			string schema,
@@ -68,10 +62,10 @@ namespace ReportManager.Server.Repository
 						if (f.Values == null || f.Values.Count < 1) break;
 						if (!TryConvertValue(col.Type, f.Values[0], out var val)) break;
 						string op = f.Operation == FilterOperation.Eq ? "=" :
-									f.Operation == FilterOperation.Ne ? "<>" :
-									f.Operation == FilterOperation.Gt ? ">" :
-									f.Operation == FilterOperation.Ge ? ">=" :
-									f.Operation == FilterOperation.Lt ? "<" : "<=";
+								f.Operation == FilterOperation.Ne ? "<>" :
+								f.Operation == FilterOperation.Gt ? ">" :
+								f.Operation == FilterOperation.Ge ? ">=" :
+								f.Operation == FilterOperation.Lt ? "<" : "<=";
 						string pn = "@p" + (p++);
 						parameters.Add(new SqlParameter(pn, val ?? DBNull.Value));
 						where.Add(colSql + " " + op + " " + pn);
@@ -96,9 +90,9 @@ namespace ReportManager.Server.Repository
 						if (f.Values == null || f.Values.Count < 1) break;
 						string text = f.Values[0] ?? "";
 						string like = f.Operation == FilterOperation.Contains ? "%" + text + "%" :
-									  f.Operation == FilterOperation.NotContains ? "%" + text + "%" :
-									  f.Operation == FilterOperation.StartsWith ? text + "%" :
-									  "%" + text;
+								f.Operation == FilterOperation.NotContains ? "%" + text + "%" :
+								f.Operation == FilterOperation.StartsWith ? text + "%" :
+								"%" + text;
 						string lp = "@p" + (p++);
 						parameters.Add(new SqlParameter(lp, like));
 						if (f.Operation == FilterOperation.NotContains)
@@ -141,14 +135,21 @@ namespace ReportManager.Server.Repository
 				order.Add(SqlUtil.QuoteIdentifier(col.Key) + dir);
 			}
 			if (order.Count == 0)
-				order.Add("(SELECT 1)"); // stable order required by OFFSET/FETCH
+			{
+                // stable order required by OFFSET/FETCH; use PK if available
+                var pkCol = allowedColumns.FirstOrDefault(c => c.PrimaryKey /*&& c.SortEnabled*/); // sort doesnt have to be enabled for PK
+                if (pkCol != null)
+					order.Add(SqlUtil.QuoteIdentifier(pkCol.Key) + " ASC");
+				else
+					order.Add("(SELECT 1)");
+			}
 
 			sb.Append(" ORDER BY ").Append(string.Join(", ", order));
 
 			if (pageSize != null)
 			{
-                sb.Append(" OFFSET ").Append(pageIndex * pageSize).Append(" ROWS FETCH NEXT ").Append(pageSize).Append(" ROWS ONLY;");
-            }
+				sb.Append(" OFFSET ").Append(pageIndex * pageSize).Append(" ROWS FETCH NEXT ").Append(pageSize).Append(" ROWS ONLY;");
+			}
 
 			return (sb.ToString(), parameters);
 		}
@@ -192,10 +193,10 @@ namespace ReportManager.Server.Repository
 						if (f.Values == null || f.Values.Count < 1) break;
 						if (!TryConvertValue(col.Type, f.Values[0], out var val)) break;
 						string op = f.Operation == FilterOperation.Eq ? "=" :
-									f.Operation == FilterOperation.Ne ? "<>" :
-									f.Operation == FilterOperation.Gt ? ">" :
-									f.Operation == FilterOperation.Ge ? ">=" :
-									f.Operation == FilterOperation.Lt ? "<" : "<=";
+								f.Operation == FilterOperation.Ne ? "<>" :
+								f.Operation == FilterOperation.Gt ? ">" :
+								f.Operation == FilterOperation.Ge ? ">=" :
+								f.Operation == FilterOperation.Lt ? "<" : "<=";
 						string pn = "@p" + (p++);
 						parameters.Add(new SqlParameter(pn, val ?? DBNull.Value));
 						where.Add(colSql + " " + op + " " + pn);
@@ -218,9 +219,9 @@ namespace ReportManager.Server.Repository
 						if (f.Values == null || f.Values.Count < 1) break;
 						string text = f.Values[0] ?? "";
 						string like = f.Operation == FilterOperation.Contains ? "%" + text + "%" :
-									  f.Operation == FilterOperation.NotContains ? "%" + text + "%" :
-									  f.Operation == FilterOperation.StartsWith ? text + "%" :
-									  "%" + text;
+								f.Operation == FilterOperation.NotContains ? "%" + text + "%" :
+								f.Operation == FilterOperation.StartsWith ? text + "%" :
+								"%" + text;
 						string lp = "@p" + (p++);
 						parameters.Add(new SqlParameter(lp, like));
 						if (f.Operation == FilterOperation.NotContains)

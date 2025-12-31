@@ -128,13 +128,13 @@ namespace ReportManager.Server
             var model = JsonUtil.Deserialize<ReportDefinitionJson>(def.DefinitionJson) ?? throw new InvalidOperationException("Report definition JSON is invalid.");
 
             // allowed columns
-            var allowed = model.Columns.Select(c => new SqlQueryBuilder.ColumnInfo
-            {
-                Key = c.Key,
-                Type = c.Type,
-                FilterEnabled = c.Filter != null && c.Filter.Enabled,
-                SortEnabled = c.Sort != null && c.Sort.Enabled
-            }).ToList();
+            var allowed = model.Columns.Select(c => new SqlQueryBuilder.ColumnInfo(
+                c.Key,
+                c.Type,
+                c.Filter != null && c.Filter.Enabled,
+                c.Sort != null && c.Sort.Enabled,
+				c.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey))
+            ).ToList();
 
             // select list: requested or all non-hidden + alwaysSelect
             var selected = new List<string>();
