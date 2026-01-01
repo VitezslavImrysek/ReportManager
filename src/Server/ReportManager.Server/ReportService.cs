@@ -37,8 +37,8 @@ namespace ReportManager.Server
 				
 				var displayName = ResolveText(model, manifest.Culture, c.TextKey);
 
-				var filterEnabled = c.Filter != null && c.Filter.Enabled;
-				var hasLookup = filterEnabled && c.Filter!.Lookup != null;
+				var filterEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Filterable);
+				var hasLookup = filterEnabled && c.Filter?.Lookup != null;
 
 				var col = new ReportColumnManifestDto
 				{
@@ -49,7 +49,7 @@ namespace ReportManager.Server
 					AlwaysSelect = c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect),
 					PrimaryKey = c.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey),
                     FilterEnabled = filterEnabled,
-					SortEnabled = c.Sort != null && c.Sort.Enabled,
+					SortEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Sortable),
 					FilterOps = filterEnabled ? ComputeOps(colType, hasLookup) : [],
 					Lookup = null
 				};
@@ -131,8 +131,8 @@ namespace ReportManager.Server
             var allowed = model.Columns.Select(c => new SqlQueryBuilder.ColumnInfo(
                 c.Key,
                 c.Type,
-                c.Filter != null && c.Filter.Enabled,
-                c.Sort != null && c.Sort.Enabled,
+                c.Flags.HasFlag(ReportColumnFlagsJson.Filterable),
+                c.Flags.HasFlag(ReportColumnFlagsJson.Sortable),
 				c.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey))
             ).ToList();
 
@@ -324,12 +324,12 @@ namespace ReportManager.Server
 
 			// 2) Query.Filters: vyházej nevalidní
 			var normalizedFilters = new List<FilterSpecDto>();
-			foreach (var f in content.Query.Filters ?? new List<FilterSpecDto>())
+			foreach (var f in content.Query.Filters ?? [])
 			{
 				if (f == null || string.IsNullOrWhiteSpace(f.ColumnKey)) continue;
 				if (!cols.TryGetValue(f.ColumnKey, out var c)) continue;
 
-				bool filterEnabled = c.Filter != null && c.Filter.Enabled;
+				bool filterEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Filterable);
 				if (!filterEnabled) continue;
 
 				// allowed ops by type (server rules)
@@ -340,7 +340,7 @@ namespace ReportManager.Server
 
 				// normalize values count
 				var values = f.Values ?? [];
-				values = values.Select(v => (v ?? "").Trim()).Where(v => v.Length > 0).ToList();
+				values = values.Select(v => (v ?? string.Empty).Trim()).Where(v => v.Length > 0).ToList();
 
 				if (f.Operation == FilterOperation.IsNull || f.Operation == FilterOperation.NotNull)
 				{
@@ -379,7 +379,7 @@ namespace ReportManager.Server
 				if (s == null || string.IsNullOrWhiteSpace(s.ColumnKey)) continue;
 				if (!cols.TryGetValue(s.ColumnKey, out var c)) continue;
 
-				bool sortEnabled = c.Sort != null && c.Sort.Enabled;
+				bool sortEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Sortable);
 				if (!sortEnabled) continue;
 
 				normalizedSorting.Add(new SortSpecDto

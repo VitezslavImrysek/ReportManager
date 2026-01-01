@@ -99,10 +99,10 @@ public sealed class PresetEditorViewModel : NotificationObject
 			});
 		}
 
-		foreach (var col in definition.Columns.Where(c => c.Filter.Enabled == true))
+		foreach (var col in definition.Columns.Where(c => c.Filterable))
 			FilterableColumns.Add(col);
 
-		foreach (var col in definition.Columns.Where(c => c.Sort.Enabled == true))
+		foreach (var col in definition.Columns.Where(c => c.Sortable))
 			SortableColumns.Add(col);
 
 		foreach (var s in preset.Content.Query.Sorting)

@@ -77,14 +77,14 @@
 
             <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,8,0,0" Text="Filter:" VerticalAlignment="Center"/>
             <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
-                <CheckBox Content="Enabled" IsChecked="{Binding Column.Filter.Enabled}"/>
-                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Filter.Hidden}" Visibility="{Binding Column.Filter.Enabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <CheckBox Content="Enabled" IsChecked="{Binding Column.Filterable}"/>
+                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Filter.Hidden}" Visibility="{Binding Column.Filterable, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
 
             <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,8,0,0" Text="Sort:" VerticalAlignment="Center"/>
             <StackPanel Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
-                <CheckBox Content="Enabled" IsChecked="{Binding Column.Sort.Enabled}"/>
-                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Sort.Hidden}" Visibility="{Binding Column.Sort.Enabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <CheckBox Content="Enabled" IsChecked="{Binding Column.Sortable}"/>
+                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Sort.Hidden}" Visibility="{Binding Column.Sortable, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Grid>
     </Grid>

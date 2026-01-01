@@ -1,5 +1,5 @@
 /* REPORT: Contracts */
-/* GENERATED: 2025-12-31T19:06:58Z */
+/* GENERATED: 2026-01-01T20:42:07Z */
 /* DO NOT EDIT BY HAND */
 
 BEGIN TRY
@@ -41,39 +41,44 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
       "key": "id_smlouva",
       "textKey": "col.IdSmlouva",
       "type": "integer",
-      "flags": "alwaysSelect, hidden",
-      "filter": {},
-      "sort": {}
+      "flags": "alwaysSelect, hidden, primaryKey, sortable",
+      "filter": {
+        "flags": "none"
+      },
+      "sort": {
+        "flags": "hidden"
+      }
     },
     {
       "key": "cislo_smlouvy",
       "textKey": "col.CisloSmlouvy",
       "type": "string",
+      "flags": "filterable, sortable",
       "filter": {
-        "enabled": true
+        "flags": "none"
       },
       "sort": {
-        "enabled": true
+        "flags": "none"
       }
     },
     {
       "key": "zakaznik",
       "textKey": "col.Zakaznik",
       "type": "string",
+      "flags": "filterable, sortable",
       "filter": {
-        "enabled": true
+        "flags": "none"
       },
       "sort": {
-        "enabled": true
+        "flags": "none"
       }
     },
     {
       "key": "typ_zakaznika",
       "textKey": "col.TypZakaznika",
       "type": "integer",
-      "flags": "hidden",
+      "flags": "hidden, filterable",
       "filter": {
-        "enabled": true,
         "lookup": {
           "mode": "sql",
           "sql": {
@@ -82,39 +87,41 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
             "textColumn": "Nazev"
           },
           "items": []
-        }
-      },
-      "sort": {}
+        },
+        "flags": "none"
+      }
     },
     {
       "key": "typ_zakaznika_text",
       "textKey": "col.TypZakaznika",
       "type": "string",
-      "filter": {},
+      "flags": "sortable",
       "sort": {
-        "enabled": true
+        "flags": "none"
       }
     },
     {
       "key": "castka",
       "textKey": "col.Castka",
       "type": "decimal",
+      "flags": "filterable, sortable",
       "filter": {
-        "enabled": true
+        "flags": "none"
       },
       "sort": {
-        "enabled": true
+        "flags": "none"
       }
     },
     {
       "key": "datum_od",
       "textKey": "col.DatumOd",
       "type": "date",
+      "flags": "filterable, sortable",
       "filter": {
-        "enabled": true
+        "flags": "none"
       },
       "sort": {
-        "enabled": true
+        "flags": "none"
       }
     }
   ],

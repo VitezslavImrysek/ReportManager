@@ -18,7 +18,6 @@ public static class JsonUtil
 		{
 			new StringEnumConverter() { NamingStrategy = new CamelCaseNamingStrategy() }
 		},
-		DefaultValueHandling = DefaultValueHandling.Ignore
     };
 
 	public static string Serialize<T>(T value) => JsonConvert.SerializeObject(value, Settings);

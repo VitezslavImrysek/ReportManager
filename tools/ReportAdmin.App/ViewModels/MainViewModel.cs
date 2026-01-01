@@ -96,7 +96,7 @@ public sealed class MainViewModel : NotificationObject
 			if (SelectedColumn?.Filter == null) return;
 
 			// lookup je “rozšíření filtru” -> smí existovat jen když je filtr enabled
-			if (!SelectedColumn.Filter.Enabled)
+			if (!SelectedColumn.Filterable)
 			{
 				SelectedColumn.Filter.Lookup = null;
 				OnPropertyChanged();
@@ -132,7 +132,7 @@ public sealed class MainViewModel : NotificationObject
 		set
 		{
 			if (SelectedColumn?.Filter == null) return;
-			if (!SelectedColumn.Filter.Enabled) return;
+			if (!SelectedColumn.Filterable) return;
 
 			SelectedColumn.Filter.Lookup ??= new LookupConfigUi { Mode = LookupMode.Sql, Sql = new SqlLookupUi() };
 			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupUi();
@@ -146,7 +146,7 @@ public sealed class MainViewModel : NotificationObject
 		set
 		{
 			if (SelectedColumn?.Filter == null) return;
-			if (!SelectedColumn.Filter.Enabled) return;
+			if (!SelectedColumn.Filterable) return;
 
 			SelectedColumn.Filter.Lookup ??= new LookupConfigUi { Mode = LookupMode.Sql, Sql = new SqlLookupUi() };
 			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupUi();
@@ -160,7 +160,7 @@ public sealed class MainViewModel : NotificationObject
 		set
 		{
 			if (SelectedColumn?.Filter == null) return;
-			if (!SelectedColumn.Filter.Enabled) return;
+			if (!SelectedColumn.Filterable) return;
 
 			SelectedColumn.Filter.Lookup ??= new LookupConfigUi { Mode = LookupMode.Sql, Sql = new SqlLookupUi() };
 			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupUi();
@@ -400,8 +400,6 @@ public sealed class MainViewModel : NotificationObject
 					Key = c.Name,
 					TextKey = textKey,
 					Type = type,
-					Filter = new () { Enabled = true },
-					Sort = new () { Enabled = true }
 				});
 
 				EnsureCulture(Current.Definition.DefaultCulture);
@@ -430,8 +428,6 @@ public sealed class MainViewModel : NotificationObject
 			Key = "new_column",
 			TextKey = "col.NewColumn",
 			Type = ReportColumnType.String,
-			Filter = new () { Enabled = true },
-			Sort = new () { Enabled = true }
 		});
 		StatusText = "Column added.";
 	}

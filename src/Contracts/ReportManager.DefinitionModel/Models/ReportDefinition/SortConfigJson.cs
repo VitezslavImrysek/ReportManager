@@ -2,6 +2,5 @@
 
 public sealed class SortConfigJson
 { 
-    public bool Enabled { get; set; }
     public SortConfigFlagsJson Flags { get; set; }
 }

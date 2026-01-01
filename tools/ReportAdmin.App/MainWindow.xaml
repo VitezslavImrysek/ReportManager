@@ -133,8 +133,8 @@
                                                         ItemsSource="{Binding Source={StaticResource ColumnTypeValues}}"/>
                                 <DataGridCheckBoxColumn Header="Hidden" Binding="{Binding Hidden}" Width="120"/>
                                 <DataGridCheckBoxColumn Header="AlwaysSelect" Binding="{Binding AlwaysSelect}" Width="120"/>
-                                <DataGridCheckBoxColumn Header="Filter" Binding="{Binding Filter.Enabled}" Width="80"/>
-                                <DataGridCheckBoxColumn Header="Sort" Binding="{Binding Sort.Enabled}" Width="80"/>
+                                <DataGridCheckBoxColumn Header="Filter" Binding="{Binding Filterable}" Width="80"/>
+                                <DataGridCheckBoxColumn Header="Sort" Binding="{Binding Sortable}" Width="80"/>
                             </DataGrid.Columns>
                         </DataGrid>
 
