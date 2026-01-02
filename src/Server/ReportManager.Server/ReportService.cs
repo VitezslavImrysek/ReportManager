@@ -39,7 +39,9 @@ namespace ReportManager.Server
 				var displayName = ResolveText(model, manifest.Culture, c.TextKey);
 
 				var filterEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Filterable);
+				var filterHidden = c.Filter?.Flags.HasFlag(FilterConfigFlagsJson.Hidden) == true;
 				var hasLookup = filterEnabled && c.Filter?.Lookup != null;
+				var sortHidden = c.Sort?.Flags.HasFlag(SortConfigFlagsJson.Hidden) == true;
 
 				var col = new ReportColumnManifestDto
 				{
@@ -50,7 +52,9 @@ namespace ReportManager.Server
 					AlwaysSelect = c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect),
 					PrimaryKey = c.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey),
                     FilterEnabled = filterEnabled,
+					FilterHidden = filterHidden,
 					SortEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Sortable),
+					SortHidden = sortHidden,
 					FilterOps = filterEnabled ? ComputeOps(colType, hasLookup) : [],
 					Lookup = null
 				};

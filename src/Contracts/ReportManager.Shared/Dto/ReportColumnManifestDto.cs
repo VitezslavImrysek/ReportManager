@@ -11,9 +11,11 @@ namespace ReportManager.Shared.Dto
 		[DataMember] public bool Hidden { get; set; }
 		[DataMember] public bool AlwaysSelect { get; set; }
 		[DataMember] public bool FilterEnabled { get; set; }
+		[DataMember] public bool FilterHidden { get; set; }
 		[DataMember] public bool PrimaryKey { get; set; }
         [DataMember] public required List<FilterOperation> FilterOps { get; set; }
 		[DataMember] public bool SortEnabled { get; set; }
+		[DataMember] public bool SortHidden { get; set; }
 		[DataMember] public LookupDto? Lookup { get; set; } 
 	}
 }
