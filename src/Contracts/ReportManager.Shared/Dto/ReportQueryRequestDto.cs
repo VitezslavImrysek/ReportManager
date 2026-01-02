@@ -5,9 +5,10 @@ namespace ReportManager.Shared.Dto
 	[DataContract]
 	public sealed class ReportQueryRequestDto
 	{
-		[DataMember(Order = 1)] public required string ReportKey { get; set; }
-		[DataMember(Order = 2)] public required QuerySpecDto Query { get; set; }
-		[DataMember(Order = 3)] public int PageIndex { get; set; }
-		[DataMember(Order = 4)] public int? PageSize { get; set; }
+		[DataMember] public required string ReportKey { get; set; }
+		[DataMember] public required QuerySpecDto Query { get; set; }
+		[DataMember] public string Culture { get; set; } = Constants.DefaultLanguage;
+        [DataMember] public int PageIndex { get; set; }
+		[DataMember] public int? PageSize { get; set; }
 	}
 }

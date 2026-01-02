@@ -9,6 +9,7 @@ using System.Configuration;
 using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
 #endif
 
 #if Server
@@ -52,7 +53,7 @@ namespace ReportManager.Proxy.Services
 			return binding;
         }
 
-		#if Proxy
+#if Proxy
 
 		public static ChannelFactory<T> CreateChannelFactory<T>()
 		{
@@ -76,8 +77,34 @@ namespace ReportManager.Proxy.Services
                     throw new NotSupportedException(typeof(T).ToString());
             }
         }
-
-		#endif
+#elif Server && NETFRAMEWORK
+        public static ServiceHost CreateServiceHost(Type type)
+        {
+            var baseUrl = GetBaseUrl();
+            switch (type)
+            {
+                case Type t when t == typeof(ReportService):
+                    {
+                        
+                        var endpointAddress = CreateReportServiceEndpointAddress(baseUrl);
+                        var binding = CreateReportServiceBinding();
+                        var host = new ServiceHost(type, endpointAddress.Uri);
+						host.Description.Endpoints.Add(new ServiceEndpoint(ContractDescription.GetContract(typeof(IReportService)), binding, endpointAddress));
+                        return host;
+                    }
+                case Type t when t == typeof(ReportDownloadService):
+                    {
+                        var endpointAddress = CreateReportDownloadServiceEndpointAddress(baseUrl);
+                        var binding = CreateReportDownloadServiceBinding();
+                        var host = new ServiceHost(type, endpointAddress.Uri);
+                        host.Description.Endpoints.Add(new ServiceEndpoint(ContractDescription.GetContract(typeof(IReportDownloadService)), binding, endpointAddress));
+                        return host;
+                    }
+                default:
+                    throw new NotSupportedException(type.ToString());
+            }
+        }
+#endif
 
         public static string GetBaseUrl()
 		{

@@ -5,9 +5,9 @@ namespace ReportManager.Shared.Dto
 	[DataContract]
 	public sealed class QuerySpecDto
 	{
-		[DataMember(Order = 1)] public List<FilterSpecDto> Filters { get; set; }
-		[DataMember(Order = 2)] public List<SortSpecDto> Sorting { get; set; }
-		[DataMember(Order = 3)] public List<string> SelectedColumns { get; set; } // optional; empty => server chooses (visible+alwaysSelect)
+		[DataMember] public List<FilterSpecDto> Filters { get; set; }
+		[DataMember] public List<SortSpecDto> Sorting { get; set; }
+		[DataMember] public List<string> SelectedColumns { get; set; } // optional; empty => server chooses (visible+alwaysSelect)
 
 		public QuerySpecDto()
 		{

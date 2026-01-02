@@ -5,6 +5,7 @@ using ReportManager.DefinitionModel.Utils;
 using ReportManager.Server.Repository;
 using ReportManager.Server.Services;
 using System.Configuration;
+using System.Data;
 
 namespace ReportManager.Server
 {
@@ -124,8 +125,8 @@ namespace ReportManager.Server
                 if (request.PageIndex < 0) request.PageIndex = 0;
             }
 
-            var def = _repo.GetReportDefinitionByKey(request.ReportKey);
-            var model = JsonUtil.Deserialize<ReportDefinitionJson>(def.DefinitionJson) ?? throw new InvalidOperationException("Report definition JSON is invalid.");
+            var definition = _repo.GetReportDefinitionByKey(request.ReportKey);
+            var model = JsonUtil.Deserialize<ReportDefinitionJson>(definition.DefinitionJson) ?? throw new InvalidOperationException("Report definition JSON is invalid.");
 
             // allowed columns
             var allowed = model.Columns.Select(c => new SqlQueryBuilder.ColumnInfo(
@@ -153,12 +154,13 @@ namespace ReportManager.Server
                 if (!selected.Contains(c.Key, StringComparer.OrdinalIgnoreCase))
                     selected.Add(c.Key);
 
-            var (countSql, countParams) = SqlQueryBuilder.BuildCount(def.ViewSchema, def.ViewName, allowed, request.Query ?? new QuerySpecDto());
+            var (countSql, countParams) = SqlQueryBuilder.BuildCount(definition.ViewSchema, definition.ViewName, allowed, request.Query ?? new QuerySpecDto());
             int total = _repo.ExecuteScalarInt(countSql, countParams);
 
-            var (sql, prms) = SqlQueryBuilder.BuildPagedSelect(def.ViewSchema, def.ViewName, selected, allowed, request.Query ?? new QuerySpecDto(), request.PageIndex, request.PageSize);
+            var (sql, prms) = SqlQueryBuilder.BuildPagedSelect(definition.ViewSchema, definition.ViewName, selected, allowed, request.Query ?? new QuerySpecDto(), request.PageIndex, request.PageSize);
             var dt = _repo.ExecuteDataTable(sql, prms);
             dt.TableName = "Rows";
+			FillColumnNames(model, dt, request.Culture);
 
             return new ReportPageDto { Rows = dt, TotalCount = total };
         }
@@ -192,7 +194,19 @@ namespace ReportManager.Server
 		public void SetDefaultPreset(Guid presetId, string reportKey, Guid userId)
 			=> _repo.SetDefaultPreset(presetId, reportKey, userId);
 
-		private static string NormalizeCulture(string culture, string defaultCulture)
+        private void FillColumnNames(ReportDefinitionJson definition, DataTable table, string culture)
+        {
+            foreach (DataColumn col in table.Columns)
+            {
+                var colDef = definition.Columns.FirstOrDefault(c => string.Equals(c.Key, col.ColumnName, StringComparison.OrdinalIgnoreCase));
+                if (colDef != null)
+                {
+                    col.Caption = ResolveText(definition, culture, colDef.TextKey);
+                }
+            }
+        }
+
+        private static string NormalizeCulture(string culture, string defaultCulture)
 		{
 			if (!string.IsNullOrWhiteSpace(culture))
 			{

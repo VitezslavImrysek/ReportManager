@@ -1,6 +1,7 @@
 ﻿#if NETFRAMEWORK
 
 using ReportManager.Server;
+using ReportManager.Server.Services;
 using System.ServiceModel;
 
 namespace ReportManager.Host
@@ -21,7 +22,7 @@ namespace ReportManager.Host
             {
                 try
                 {
-                    var host = new ServiceHost(serviceType);
+                    var host = ServicesConfiguration.CreateServiceHost(serviceType);
                     host.Open();
                     hosts.Add(host);
 

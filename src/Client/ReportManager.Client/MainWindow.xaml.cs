@@ -47,26 +47,17 @@ namespace ReportManager.Client
             _gridColumnsByKey.Clear();
             ReportGrid.Columns.Clear();
 
-            foreach (var col in manifest.Columns)
+            foreach (var reportColumn in manifest.Columns)
             {
-                // 1) respektuj Hidden
-                if (col.Hidden)
+                // respektuj Hidden
+                if (reportColumn.Hidden)
                     continue;
 
-                // 2) typově zvol editor/column type
-                var gridCol = new DataGridTextColumn
-                {
-                    Header = col.DisplayName,
-                    Binding = new Binding($"[{col.Key}]"),
-                    IsReadOnly = true,
-                    CanUserSort = col.SortEnabled
-                };
-
-                // 3) typové formátování
-                ApplyFormatting(gridCol, col.Type);
-
-                ReportGrid.Columns.Add(gridCol);
-                _gridColumnsByKey[col.Key] = gridCol;
+                // typově zvol editor/column type
+                var gridColumn = BuildColumn(reportColumn);
+                
+                ReportGrid.Columns.Add(gridColumn);
+                _gridColumnsByKey[reportColumn.Key] = gridColumn;
             }
         }
 
@@ -104,7 +95,39 @@ namespace ReportManager.Client
             }
         }
 
-        private static void ApplyFormatting(DataGridTextColumn col, ReportColumnType type)
+        private DataGridColumn BuildColumn(ReportColumnManifestDto reportColumn)
+        {
+            DataGridBoundColumn column;
+
+            switch (reportColumn.Type)
+            {
+                case ReportColumnType.Boolean:
+                    column = new DataGridCheckBoxColumn();
+                    break;
+                case ReportColumnType.Integer:
+                case ReportColumnType.Long:
+                case ReportColumnType.Decimal:
+                case ReportColumnType.Double:
+                case ReportColumnType.String:
+                case ReportColumnType.Date:
+                case ReportColumnType.DateTime:
+                case ReportColumnType.Guid:
+                default:
+                    column = new DataGridTextColumn();
+                    break;
+            }
+
+            column.Header = reportColumn.DisplayName;
+            column.Binding = new Binding($"[{reportColumn.Key}]");
+            column.IsReadOnly = true;
+
+            // typové formátování
+            ApplyFormatting(column, reportColumn.Type);
+
+            return column;
+        }
+
+        private static void ApplyFormatting(DataGridBoundColumn col, ReportColumnType type)
         {
             // Nastav podle potřeby – je to jen základ
             switch (type)
