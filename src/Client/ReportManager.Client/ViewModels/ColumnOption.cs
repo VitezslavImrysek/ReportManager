@@ -11,7 +11,9 @@ namespace ReportManager.Client.ViewModels
 		public ReportColumnType Type { get; set => SetValue(ref field, value); }
 		public required ObservableCollection<FilterOperation> Ops { get; set => SetValue(ref field, value); }
 		public bool CanFilter { get; set => SetValue(ref field, value); }
+		public bool FilterHidden { get; set => SetValue(ref field, value); }
 		public bool CanSort { get; set => SetValue(ref field, value); }
+		public bool SortHidden { get; set => SetValue(ref field, value); }
 		public bool HasLookup { get; set => SetValue(ref field, value); }
 		public required ObservableCollection<LookupItemDto> LookupItems { get; set => SetValue(ref field, value); }
 

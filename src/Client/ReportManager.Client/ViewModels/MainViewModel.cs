@@ -33,6 +33,8 @@ namespace ReportManager.Client.ViewModels
 
 		public ObservableCollection<QueryConditionViewModel> Conditions { get; } = new ObservableCollection<QueryConditionViewModel>();
 		public ObservableCollection<SortSpecViewModel> Sorts { get; } = new ObservableCollection<SortSpecViewModel>();
+		public ObservableCollection<FilterSpecDto> HiddenFilters { get; } = new ObservableCollection<FilterSpecDto>();
+		public ObservableCollection<SortSpecDto> HiddenSorts { get; } = new ObservableCollection<SortSpecDto>();
 
 		public ObservableCollection<PresetInfoDto> Presets { get; } = new ObservableCollection<PresetInfoDto>();
 		public PresetInfoDto? SelectedPreset { get; set => SetValue(ref field, value); }
@@ -152,7 +154,9 @@ namespace ReportManager.Client.ViewModels
 					DisplayName = c.DisplayName,
 					Type = c.Type,
 					CanFilter = c.FilterEnabled,
+					FilterHidden = c.FilterHidden,
 					CanSort = c.SortEnabled,
+					SortHidden = c.SortHidden,
 					IsHidden = c.Hidden,
 					Ops = c.FilterOps?.ToObservable() ?? [],
 					HasLookup = c.Lookup != null,
@@ -167,19 +171,11 @@ namespace ReportManager.Client.ViewModels
 				// reset conditions/sorts
 				Conditions.Clear();
 				Sorts.Clear();
+				HiddenFilters.Clear();
+				HiddenSorts.Clear();
 
 				// seed default sort into UI
-				foreach (var s in Manifest.DefaultSort ?? new List<SortSpecDto>())
-				{
-					var vm = new SortSpecViewModel
-					{
-						AvailableColumns = GetSortableColumns(),
-						SelectedColumn = AvailableColumns.FirstOrDefault(x => x.Key.Equals(s.ColumnKey, StringComparison.OrdinalIgnoreCase)),
-						SelectedDirection = s.Direction
-					};
-					vm.RemoveCommand = new RelayCommand(() => Sorts.Remove(vm));
-					Sorts.Add(vm);
-				}
+				ApplyDefaultSorts();
 
 				// setup column visibility options
 				ColumnVisibility.Clear();
@@ -265,32 +261,14 @@ namespace ReportManager.Client.ViewModels
 					q.SelectedColumns.Add(c.Key);
 			}
 
-			// Filters
-			foreach (var c in Conditions)
+			if (!AddVisibleFilters(q))
 			{
-				if (c.SelectedColumn == null) continue;
-
-				if (!c.TryGetValuesForDto(out var values, out var error))
-				{
-					StatusText = "Query validation error: " + error;
-					return null;
-				}
-
-				var f = new FilterSpecDto
-				{
-					ColumnKey = c.SelectedColumn.Key,
-					Operation = c.SelectedOp,
-					Values = values
-				};
-				q.Filters.Add(f);
+				return null;
 			}
 
-			// Sorting
-			foreach (var s in Sorts)
-			{
-				if (s.SelectedColumn == null) continue;
-				q.Sorting.Add(new SortSpecDto { ColumnKey = s.SelectedColumn.Key, Direction = s.SelectedDirection });
-			}
+			AddHiddenFilters(q);
+			AddVisibleSorts(q);
+			AddHiddenSorts(q);
 
 			// Selected columns: use currently visible columns from manifest defaults (empty => server decides)
 			return q;
@@ -303,17 +281,7 @@ namespace ReportManager.Client.ViewModels
 			_pageIndex = 0;
 
 			// add default sort again
-			foreach (var s in Manifest?.DefaultSort ?? [])
-			{
-				var vm = new SortSpecViewModel
-				{
-					AvailableColumns = GetSortableColumns(),
-					SelectedColumn = AvailableColumns.FirstOrDefault(x => x.Key.Equals(s.ColumnKey, StringComparison.OrdinalIgnoreCase)),
-					SelectedDirection = s.Direction
-				};
-				vm.RemoveCommand = new RelayCommand(() => Sorts.Remove(vm));
-				Sorts.Add(vm);
-			}
+			ApplyDefaultSorts();
 
 			Query();
 		}
@@ -324,7 +292,7 @@ namespace ReportManager.Client.ViewModels
 			var vm = new QueryConditionViewModel
 			{
 				AvailableColumns = GetFilterableColumns(),
-				SelectedColumn = AvailableColumns.FirstOrDefault(),
+				SelectedColumn = GetFilterableColumns().FirstOrDefault(),
 			};
 			vm.RemoveCommand = new RelayCommand(() => Conditions.Remove(vm));
 			Conditions.Add(vm);
@@ -336,7 +304,7 @@ namespace ReportManager.Client.ViewModels
 			var vm = new SortSpecViewModel
 			{
 				AvailableColumns = GetSortableColumns(),
-				SelectedColumn = AvailableColumns.FirstOrDefault(),
+				SelectedColumn = GetSortableColumns().FirstOrDefault(),
 				SelectedDirection = SortDirection.Asc
 			};
 			vm.RemoveCommand = new RelayCommand(() => Sorts.Remove(vm));
@@ -345,12 +313,12 @@ namespace ReportManager.Client.ViewModels
 
 		private ObservableCollection<ColumnOption> GetSortableColumns()
 		{
-			return AvailableColumns.Where(x => x.CanSort).ToObservable();
+			return AvailableColumns.Where(x => x.CanSort && !x.SortHidden).ToObservable();
 		}
 
 		private ObservableCollection<ColumnOption> GetFilterableColumns()
 		{
-			return AvailableColumns.Where(x => x.CanFilter).ToObservable();
+			return AvailableColumns.Where(x => x.CanFilter && !x.FilterHidden).ToObservable();
 		}
 
 		private void LoadPreset()
@@ -365,11 +333,19 @@ namespace ReportManager.Client.ViewModels
 				// 1) apply query
 				Conditions.Clear();
 				Sorts.Clear();
+				HiddenFilters.Clear();
+				HiddenSorts.Clear();
 
 				foreach (var f in content.Query.Filters ?? new List<FilterSpecDto>())
 				{
 					var col = AvailableColumns.FirstOrDefault(x => x.Key.Equals(f.ColumnKey, StringComparison.OrdinalIgnoreCase));
 					if (col == null) continue;
+
+					if (col.FilterHidden && col.CanFilter)
+					{
+						HiddenFilters.Add(f);
+						continue;
+					}
 
 					var vm = new QueryConditionViewModel
 					{
@@ -400,6 +376,12 @@ namespace ReportManager.Client.ViewModels
 				{
 					var col = AvailableColumns.FirstOrDefault(x => x.Key.Equals(s.ColumnKey, StringComparison.OrdinalIgnoreCase));
 					if (col == null) continue;
+
+					if (col.SortHidden && col.CanSort)
+					{
+						HiddenSorts.Add(s);
+						continue;
+					}
 
 					var vm = new SortSpecViewModel
 					{
@@ -472,6 +454,119 @@ namespace ReportManager.Client.ViewModels
 			public required string Key { get; set => SetValue(ref field, value); }
 			public required string DisplayName { get; set => SetValue(ref field, value); }
 			public bool IsVisible { get; set => SetValue(ref field, value); }
+		}
+
+		private void ApplyDefaultSorts()
+		{
+			Sorts.Clear();
+			foreach (var s in Manifest?.DefaultSort ?? [])
+			{
+				var column = AvailableColumns.FirstOrDefault(x => x.Key.Equals(s.ColumnKey, StringComparison.OrdinalIgnoreCase));
+				if (column == null || !column.CanSort)
+				{
+					continue;
+				}
+
+				if (column.SortHidden)
+				{
+					var existing = HiddenSorts.FirstOrDefault(x => x.ColumnKey.Equals(s.ColumnKey, StringComparison.OrdinalIgnoreCase));
+					if (existing != null)
+					{
+						HiddenSorts.Remove(existing);
+					}
+					HiddenSorts.Add(new SortSpecDto { ColumnKey = s.ColumnKey, Direction = s.Direction });
+					continue;
+				}
+
+				var vm = new SortSpecViewModel
+				{
+					AvailableColumns = GetSortableColumns(),
+					SelectedColumn = column,
+					SelectedDirection = s.Direction
+				};
+				vm.RemoveCommand = new RelayCommand(() => Sorts.Remove(vm));
+				Sorts.Add(vm);
+			}
+		}
+
+		private bool AddVisibleFilters(QuerySpecDto q)
+		{
+			foreach (var c in Conditions)
+			{
+				if (c.SelectedColumn == null) continue;
+
+				if (!c.TryGetValuesForDto(out var values, out var error))
+				{
+					StatusText = "Query validation error: " + error;
+					return false;
+				}
+
+				var f = new FilterSpecDto
+				{
+					ColumnKey = c.SelectedColumn.Key,
+					Operation = c.SelectedOp,
+					Values = values
+				};
+				q.Filters.Add(f);
+			}
+
+			return true;
+		}
+
+		private void AddHiddenFilters(QuerySpecDto q)
+		{
+			if (Manifest == null)
+			{
+				return;
+			}
+
+			foreach (var hidden in HiddenFilters)
+			{
+				var col = Manifest.Columns.FirstOrDefault(x => x.Key.Equals(hidden.ColumnKey, StringComparison.OrdinalIgnoreCase));
+				if (col == null || !col.FilterEnabled || !col.FilterHidden)
+				{
+					continue;
+				}
+
+				q.Filters.Add(new FilterSpecDto
+				{
+					ColumnKey = hidden.ColumnKey,
+					Operation = hidden.Operation,
+					Values = hidden.Values ?? []
+				});
+			}
+		}
+
+		private void AddVisibleSorts(QuerySpecDto q)
+		{
+			foreach (var s in Sorts)
+			{
+				if (s.SelectedColumn == null) continue;
+				q.Sorting.Add(new SortSpecDto { ColumnKey = s.SelectedColumn.Key, Direction = s.SelectedDirection });
+			}
+		}
+
+		private void AddHiddenSorts(QuerySpecDto q)
+		{
+			if (Manifest == null)
+			{
+				return;
+			}
+
+			foreach (var hidden in HiddenSorts)
+			{
+				var col = Manifest.Columns.FirstOrDefault(x => x.Key.Equals(hidden.ColumnKey, StringComparison.OrdinalIgnoreCase));
+				if (col == null || !col.SortEnabled || !col.SortHidden)
+				{
+					continue;
+				}
+
+				q.Sorting.Add(new SortSpecDto
+				{
+					ColumnKey = hidden.ColumnKey,
+					Direction = hidden.Direction
+				});
+			}
 		}
 	}
 }
