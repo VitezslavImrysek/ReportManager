@@ -9,7 +9,7 @@ using System.Windows.Input;
 
 namespace ReportManager.Client.ViewModels
 {
-	public sealed class MainViewModel : NotificationObject
+	public sealed class ReportViewModel : NotificationObject
 	{
 		private readonly ChannelFactory<IReportService> _factory;
 		private readonly ChannelFactory<IReportDownloadService> _reportDownloadFactory;
@@ -54,7 +54,7 @@ namespace ReportManager.Client.ViewModels
 		public ICommand DownloadReportPdfCommand { get; }
 		public ICommand DownloadReportJsonCommand { get; }
 
-		public MainViewModel()
+		public ReportViewModel()
 		{
 			_factory = ServicesConfiguration.CreateChannelFactory<IReportService>();
 			_reportDownloadFactory = ServicesConfiguration.CreateChannelFactory<IReportDownloadService>();
