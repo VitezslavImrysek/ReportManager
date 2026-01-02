@@ -322,7 +322,8 @@ public sealed class MainViewModel : NotificationObject
 				p.PresetId = GuidUtil.FromPresetKey(p.PresetKey);
 			}
 
-			ValidateLookupSqls();
+            ValidateReportDefinition();
+            ValidateLookupSqls();
 
 			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 
@@ -355,7 +356,10 @@ public sealed class MainViewModel : NotificationObject
 			CommitCultureEntries();
 			if (SelectedPreset != null)
 				SelectedPreset.Content = PresetEditor.BuildContent();
+            
+			ValidateReportDefinition();
 			ValidateLookupSqls();
+            
 			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 
 			StatusText = "Applying to DB...";
@@ -595,7 +599,61 @@ public sealed class MainViewModel : NotificationObject
 			throw new InvalidOperationException("Lookup SQL validation failed:\n" + string.Join(Environment.NewLine, errors));
 	}
 
-	private static string Humanize(string key)
+    private void ValidateReportDefinition()
+    {
+        if (Current?.Definition == null) return;
+
+        var errors = new List<string>();
+        var definition = Current.Definition;
+        var defaultCulture = definition.DefaultCulture;
+
+        if (string.IsNullOrWhiteSpace(defaultCulture))
+        {
+            errors.Add("DefaultCulture is missing.");
+        }
+        else if (!definition.Texts.ContainsKey(defaultCulture))
+        {
+            errors.Add($"Missing texts for default culture '{defaultCulture}'.");
+        }
+
+        var expectedTextKeys = new Dictionary<string, string>()
+        {
+            { KnownTextKeys.ReportTitle, Current.ReportName }
+        };
+
+        foreach (var col in Current.Definition.Columns)
+        {
+            expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
+        }
+
+        // For each culture, ensure all expected text keys exist and remove any unknown keys
+        foreach (var culture in Current.Definition.Texts.Keys)
+        {
+            // Remove unknown keys
+            var cultureTexts = Current.Definition.Texts[culture];
+            foreach (var textKey in cultureTexts.Keys.ToList())
+            {
+                if (!expectedTextKeys.ContainsKey(textKey))
+                {
+                    errors.Add($"Unexpected text '{textKey}' in culture '{culture}'.");
+                }
+            }
+
+            // Add missing keys
+            foreach (var kv in expectedTextKeys)
+            {
+                if (!cultureTexts.ContainsKey(kv.Key))
+                {
+					errors.Add($"Missing text '{kv.Key}' in culture '{culture}'.");
+                }
+            }
+        }
+
+        if (errors.Count > 0)
+            throw new InvalidOperationException("Report definition validation failed:\n" + string.Join(Environment.NewLine, errors));
+    }
+
+    private static string Humanize(string key)
 	{
 		if (key.Contains('_'))
 		{
