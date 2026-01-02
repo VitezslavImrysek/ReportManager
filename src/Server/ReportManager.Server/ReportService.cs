@@ -6,6 +6,7 @@ using ReportManager.Server.Repository;
 using ReportManager.Server.Services;
 using System.Configuration;
 using System.Data;
+using ReportManager.Shared;
 
 namespace ReportManager.Server
 {
@@ -29,14 +30,14 @@ namespace ReportManager.Server
 				Culture = NormalizeCulture(culture, model.DefaultCulture),
 				Version = def.Version
 			};
-			manifest.Title = ResolveText(model, manifest.Culture, model.TextKey);
+			manifest.Title = ResolveText(model, manifest.Culture, KnownTextKeys.ReportTitle);
 
 			// compute ops by type (server rules)
 			foreach (var c in model.Columns)
 			{
 				var colType = c.Type;
 				
-				var displayName = ResolveText(model, manifest.Culture, c.TextKey);
+				var displayName = ResolveText(model, manifest.Culture, KnownTextKeys.GetColumnHeaderKey(c.Key));
 
 				var filterEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Filterable);
 				var filterHidden = c.Filter?.Flags.HasFlag(FilterConfigFlagsJson.Hidden) == true;
@@ -205,7 +206,7 @@ namespace ReportManager.Server
                 var colDef = definition.Columns.FirstOrDefault(c => string.Equals(c.Key, col.ColumnName, StringComparison.OrdinalIgnoreCase));
                 if (colDef != null)
                 {
-                    col.Caption = ResolveText(definition, culture, colDef.TextKey);
+                    col.Caption = ResolveText(definition, culture, KnownTextKeys.GetColumnHeaderKey(colDef.Key));
                 }
             }
         }

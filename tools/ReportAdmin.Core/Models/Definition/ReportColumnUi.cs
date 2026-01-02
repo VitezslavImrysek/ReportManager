@@ -6,7 +6,6 @@ namespace ReportAdmin.Core.Models.Definition;
 public sealed class ReportColumnUi : NotificationObject
 {
     public required string Key { get; set => SetValue(ref field, value); }
-    public required string TextKey { get; set => SetValue(ref field, value); }
     public ReportColumnType Type { get; set => SetValue(ref field, value); }
 
     // flags expanded
@@ -25,7 +24,6 @@ public sealed class ReportColumnUi : NotificationObject
         var r = new ReportColumnJson
         {
             Key = ui.Key,
-            TextKey = ui.TextKey,
             Type = ui.Type,
             Flags = ReportColumnFlagsJson.None,
             Filter = ui.Filter == null ? null : (FilterConfigJson)ui.Filter,
@@ -45,7 +43,6 @@ public sealed class ReportColumnUi : NotificationObject
         var ui = new ReportColumnUi
         {
             Key = src.Key,
-            TextKey = src.TextKey,
             Type = src.Type,
             Filter = src.Filter == null ? null : (FilterConfigUi)src.Filter,
             Sort = src.Sort == null ? null : (SortConfigUi)src.Sort,

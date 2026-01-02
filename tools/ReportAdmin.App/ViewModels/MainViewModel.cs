@@ -178,7 +178,8 @@ public sealed class MainViewModel : NotificationObject
 	public RelayCommand RemoveSelectedColumnCommand { get; }
 	public RelayCommand AddCultureCommand { get; }
 	public RelayCommand RemoveCultureCommand { get; }
-	public RelayCommand AddPresetCommand { get; }
+    public RelayCommand RegenerateTextsCommand { get; }
+    public RelayCommand AddPresetCommand { get; }
 	public RelayCommand RemovePresetCommand { get; }
 
 	public MainViewModel()
@@ -192,7 +193,8 @@ public sealed class MainViewModel : NotificationObject
 		RemoveSelectedColumnCommand = new RelayCommand(RemoveSelectedColumn);
 		AddCultureCommand = new RelayCommand(AddCulture);
 		RemoveCultureCommand = new RelayCommand(RemoveCulture);
-		AddPresetCommand = new RelayCommand(AddPreset);
+        RegenerateTextsCommand = new RelayCommand(RegenerateTexts);
+        AddPresetCommand = new RelayCommand(AddPreset);
 		RemovePresetCommand = new RelayCommand(RemovePreset);
 		ColumnEditor.ColumnTypeValues = ColumnTypeValues;
 
@@ -201,7 +203,7 @@ public sealed class MainViewModel : NotificationObject
 			LoadFolder(defaultReports);
 	}
 
-	private void OpenFolder()
+    private void OpenFolder()
 	{
 		var dialog = new OpenFileDialog
 		{
@@ -281,7 +283,6 @@ public sealed class MainViewModel : NotificationObject
 			{ 
 				Version = 1, 
 				DefaultCulture = Constants.DefaultLanguage, 
-				TextKey = "report.title",
 				Columns = [],
 				DefaultSort = [],
 				Texts = []
@@ -391,21 +392,20 @@ public sealed class MainViewModel : NotificationObject
 			var cols = await DbIntrospector.GetViewColumnsAsync(dlgVM.ConnStringText, dlgVM.SchemaText, dlgVM.ViewText);
 
 			Current.Definition.Columns.Clear();
-			foreach (var c in cols)
+			foreach (var col in cols)
 			{
-				var type = DbIntrospector.MapSqlType(c.SqlType);
-				var textKey = $"col.{ToPascal(c.Name)}";
+				var type = DbIntrospector.MapSqlType(col.SqlType);
+				var textKey = KnownTextKeys.GetColumnHeaderKey(col.Name);
 				Current.Definition.Columns.Add(new ReportColumnUi
 				{
-					Key = c.Name,
-					TextKey = textKey,
+					Key = col.Name,
 					Type = type,
 				});
 
 				EnsureCulture(Current.Definition.DefaultCulture);
 				var dict = Current.Definition.Texts[Current.Definition.DefaultCulture];
 				if (!dict.ContainsKey(textKey))
-					dict[textKey] = Humanize(c.Name);
+					dict[textKey] = Humanize(col.Name);
 			}
 
 			LoadCultureEntries();
@@ -426,7 +426,6 @@ public sealed class MainViewModel : NotificationObject
 		Current.Definition.Columns.Add(new ReportColumnUi
 		{
 			Key = "new_column",
-			TextKey = "col.NewColumn",
 			Type = ReportColumnType.String,
 		});
 		StatusText = "Column added.";
@@ -469,7 +468,51 @@ public sealed class MainViewModel : NotificationObject
 		StatusText = "Culture removed.";
 	}
 
-	private void EnsureCulture(string key)
+    private void RegenerateTexts()
+    {
+        // Ensure that all columns have text entries in all cultures
+        if (Current?.Definition == null) return;
+		
+		var expectedTextKeys = new Dictionary<string, string>()
+		{
+			{ KnownTextKeys.ReportTitle, Current.ReportName }
+		};
+
+		foreach (var col in Current.Definition.Columns)
+        {
+			expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
+        }
+
+        EnsureCulture(Current.Definition.DefaultCulture ?? Constants.DefaultLanguage);
+
+        // For each culture, ensure all expected text keys exist and remove any unknown keys
+        foreach (var culture in Current.Definition.Texts.Keys)
+        {
+            // Remove unknown keys
+            var cultureTexts = Current.Definition.Texts[culture];
+			foreach (var textKey in cultureTexts.Keys.ToList())
+			{
+				if (!expectedTextKeys.ContainsKey(textKey))
+				{
+					cultureTexts.Remove(textKey);
+                }
+			}
+
+			// Add missing keys
+			foreach (var kv in expectedTextKeys)
+			{
+				if (!cultureTexts.ContainsKey(kv.Key))
+				{
+					cultureTexts[kv.Key] = kv.Value;
+				}
+			}
+        }
+
+        LoadCultureEntries();
+        StatusText = "Regenerated missing text entries for columns.";
+    }
+
+    private void EnsureCulture(string key)
 	{
 		if (Current?.Definition == null) return;
 		if (!Current.Definition.Texts.ContainsKey(key))
@@ -564,14 +607,4 @@ public sealed class MainViewModel : NotificationObject
 	}
 
 	private static string ToTitle(string s) => string.IsNullOrWhiteSpace(s) ? s : char.ToUpperInvariant(s[0]) + s[1..];
-	private static string ToPascal(string s)
-	{
-		if (string.IsNullOrWhiteSpace(s)) return s;
-		if (s.Contains('_'))
-		{
-			var parts = s.Split(["_"], StringSplitOptions.RemoveEmptyEntries);
-			return string.Concat(parts.Select(p => char.ToUpperInvariant(p[0]) + p[1..]));
-		}
-		return char.ToUpperInvariant(s[0]) + s[1..];
-	}
 }

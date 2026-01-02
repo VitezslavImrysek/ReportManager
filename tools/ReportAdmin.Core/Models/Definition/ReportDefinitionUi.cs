@@ -8,7 +8,6 @@ public sealed class ReportDefinitionUi : NotificationObject
 {
     public int Version { get; set => SetValue(ref field, value); } = 1;
     public string DefaultCulture { get; set => SetValue(ref field, value); } = Constants.DefaultLanguage;
-    public string? TextKey { get; set => SetValue(ref field, value); }
     public Dictionary<string, Dictionary<string, string>> Texts { get; set => SetValue(ref field, value); } = new(StringComparer.OrdinalIgnoreCase);
     public ObservableCollection<ReportColumnUi> Columns { get; set => SetValue(ref field, value); } = new();
     public ObservableCollection<SortSpecUi> DefaultSort { get; set => SetValue(ref field, value); } = new();
@@ -20,7 +19,6 @@ public sealed class ReportDefinitionUi : NotificationObject
         {
             Version = ui.Version,
             DefaultCulture = ui.DefaultCulture,
-            TextKey = ui.TextKey,
             Texts = ui.Texts,
             Columns = [],
             DefaultSort = []
@@ -42,7 +40,6 @@ public sealed class ReportDefinitionUi : NotificationObject
         {
             Version = src.Version,
             DefaultCulture = src.DefaultCulture,
-            TextKey = src.TextKey,
             Texts = src.Texts ?? new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase),
             Columns = [],
             DefaultSort = []

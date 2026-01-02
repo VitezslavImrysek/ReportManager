@@ -2,6 +2,7 @@
 using ReportAdmin.Core;
 using ReportAdmin.Core.Models.Definition;
 using ReportAdmin.Core.Models.Preset;
+using ReportManager.Shared;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -87,7 +88,7 @@ public sealed class PresetEditorViewModel : NotificationObject
 
 		foreach (var col in definition.Columns)
 		{
-			var caption = ResolveCaption(definition, col.TextKey, col.Key);
+			var caption = ResolveCaption(definition, KnownTextKeys.GetColumnHeaderKey(col.Key), col.Key);
 			var canToggle = !col.AlwaysSelect && !col.Hidden;
 
 			Columns.Add(new ColumnVisibilityRowVm
