@@ -29,13 +29,13 @@ public sealed class PresetEditorViewModel : NotificationObject
 
         ShowAllColumnsCommand = new RelayCommand(() =>
         {
-            foreach (var c in Columns.Where(x => x.CanToggle))
+            foreach (var c in Columns)
                 c.IsVisible = true;
         }, () => _definition != null);
 
         HideAllColumnsCommand = new RelayCommand(() =>
         {
-            foreach (var c in Columns.Where(x => x.CanToggle))
+            foreach (var c in Columns)
                 c.IsVisible = false;
         }, () => _definition != null);
     }
@@ -88,22 +88,25 @@ public sealed class PresetEditorViewModel : NotificationObject
 
 		foreach (var col in definition.Columns)
 		{
-			var caption = ResolveCaption(definition, KnownTextKeys.GetColumnHeaderKey(col.Key), col.Key);
-			var canToggle = !col.AlwaysSelect && !col.Hidden;
+			if (col.Hidden)
+			{
+				continue;
+			}
 
+			var caption = ResolveCaption(definition, KnownTextKeys.GetColumnHeaderKey(col.Key), col.Key);
+			
 			Columns.Add(new ColumnVisibilityRowVm
 			{
 				Key = col.Key,
 				Caption = caption,
-				CanToggle = canToggle,
-				IsVisible = !hidden.Contains(col.Key) || !canToggle
+				IsVisible = !hidden.Contains(col.Key)
 			});
 		}
 
-		foreach (var col in definition.Columns.Where(c => c.Filterable))
+		foreach (var col in definition.Columns.Where(c => c.Filterable && c.Filter?.Hidden == false))
 			FilterableColumns.Add(col);
 
-		foreach (var col in definition.Columns.Where(c => c.Sortable))
+		foreach (var col in definition.Columns.Where(c => c.Sortable && c.Sort?.Hidden == false))
 			SortableColumns.Add(col);
 
 		foreach (var s in preset.Content.Query.Sorting)
@@ -130,7 +133,7 @@ public sealed class PresetEditorViewModel : NotificationObject
 			return new PresetContentUi();
 
 		var hidden = Columns
-			.Where(c => c.CanToggle && !c.IsVisible)
+			.Where(c => !c.IsVisible)
 			.Select(c => c.Key)
 			.Distinct(StringComparer.OrdinalIgnoreCase)
 			.ToObservable();

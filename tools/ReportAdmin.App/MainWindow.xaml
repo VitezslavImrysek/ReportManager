@@ -264,7 +264,6 @@
                                                 <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="260" IsReadOnly="True"/>
                                                 <DataGridTextColumn Header="Caption" Binding="{Binding Caption}" Width="*" IsReadOnly="True"/>
                                                 <DataGridCheckBoxColumn Header="Visible" Binding="{Binding IsVisible}" Width="90"/>
-                                                <DataGridCheckBoxColumn Header="CanToggle" Binding="{Binding CanToggle}" Width="90" IsReadOnly="True"/>
                                             </DataGrid.Columns>
                                         </DataGrid>
                                     </DockPanel>
