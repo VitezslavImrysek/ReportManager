@@ -5,6 +5,7 @@ namespace ReportAdmin.Core.Models.Preset;
 public sealed class SystemPresetUi : NotificationObject
 {
     public string PresetKey { get; set => SetValue(ref field, value); } = string.Empty;
+    public string Name { get; set => SetValue(ref field, value); } = string.Empty;
     public Guid PresetId { get; set => SetValue(ref field, value); }
     public bool IsDefault { get; set => SetValue(ref field, value); }
     public PresetContentUi Content { get; set => SetValue(ref field, value); } = new PresetContentUi();

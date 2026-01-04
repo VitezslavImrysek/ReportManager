@@ -11,7 +11,7 @@ public abstract class NotificationObject : INotifyPropertyChanged
 		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
 	protected bool SetValue<T>(ref T field, T value, [CallerMemberName] string? name = null)
-        => SetValue(ref field, value, null, name);
+        => SetValue(ref field, value, (Action<T>?)null, name);
 
     protected bool SetValue<T>(ref T field, T value, Action<T>? onPropertyChanged, [CallerMemberName] string? name = null)
     {
@@ -19,6 +19,16 @@ public abstract class NotificationObject : INotifyPropertyChanged
         field = value;
         OnPropertyChanged(name);
 		onPropertyChanged?.Invoke(value);
+        return true;
+    }
+
+    protected bool SetValue<T>(ref T field, T value, Action<T, T>? onPropertyChanged, [CallerMemberName] string? name = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        var oldValue = field;
+        field = value;
+        OnPropertyChanged(name);
+        onPropertyChanged?.Invoke(oldValue, value);
         return true;
     }
 }

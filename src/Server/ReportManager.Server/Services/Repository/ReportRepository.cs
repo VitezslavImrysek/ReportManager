@@ -246,9 +246,13 @@ namespace ReportManager.Server.Services.Repository
 
 		private DataConnection GetDataConnection(SqlConnection connection)
 		{
+            if (connection.State != ConnectionState.Open)
+            {
+                connection.Open();
+            }
+
 			var dataOptions = new DataOptions()
-				.UseSqlServer()
-                .UseConnectionString(connection.ConnectionString)
+				.UseSqlServer(connection.ConnectionString)
                 .UseConnection(connection);
 
 			return new DataConnection(dataOptions);

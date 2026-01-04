@@ -29,14 +29,14 @@ namespace ReportManager.Server.Services
 			{
 				ReportKey = reportKey
 			};
-			manifest.Title = TextsResolver.ResolveText(model.Texts, culture, model.DefaultCulture, KnownTextKeys.ReportTitle);
+			manifest.Title = TextsResolver.ResolveText(model.Texts, KnownTextKeys.ReportTitle, culture, model.DefaultCulture);
 
 			// compute ops by type (server rules)
 			foreach (var c in model.Columns)
 			{
 				var colType = c.Type;
 				
-				var displayName = TextsResolver.ResolveText(model.Texts, culture, model.DefaultCulture, KnownTextKeys.GetColumnHeaderKey(c.Key));
+				var displayName = TextsResolver.ResolveText(model.Texts, KnownTextKeys.GetColumnHeaderKey(c.Key), culture, model.DefaultCulture);
 
 				var filterEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Filterable);
 				var filterHidden = c.Filter?.Flags.HasFlag(FilterConfigFlagsJson.Hidden) == true;
@@ -73,7 +73,7 @@ namespace ReportManager.Server.Services
 								dto.Items.Add(new LookupItemDto
 								{
 									Key = Convert.ToString(it.Key),
-									Text = TextsResolver.ResolveText(model.Texts, culture, model.DefaultCulture, it.Text)
+									Text = TextsResolver.ResolveText(model.Texts, it.Text, culture, model.DefaultCulture)
 								});
 							}
 						}
@@ -205,7 +205,7 @@ namespace ReportManager.Server.Services
                 var colDef = definition.Columns.FirstOrDefault(c => string.Equals(c.Key, col.ColumnName, StringComparison.OrdinalIgnoreCase));
                 if (colDef != null)
                 {
-                    col.Caption = TextsResolver.ResolveText(definition.Texts, culture, definition.DefaultCulture, KnownTextKeys.GetColumnHeaderKey(colDef.Key));
+                    col.Caption = TextsResolver.ResolveText(definition.Texts, KnownTextKeys.GetColumnHeaderKey(colDef.Key), culture, definition.DefaultCulture);
                 }
             }
         }

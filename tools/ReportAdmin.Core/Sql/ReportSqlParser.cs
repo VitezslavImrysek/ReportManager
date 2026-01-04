@@ -5,6 +5,8 @@ using ReportAdmin.Core.Models.Preset;
 using ReportManager.DefinitionModel.Json;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.DefinitionModel.Models.ReportPreset;
+using ReportManager.DefinitionModel.Utils;
+using ReportManager.Shared;
 using System.Globalization;
 using System.Text;
 
@@ -73,7 +75,8 @@ public static class ReportSqlParser
 
 			model.SystemPresets.Add(new SystemPresetUi
 			{
-				PresetKey = key,
+				Name = TextsResolver.ResolveText(content.Texts, KnownTextKeys.PresetTitle, model.Definition.DefaultCulture, model.Definition.DefaultCulture),
+                PresetKey = key,
 				PresetId = Guid.TryParse(idStr, out var g) ? g : Guid.Empty,
 				IsDefault = isDefStr.Equals("1") || isDefStr.Equals("true", StringComparison.OrdinalIgnoreCase),
 				Content = (PresetContentUi)content

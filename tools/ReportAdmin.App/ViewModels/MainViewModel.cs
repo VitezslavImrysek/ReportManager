@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using ReportAdmin.App.Dialogs;
+using ReportAdmin.App.Messages;
 using ReportAdmin.Core;
 using ReportAdmin.Core.Db;
 using ReportAdmin.Core.Models;
@@ -17,7 +18,7 @@ using System.Windows;
 
 namespace ReportAdmin.App.ViewModels;
 
-public sealed class MainViewModel : NotificationObject
+public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColumnsMessage>
 {
 	public PresetEditorViewModel PresetEditor { get; } = new();
 	public ReportColumnViewModel ColumnEditor { get; } = new();
@@ -37,18 +38,7 @@ public sealed class MainViewModel : NotificationObject
 		}
 	}
 
-	private ReportSqlDocumentUi? _current;
-	public ReportSqlDocumentUi? Current
-	{
-		get => _current;
-		set
-		{
-			if (SetValue(ref _current, value))
-			{
-				OnPropertyChanged(nameof(CultureKeys));
-			}
-		}
-	}
+	public ReportSqlDocumentUi? Current { get; set => SetValue(ref field, value); }
 
 	public ObservableCollection<ReportColumnType> ColumnTypeValues { get; } = new(Enum.GetValues(typeof(ReportColumnType)).Cast<ReportColumnType>());
 
@@ -68,24 +58,30 @@ public sealed class MainViewModel : NotificationObject
 		}
 	}
 
-	public SystemPresetUi? SelectedPreset { get; set => SetValue(ref field, value); }
-	public string GeneratedSql { get; set => SetValue(ref field, value); } = string.Empty;
+	public SystemPresetUi? SelectedPreset { get; set => SetValue(ref field, value, OnSelectedPresetChanged); }
+
+    private void OnSelectedPresetChanged(SystemPresetUi? oldPreset, SystemPresetUi? newPreset)
+    {
+		if (oldPreset != null)
+		{
+			oldPreset.Name = PresetsTextsEditorVM.Title;
+			oldPreset.Content = PresetEditor.BuildContent();
+            oldPreset.Content.Texts = PresetsTextsEditorVM.GetData();
+        }
+
+		if (newPreset != null)
+		{
+            PresetsTextsEditorVM.DefaultCulture = Current.Definition.DefaultCulture;
+            PresetsTextsEditorVM.SetData(newPreset.Content.Texts);
+        }
+
+        // pass UI model into preset editor
+        PresetEditor.Load(Current?.Definition, newPreset);
+    }
+
+    public string GeneratedSql { get; set => SetValue(ref field, value); } = string.Empty;
 	public string StatusText { get; set => SetValue(ref field, value); } = "Ready";
 	public string ApplyConnectionString { get; set => SetValue(ref field, value); } = string.Empty;
-
-    public ObservableCollection<string> CultureKeys { get; } = new();
-
-	public string? SelectedCultureKey
-	{
-		get;
-		set
-		{
-			if (SetValue(ref field, value))
-				LoadCultureEntries();
-		}
-	}
-	public string SelectedCultureTitle => SelectedCultureKey == null ? "No culture selected" : $"Culture: {SelectedCultureKey}";
-	public ObservableCollection<KvRowVm> CultureEntries { get; } = [];
 
 	// Lookup bindings for selected column
 	public bool SelectedColumnHasLookup
@@ -176,9 +172,6 @@ public sealed class MainViewModel : NotificationObject
 	public RelayCommand ImportColumnsCommand { get; }
 	public RelayCommand AddColumnCommand { get; }
 	public RelayCommand RemoveSelectedColumnCommand { get; }
-	public RelayCommand AddCultureCommand { get; }
-	public RelayCommand RemoveCultureCommand { get; }
-    public RelayCommand RegenerateTextsCommand { get; }
     public RelayCommand AddPresetCommand { get; }
 	public RelayCommand RemovePresetCommand { get; }
 
@@ -191,17 +184,22 @@ public sealed class MainViewModel : NotificationObject
 		ImportColumnsCommand = new RelayCommand(ImportColumnsFromDb);
 		AddColumnCommand = new RelayCommand(AddColumn);
 		RemoveSelectedColumnCommand = new RelayCommand(RemoveSelectedColumn);
-		AddCultureCommand = new RelayCommand(AddCulture);
-		RemoveCultureCommand = new RelayCommand(RemoveCulture);
-        RegenerateTextsCommand = new RelayCommand(RegenerateTexts);
         AddPresetCommand = new RelayCommand(AddPreset);
 		RemovePresetCommand = new RelayCommand(RemovePreset);
 		ColumnEditor.ColumnTypeValues = ColumnTypeValues;
 
-		var defaultReports = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Reports");
+		ReportTextsEditorVM = new TextsEditorViewModel() { Mode = TextsEditorMode.Report };
+        PresetsTextsEditorVM = new TextsEditorViewModel() { Mode = TextsEditorMode.Preset };
+
+        var defaultReports = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Reports");
 		if (Directory.Exists(defaultReports))
 			LoadFolder(defaultReports);
-	}
+
+		Messenger.Instance.Register<GetColumnsMessage>(this);
+    }
+
+	public TextsEditorViewModel ReportTextsEditorVM { get; set => SetValue(ref field, value); }
+	public TextsEditorViewModel PresetsTextsEditorVM { get; set => SetValue(ref field, value); }
 
     private void OpenFolder()
 	{
@@ -246,23 +244,18 @@ public sealed class MainViewModel : NotificationObject
 				MessageBox.Show("The report SQL file does not contain a valid report definition.");
 				return;
             }
-            
-			CultureKeys.Clear();
-			foreach (var c in Current.Definition.Texts.Keys.OrderBy(x => x))
-				CultureKeys.Add(c);
 
-			if (SelectedCultureKey == null)
-				SelectedCultureKey = CultureKeys.FirstOrDefault() ?? Current.Definition.DefaultCulture;
+			ReportTextsEditorVM.DefaultCulture = Current.Definition.DefaultCulture;
+			ReportTextsEditorVM.SetData(Current.Definition.Texts);
 
-			SelectedPreset = Current.SystemPresets.FirstOrDefault();
+            SelectedPreset = Current.SystemPresets.FirstOrDefault();
 			// pass UI model into preset editor
-			PresetEditor.Load((ReportDefinitionUi)Current.Definition, SelectedPreset);
+			PresetEditor.Load(Current.Definition, SelectedPreset);
 			// map selected column to UI model
 			SelectedColumn = Current.Definition.Columns.FirstOrDefault() is var firstCol && firstCol != null ? (ReportColumnUi)firstCol : null;
 
 			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 			StatusText = $"Loaded: {Path.GetFileName(path)}";
-			OnPropertyChanged(nameof(SelectedCultureTitle));
 		}
 		catch (Exception ex)
 		{
@@ -291,10 +284,7 @@ public sealed class MainViewModel : NotificationObject
         {
             ["report.title"] = "New report"
         };
-		CultureKeys.Clear();
-		CultureKeys.Add(Constants.DefaultLanguage);
-		SelectedCultureKey = Constants.DefaultLanguage;
-		CultureEntries.Clear();
+		ReportTextsEditorVM.SetData(Current.Definition.Texts);
 
 		GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 		StatusText = "New report created (not saved yet).";
@@ -306,11 +296,8 @@ public sealed class MainViewModel : NotificationObject
 		{
 			if (Current == null) return;
 
-			CommitCultureEntries();
-
 			// Commit preset editor UI into typed content
-			if (SelectedPreset != null)
-				SelectedPreset.Content = PresetEditor.BuildContent();
+			SelectedPreset = null;
 
 			foreach (var p in Current.SystemPresets)
 			{
@@ -350,11 +337,10 @@ public sealed class MainViewModel : NotificationObject
 			if (string.IsNullOrWhiteSpace(ApplyConnectionString))
 				throw new InvalidOperationException("Connection string is empty.");
 
-			CommitCultureEntries();
-			if (SelectedPreset != null)
-				SelectedPreset.Content = PresetEditor.BuildContent();
-            
-			ValidateReportDefinition();
+            // Commit preset editor UI into typed content
+            SelectedPreset = null;
+
+            ValidateReportDefinition();
 			ValidateLookupSqls();
             
 			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
@@ -392,24 +378,45 @@ public sealed class MainViewModel : NotificationObject
 			StatusText = "Reading view metadata...";
 			var cols = await DbIntrospector.GetViewColumnsAsync(dlgVM.ConnStringText, dlgVM.SchemaText, dlgVM.ViewText);
 
-			Current.Definition.Columns.Clear();
-			foreach (var col in cols)
-			{
-				var type = DbIntrospector.MapSqlType(col.SqlType);
-				var textKey = KnownTextKeys.GetColumnHeaderKey(col.Name);
-				Current.Definition.Columns.Add(new ReportColumnUi
+            //Current.Definition.Columns.Clear();
+            // Delete columns which are not present in the imported view
+			var existingColumnKeys = cols.Select(c => c.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            for (var i = 0; i < Current.Definition.Columns.Count; i++)
+            {
+                var col = Current.Definition.Columns[i];
+				if (!existingColumnKeys.Contains(col.Key))
 				{
-					Key = col.Name,
-					Type = type,
-				});
+                    Current.Definition.Columns.RemoveAt(i);
+                    i--;
+                    Messenger.Instance.Send(new ReportColumnKeyChangedMessage() { OldName = col.Key });
+                }
+            }
 
-				EnsureCulture(Current.Definition.DefaultCulture);
-				var dict = Current.Definition.Texts[Current.Definition.DefaultCulture];
-				if (!dict.ContainsKey(textKey))
-					dict[textKey] = Humanize(col.Name);
-			}
+            // Add or update imported columns
+            foreach (var col in cols)
+			{
+				var oldColumn = Current.Definition.Columns.FirstOrDefault(c => string.Equals(c.Key, col.Name, StringComparison.OrdinalIgnoreCase));
+				if (oldColumn != null)
+				{
+                    // Update type if changed
+                    var newType = DbIntrospector.MapSqlType(col.SqlType);
+                    if (oldColumn.Type != newType)
+                        oldColumn.Type = newType;
+                }
+				else
+				{
+                    var type = DbIntrospector.MapSqlType(col.SqlType);
+                    var textKey = KnownTextKeys.GetColumnHeaderKey(col.Name);
+                    Current.Definition.Columns.Add(new ReportColumnUi
+                    {
+                        Key = col.Name,
+                        Type = type,
+                    });
 
-			LoadCultureEntries();
+                    Messenger.Instance.Send(new ReportColumnKeyChangedMessage() { NewName = col.Name });
+                }
+            }
+
 			SelectedColumn = Current.Definition.Columns.FirstOrDefault();
 			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 			StatusText = $"Imported {cols.Count} columns from {dlgVM.SchemaText}.{dlgVM.ViewText}.";
@@ -443,126 +450,22 @@ public sealed class MainViewModel : NotificationObject
 		StatusText = "Column removed.";
 	}
 
-	private void AddCulture()
-	{
-		var key = Microsoft.VisualBasic.Interaction.InputBox("Culture key (e.g. cs, en, pl):", "Add culture", "en").Trim();
-		if (key.Length == 0) return;
-		EnsureCulture(key);
-		if (!CultureKeys.Contains(key)) CultureKeys.Add(key);
-		SelectedCultureKey = key;
-		StatusText = "Culture added.";
-	}
-
-	private void RemoveCulture()
-	{
-		if (Current?.Definition == null) return;
-		if (SelectedCultureKey == null) return;
-		if (SelectedCultureKey.Equals(Current.Definition.DefaultCulture, StringComparison.OrdinalIgnoreCase))
-		{
-			StatusText = "Can't remove DefaultCulture.";
-			return;
-		}
-
-		Current.Definition.Texts.Remove(SelectedCultureKey);
-		CultureKeys.Remove(SelectedCultureKey);
-		SelectedCultureKey = CultureKeys.FirstOrDefault();
-		StatusText = "Culture removed.";
-	}
-
-    private void RegenerateTexts()
-    {
-        // Ensure that all columns have text entries in all cultures
-        if (Current?.Definition == null) return;
-		
-		var expectedTextKeys = new Dictionary<string, string>()
-		{
-			{ KnownTextKeys.ReportTitle, "New report" }
-		};
-
-		foreach (var col in Current.Definition.Columns)
-        {
-			expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
-        }
-
-        EnsureCulture(Current.Definition.DefaultCulture ?? Constants.DefaultLanguage);
-
-        // For each culture, ensure all expected text keys exist and remove any unknown keys
-        foreach (var culture in Current.Definition.Texts.Keys)
-        {
-            // Remove unknown keys
-            var cultureTexts = Current.Definition.Texts[culture];
-			foreach (var textKey in cultureTexts.Keys.ToList())
-			{
-				if (!expectedTextKeys.ContainsKey(textKey))
-				{
-					cultureTexts.Remove(textKey);
-                }
-			}
-
-			// Add missing keys
-			foreach (var kv in expectedTextKeys)
-			{
-				if (!cultureTexts.ContainsKey(kv.Key))
-				{
-					cultureTexts[kv.Key] = kv.Value;
-				}
-			}
-        }
-
-        LoadCultureEntries();
-        StatusText = "Regenerated missing text entries for columns.";
-    }
-
-    private void EnsureCulture(string key)
-	{
-		if (Current?.Definition == null) return;
-		if (!Current.Definition.Texts.ContainsKey(key))
-			Current.Definition.Texts[key] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-	}
-
-	private void LoadCultureEntries()
-	{
-		if (Current?.Definition == null) return;
-		CultureEntries.Clear();
-		if (SelectedCultureKey == null) return;
-		EnsureCulture(SelectedCultureKey);
-
-		foreach (var kv in Current.Definition.Texts[SelectedCultureKey].OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase))
-			CultureEntries.Add(new KvRowVm { Key = kv.Key, Value = kv.Value });
-
-		OnPropertyChanged(nameof(SelectedCultureTitle));
-	}
-
-	private void CommitCultureEntries()
-	{
-		if (Current?.Definition == null) return;
-		if (SelectedCultureKey == null) return;
-		EnsureCulture(SelectedCultureKey);
-
-		var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		foreach (var row in CultureEntries)
-		{
-			var k = (row.Key ?? string.Empty).Trim();
-			if (k.Length == 0) continue;
-			dict[k] = row.Value ?? string.Empty;
-		}
-		Current.Definition.Texts[SelectedCultureKey] = dict;
-	}
-
 	private void AddPreset()
 	{
 		if (Current == null) return;
 		var key = $"{Current.ReportKey}_{Guid.NewGuid():N}";
+		var name = "New preset";
 		var p = new SystemPresetUi
 		{
 			PresetKey = key,
-			IsDefault = Current.SystemPresets.Count == 0,
+            Name = name,
+            IsDefault = Current.SystemPresets.Count == 0,
 			PresetId = GuidUtil.FromPresetKey(key),
 			Content = new PresetContentUi()
 		};
 		p.Content.Texts[Constants.DefaultLanguage] = new Dictionary<string, string>
 		{
-			[KnownTextKeys.PresetTitle] = "New preset"
+			[KnownTextKeys.PresetTitle] = name
         };
         Current.SystemPresets.Add(p);
 		SelectedPreset = p;
@@ -665,4 +568,12 @@ public sealed class MainViewModel : NotificationObject
 	}
 
 	private static string ToTitle(string s) => string.IsNullOrWhiteSpace(s) ? s : char.ToUpperInvariant(s[0]) + s[1..];
+
+    void IMessageReceiver<GetColumnsMessage>.Receive(GetColumnsMessage message)
+    {
+        foreach (var col in Current?.Definition?.Columns ?? [])
+		{
+			message.ColumnNames.Add(col.Key);
+        }
+    }
 }
