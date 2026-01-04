@@ -1,13 +1,12 @@
 ﻿using PdfSharp.Fonts;
+using ReportManager.Server.Services.ReportExporters;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
-using ReportManager.Server.ReportExporters;
-using ReportManager.Server.Services;
 using System.Data;
 
-namespace ReportManager.Server
+namespace ReportManager.Server.Services
 {
-	public class ReportDownloadService : IReportDownloadService
+	public class ReportDownloadService
 	{
 		static ReportDownloadService()
 		{
@@ -20,7 +19,7 @@ namespace ReportManager.Server
 		{
 			var reportQuery = request.ReportQuery ?? throw new ArgumentNullException(nameof(request.ReportQuery));
 
-            var manifest = new ReportService().GetReportManifest(reportQuery.ReportKey, Constants.DefaultLanguage);
+            var manifest = new ReportService().GetReportManifest(reportQuery.ReportKey);
 			var data = new ReportService().QueryReportInternal(reportQuery);
 
 			var hiddenColumns = manifest.Columns.Where(c => c.Hidden).ToList();

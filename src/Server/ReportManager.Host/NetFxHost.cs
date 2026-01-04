@@ -1,7 +1,6 @@
 ﻿#if NETFRAMEWORK
 
-using ReportManager.Server;
-using ReportManager.Server.Services;
+using ReportManager.Server.Wcf;
 using System.ServiceModel;
 
 namespace ReportManager.Host

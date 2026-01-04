@@ -3,7 +3,7 @@ using System;
 using System.Data;
 using System.IO;
 
-namespace ReportManager.Server.ReportExporters
+namespace ReportManager.Server.Services.ReportExporters
 {
 	internal sealed class XlsxExporter : ReportExporterBase, IReportExporter
 	{

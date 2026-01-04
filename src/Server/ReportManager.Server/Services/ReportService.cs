@@ -1,16 +1,16 @@
-﻿using ReportManager.Shared.Dto;
-using ReportManager.DefinitionModel.Json;
+﻿using ReportManager.DefinitionModel.Json;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.DefinitionModel.Utils;
-using ReportManager.Server.Repository;
-using ReportManager.Server.Services;
+using ReportManager.Server.Services.Repository;
+using ReportManager.Shared;
+using ReportManager.Shared.Dto;
 using System.Configuration;
 using System.Data;
-using ReportManager.Shared;
+using System.Globalization;
 
-namespace ReportManager.Server
+namespace ReportManager.Server.Services
 {
-	public sealed class ReportService : IReportService
+	public sealed class ReportService
 	{
 		private readonly ReportRepository _repo;
 
@@ -20,24 +20,23 @@ namespace ReportManager.Server
 			_repo = new ReportRepository(cs);
 		}
 
-		public ReportManifestDto GetReportManifest(string reportKey, string culture)
+		public ReportManifestDto GetReportManifest(string reportKey)
 		{
-			var def = _repo.GetReportDefinitionByKey(reportKey);
+			var culture = CultureInfo.CurrentUICulture.Name;
+            var def = _repo.GetReportDefinitionByKey(reportKey);
 			var model = JsonUtil.Deserialize<ReportDefinitionJson>(def.DefinitionJson) ?? throw new InvalidOperationException("Report definition JSON is invalid.");
 			var manifest = new ReportManifestDto
 			{
-				ReportKey = reportKey,
-				Culture = NormalizeCulture(culture, model.DefaultCulture),
-				Version = def.Version
+				ReportKey = reportKey
 			};
-			manifest.Title = ResolveText(model, manifest.Culture, KnownTextKeys.ReportTitle);
+			manifest.Title = TextsResolver.ResolveText(model.Texts, culture, model.DefaultCulture, KnownTextKeys.ReportTitle);
 
 			// compute ops by type (server rules)
 			foreach (var c in model.Columns)
 			{
 				var colType = c.Type;
 				
-				var displayName = ResolveText(model, manifest.Culture, KnownTextKeys.GetColumnHeaderKey(c.Key));
+				var displayName = TextsResolver.ResolveText(model.Texts, culture, model.DefaultCulture, KnownTextKeys.GetColumnHeaderKey(c.Key));
 
 				var filterEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Filterable);
 				var filterHidden = c.Filter?.Flags.HasFlag(FilterConfigFlagsJson.Hidden) == true;
@@ -74,7 +73,7 @@ namespace ReportManager.Server
 								dto.Items.Add(new LookupItemDto
 								{
 									Key = Convert.ToString(it.Key),
-									Text = ResolveText(model, manifest.Culture, it.Text)
+									Text = TextsResolver.ResolveText(model.Texts, culture, model.DefaultCulture, it.Text)
 								});
 							}
 						}
@@ -165,7 +164,7 @@ namespace ReportManager.Server
             var (sql, prms) = SqlQueryBuilder.BuildPagedSelect(definition.ViewSchema, definition.ViewName, selected, allowed, request.Query ?? new QuerySpecDto(), request.PageIndex, request.PageSize);
             var dt = _repo.ExecuteDataTable(sql, prms);
             dt.TableName = "Rows";
-			FillColumnNames(model, dt, request.Culture);
+			FillColumnNames(model, dt, CultureInfo.CurrentUICulture.Name);
 
             return new ReportPageDto { Rows = dt, TotalCount = total };
         }
@@ -206,54 +205,10 @@ namespace ReportManager.Server
                 var colDef = definition.Columns.FirstOrDefault(c => string.Equals(c.Key, col.ColumnName, StringComparison.OrdinalIgnoreCase));
                 if (colDef != null)
                 {
-                    col.Caption = ResolveText(definition, culture, KnownTextKeys.GetColumnHeaderKey(colDef.Key));
+                    col.Caption = TextsResolver.ResolveText(definition.Texts, culture, definition.DefaultCulture, KnownTextKeys.GetColumnHeaderKey(colDef.Key));
                 }
             }
         }
-
-        private static string NormalizeCulture(string culture, string defaultCulture)
-		{
-			if (!string.IsNullOrWhiteSpace(culture))
-			{
-				// keep language part only for simplicity (cs-CZ -> cs)
-				var dash = culture.IndexOf('-');
-				if (dash > 0) culture = culture.Substring(0, dash);
-				return culture.ToLowerInvariant();
-			}
-			return string.IsNullOrWhiteSpace(defaultCulture) ? "en" : defaultCulture.ToLowerInvariant();
-		}
-
-		private static string ResolveText(ReportDefinitionJson model, string culture, string? textKey)
-		{
-			if (string.IsNullOrEmpty(textKey))
-			{
-				return string.Empty;
-			}
-
-			if (model.Texts != null)
-			{
-				Dictionary<string, string>? dict;
-				if (model.Texts.TryGetValue(culture, out dict) && dict != null && dict.TryGetValue(textKey!, out var t) && !string.IsNullOrEmpty(t))
-					return t;
-
-				if (!string.IsNullOrWhiteSpace(model.DefaultCulture)
-					&& model.Texts.TryGetValue(model.DefaultCulture, out dict)
-					&& dict != null
-					&& dict.TryGetValue(textKey!, out t)
-					&& !string.IsNullOrEmpty(t))
-					return t;
-
-				// fallback to any
-				foreach (var kv in model.Texts)
-				{
-					dict = kv.Value;
-					if (dict != null && dict.TryGetValue(textKey!, out t) && !string.IsNullOrEmpty(t))
-						return t;
-				}
-			}
-
-			return textKey!;
-		}
 
 		private static List<FilterOperation> ComputeOps(ReportColumnType type, bool hasLookup)
 		{
@@ -412,9 +367,6 @@ namespace ReportManager.Server
 			// 4) SelectedColumns: nepouštěl bych z presetu vůbec (zjednodušení)
 			// Nech server dál rozhodovat podle hidden + alwaysSelect (přes tvůj UI stav).
 			content.Query.SelectedColumns = new List<string>();
-
-			// Ensure version
-			if (content.Version <= 0) content.Version = 1;
 		}
 	}
 }

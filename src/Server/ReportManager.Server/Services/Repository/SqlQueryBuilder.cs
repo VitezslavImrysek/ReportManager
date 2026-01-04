@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.Text;
 
-namespace ReportManager.Server.Repository
+namespace ReportManager.Server.Services.Repository
 {
 	public sealed class SqlQueryBuilder
 	{

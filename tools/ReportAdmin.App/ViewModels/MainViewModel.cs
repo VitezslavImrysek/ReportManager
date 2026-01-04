@@ -275,13 +275,10 @@ public sealed class MainViewModel : NotificationObject
 		Current = new ReportSqlDocumentUi
 		{
 			ReportKey = "NewReport",
-			ReportName = "New report",
 			ViewSchema = "dbo",
 			ViewName = "v_YourView",
-			Version = 1,
 			Definition = new ReportDefinitionUi 
 			{ 
-				Version = 1, 
 				DefaultCulture = Constants.DefaultLanguage, 
 				Columns = [],
 				DefaultSort = [],
@@ -292,7 +289,7 @@ public sealed class MainViewModel : NotificationObject
 
 		Current.Definition.Texts[Constants.DefaultLanguage] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["report.title"] = Current.ReportName
+            ["report.title"] = "New report"
         };
 		CultureKeys.Clear();
 		CultureKeys.Add(Constants.DefaultLanguage);
@@ -479,7 +476,7 @@ public sealed class MainViewModel : NotificationObject
 		
 		var expectedTextKeys = new Dictionary<string, string>()
 		{
-			{ KnownTextKeys.ReportTitle, Current.ReportName }
+			{ KnownTextKeys.ReportTitle, "New report" }
 		};
 
 		foreach (var col in Current.Definition.Columns)
@@ -559,12 +556,15 @@ public sealed class MainViewModel : NotificationObject
 		var p = new SystemPresetUi
 		{
 			PresetKey = key,
-			Name = "New preset",
 			IsDefault = Current.SystemPresets.Count == 0,
 			PresetId = GuidUtil.FromPresetKey(key),
 			Content = new PresetContentUi()
 		};
-		Current.SystemPresets.Add(p);
+		p.Content.Texts[Constants.DefaultLanguage] = new Dictionary<string, string>
+		{
+			[KnownTextKeys.PresetTitle] = "New preset"
+        };
+        Current.SystemPresets.Add(p);
 		SelectedPreset = p;
 		StatusText = "Preset added.";
 	}
@@ -618,7 +618,7 @@ public sealed class MainViewModel : NotificationObject
 
         var expectedTextKeys = new Dictionary<string, string>()
         {
-            { KnownTextKeys.ReportTitle, Current.ReportName }
+            { KnownTextKeys.ReportTitle, "New report" }
         };
 
         foreach (var col in Current.Definition.Columns)

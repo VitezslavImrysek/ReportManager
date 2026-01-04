@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ReportManager.Server.Services;
 using ReportManager.Shared.Dto;
-using System;
-using System.Collections.Generic;
 
 namespace ReportManager.Server.Controllers
 {
@@ -11,16 +9,16 @@ namespace ReportManager.Server.Controllers
     [Route("api/[controller]")]
     public class ReportController : ControllerBase
     {
-        private readonly IReportService _service;
+        private readonly ReportService _service;
 
-        public ReportController(IReportService service)
+        public ReportController(ReportService service)
         {
             _service = service ?? throw new ArgumentNullException(nameof(service));
         }
 
         [HttpGet("manifest")]
-        public ActionResult<ReportManifestDto> GetReportManifest([FromQuery] string reportKey, [FromQuery] string culture)
-            => Ok(_service.GetReportManifest(reportKey, culture));
+        public ActionResult<ReportManifestDto> GetReportManifest([FromQuery] string reportKey)
+            => Ok(_service.GetReportManifest(reportKey));
 
         [HttpPost("query")]
         public ActionResult<ReportPageDto> QueryReport([FromBody] ReportQueryRequestDto request)

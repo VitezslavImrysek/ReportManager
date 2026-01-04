@@ -1,5 +1,6 @@
 ﻿using ReportManager.Shared.Dto;
 
+
 #if Server && NET
 using CoreWCF;
 #else
@@ -8,7 +9,7 @@ using System.ServiceModel;
 #endif
 
 #if Server
-namespace ReportManager.Server.Services
+namespace ReportManager.Server.Wcf
 #else
 namespace ReportManager.Proxy.Services
 #endif

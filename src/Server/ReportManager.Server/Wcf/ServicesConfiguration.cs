@@ -1,10 +1,8 @@
 ﻿#if Server && NET
 using CoreWCF;
 using CoreWCF.Channels;
-using ReportManager;
 using System.Configuration;
 #else
-using ReportManager;
 using System.Configuration;
 using System.IO;
 using System.ServiceModel;
@@ -12,8 +10,15 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 #endif
 
+#if Server && NETFRAMEWORK
+using ReportManager.Server.Wcf.Localization;
+#endif
+
+using System.Globalization;
+using ReportManager.Shared;
+
 #if Server
-namespace ReportManager.Server.Services
+namespace ReportManager.Server.Wcf
 #else
 namespace ReportManager.Proxy.Services
 #endif
@@ -90,6 +95,7 @@ namespace ReportManager.Proxy.Services
                         var binding = CreateReportServiceBinding();
                         var host = new ServiceHost(type, endpointAddress.Uri);
 						host.Description.Endpoints.Add(new ServiceEndpoint(ContractDescription.GetContract(typeof(IReportService)), binding, endpointAddress));
+                        host.Description.Behaviors.Add(new AcceptLanguageCultureBehavior(new AcceptLanguageCultureInspector()));
                         return host;
                     }
                 case Type t when t == typeof(ReportDownloadService):
@@ -98,6 +104,7 @@ namespace ReportManager.Proxy.Services
                         var binding = CreateReportDownloadServiceBinding();
                         var host = new ServiceHost(type, endpointAddress.Uri);
                         host.Description.Endpoints.Add(new ServiceEndpoint(ContractDescription.GetContract(typeof(IReportDownloadService)), binding, endpointAddress));
+                        host.Description.Behaviors.Add(new AcceptLanguageCultureBehavior(new AcceptLanguageCultureInspector()));
                         return host;
                     }
                 default:
@@ -113,12 +120,17 @@ namespace ReportManager.Proxy.Services
 
 		public static EndpointAddress CreateReportServiceEndpointAddress(string baseUrl)
 		{
-			return new EndpointAddress($"{baseUrl}/ReportService");
+			return new EndpointAddress(new Uri($"{baseUrl}/ReportService"), CreateLanguageAddressHeader());
         }
 
 		public static EndpointAddress CreateReportDownloadServiceEndpointAddress(string baseUrl)
 		{
-			return new EndpointAddress($"{baseUrl}/ReportDownloadService");
+			return new EndpointAddress(new Uri($"{baseUrl}/ReportDownloadService"), CreateLanguageAddressHeader());
+        }
+
+		private static AddressHeader CreateLanguageAddressHeader()
+		{
+			return AddressHeader.CreateAddressHeader(Constants.LanguageHeaderName, string.Empty, CultureInfo.CurrentUICulture.Name);
         }
     }
 }

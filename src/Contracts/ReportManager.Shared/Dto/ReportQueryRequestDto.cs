@@ -7,7 +7,6 @@ namespace ReportManager.Shared.Dto
 	{
 		[DataMember] public required string ReportKey { get; set; }
 		[DataMember] public required QuerySpecDto Query { get; set; }
-		[DataMember] public string Culture { get; set; } = Constants.DefaultLanguage;
         [DataMember] public int PageIndex { get; set; }
 		[DataMember] public int? PageSize { get; set; }
 	}

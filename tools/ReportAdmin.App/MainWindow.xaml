@@ -70,31 +70,27 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="ReportKey:" VerticalAlignment="Center"/>
                         <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Current.ReportKey, UpdateSourceTrigger=PropertyChanged}"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,6,0,0" Text="ReportName:" VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,6,0,0" Text="{Binding Current.ReportName, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,6,0,0" Text="ViewSchema:" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,6,0,0" Text="{Binding Current.ViewSchema, UpdateSourceTrigger=PropertyChanged}"/>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,6,0,0" Text="ViewSchema:" VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,6,0,0" Text="{Binding Current.ViewSchema, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,6,0,0" Text="ViewName:" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,6,0,0" Text="{Binding Current.ViewName, UpdateSourceTrigger=PropertyChanged}"/>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,6,0,0" Text="ViewName:" VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="3" Grid.Column="1" Margin="0,6,0,0" Text="{Binding Current.ViewName, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,6,0,0" Text="Default culture:" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Margin="0,6,0,0" Width="120" HorizontalAlignment="Left"
+                                 Text="{Binding Current.Definition.DefaultCulture, UpdateSourceTrigger=PropertyChanged}"/>
 
-                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,6,0,0" Text="Version:" VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="4" Grid.Column="1" Margin="0,6,0,0" Width="120" HorizontalAlignment="Left"
-                                 Text="{Binding Current.Version, UpdateSourceTrigger=PropertyChanged}"/>
-
-                        <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,10,0,0">
+                        <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,10,0,0">
                             <Button Padding="10,4" Content="Import columns from DB view..." Command="{Binding ImportColumnsCommand}"/>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="6" Grid.ColumnSpan="2" Margin="0,12,0,0" Foreground="#666" TextWrapping="Wrap"
+                        <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Margin="0,12,0,0" Foreground="#666" TextWrapping="Wrap"
                                    Text="Tip: ReportKey is used as filename (Reports\{ReportKey}.sql). The SQL file is generated in a strict template for reliable parsing."/>
                     </Grid>
                 </TabItem>
@@ -126,8 +122,8 @@
                                 <DataGridTextColumn Header="Key" Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}" Width="220"/>
                                 <DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding Type}" Width="150"
                                                         ItemsSource="{Binding Source={StaticResource ColumnTypeValues}}"/>
-                                <DataGridCheckBoxColumn Header="Hidden" Binding="{Binding Hidden}" Width="120"/>
                                 <DataGridCheckBoxColumn Header="AlwaysSelect" Binding="{Binding AlwaysSelect}" Width="120"/>
+                                <DataGridCheckBoxColumn Header="Hidden" Binding="{Binding Hidden}" Width="120"/>
                                 <DataGridCheckBoxColumn Header="Filter" Binding="{Binding Filterable}" Width="80"/>
                                 <DataGridCheckBoxColumn Header="Sort" Binding="{Binding Sortable}" Width="80"/>
                             </DataGrid.Columns>
@@ -346,6 +342,39 @@
                                             </DataGrid.Columns>
                                         </DataGrid>
                                     </DockPanel>
+                                </TabItem>
+
+                                <TabItem Header="Texts">
+                                    <!--<Grid Margin="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="300"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock FontWeight="SemiBold" Text="Culture"/>
+                                            <ListBox ItemsSource="{Binding CultureKeys}" SelectedItem="{Binding SelectedCultureKey}" />
+                                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                                <Button Padding="10,4" Content="+ Culture" Command="{Binding AddCultureCommand}"/>
+                                                <Button Margin="8,0,0,0" Padding="10,4" Content="- Culture" Command="{Binding RemoveCultureCommand}"/>
+                                                <Button Margin="8,0,0,0" Padding="10,4" Content="Regenerate" Command="{Binding RegenerateTextsCommand}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <DockPanel Grid.Column="1" Margin="12,0,0,0">
+                                            <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" Text="{Binding SelectedCultureTitle}"/>
+                                            <DataGrid Margin="0,10,0,0" 
+                                                      ItemsSource="{Binding CultureEntries}" 
+                                                      AutoGenerateColumns="False"
+                                                      CanUserAddRows="True"
+                                                      IsReadOnly="False">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn Header="Key" Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}" Width="280" />
+                                                    <DataGridTextColumn Header="Text" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </DockPanel>
+                                    </Grid>-->
                                 </TabItem>
                             </TabControl>
                         </Grid>

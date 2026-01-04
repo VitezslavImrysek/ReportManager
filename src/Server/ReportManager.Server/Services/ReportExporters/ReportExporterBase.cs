@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ReportManager.Server.ReportExporters
+namespace ReportManager.Server.Services.ReportExporters
 {
 	internal abstract class ReportExporterBase
 	{

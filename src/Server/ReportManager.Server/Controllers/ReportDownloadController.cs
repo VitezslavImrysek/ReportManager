@@ -1,5 +1,6 @@
 ﻿#if Server && NET
 using Microsoft.AspNetCore.Mvc;
+using ReportManager.Server.Services;
 using ReportManager.Shared.Dto;
 
 namespace ReportManager.Server.Controllers

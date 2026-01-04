@@ -44,10 +44,8 @@ public static class ReportSqlParser
 		var model = new ReportSqlDocumentUi
         {
 			ReportKey = GetStr("@ReportKey"),
-			ReportName = GetStr("@ReportName"),
 			ViewSchema = GetStr("@ViewSchema", "dbo"),
 			ViewName = GetStr("@ViewName"),
-			Version = GetInt("@Version", 1),
 		};
 
 		var defJson = GetStr("@DefinitionJson");
@@ -76,7 +74,6 @@ public static class ReportSqlParser
 			model.SystemPresets.Add(new SystemPresetUi
 			{
 				PresetKey = key,
-				Name = name,
 				PresetId = Guid.TryParse(idStr, out var g) ? g : Guid.Empty,
 				IsDefault = isDefStr.Equals("1") || isDefStr.Equals("true", StringComparison.OrdinalIgnoreCase),
 				Content = (PresetContentUi)content

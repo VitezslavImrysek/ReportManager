@@ -3,9 +3,10 @@
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.DependencyInjection;
-using ReportManager.Server;
-using ReportManager.Server.Services;
+using ReportManager.Server.Wcf;
+using ReportManager.Shared;
 
 namespace ReportManager.Host
 {
@@ -14,11 +15,25 @@ namespace ReportManager.Host
         public void Run(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddLocalization();
+
+            builder.Services.Configure<RequestLocalizationOptions>(o =>
+            {
+                o.DefaultRequestCulture = new RequestCulture(Constants.DefaultLanguage);
+                o.SupportedCultures = null;
+                o.SupportedUICultures = null;
+
+                o.RequestCultureProviders.Insert(0, new AcceptLanguageHeaderRequestCultureProvider());
+            });
+
             // Ensure controllers from the ReportManager.Server assembly are discovered
             builder.Services.AddControllers()
                 .AddApplicationPart(typeof(ReportManager.Server.Controllers.ReportDownloadController).Assembly);
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddTransient<ReportManager.Server.Services.ReportService>();
+            builder.Services.AddTransient<ReportManager.Server.Services.ReportDownloadService>();
             //Enable CoreWCF Services, with metadata (WSDL) support
             builder.Services.AddServiceModelServices()
                 .AddServiceModelMetadata();
@@ -30,7 +45,8 @@ namespace ReportManager.Host
 
             var app = builder.Build();
 
-            app.UseRouting();
+            app.UseRouting(); 
+            app.UseRequestLocalization();
             app.UseServiceModel(builder =>
             {
                 // Add the Calculator Service

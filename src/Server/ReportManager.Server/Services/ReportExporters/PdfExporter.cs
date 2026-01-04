@@ -2,7 +2,7 @@
 using PdfSharp.Pdf;
 using System.Data;
 
-namespace ReportManager.Server.ReportExporters
+namespace ReportManager.Server.Services.ReportExporters
 {
 	internal sealed class PdfExporter : ReportExporterBase, IReportExporter
 	{

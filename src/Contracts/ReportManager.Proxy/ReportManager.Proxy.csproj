@@ -14,9 +14,9 @@
     <PackageReference Include="System.ServiceModel.Primitives" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Server\ReportManager.Server\Services\ServicesConfiguration.cs" Link="Services\ServicesConfiguration.cs" />
-    <Compile Include="..\..\Server\ReportManager.Server\Services\IReportDownloadService.cs" Link="Services\IReportDownloadService.cs" />
-    <Compile Include="..\..\Server\ReportManager.Server\Services\IReportService.cs" Link="Services\IReportService.cs" />
+    <Compile Include="..\..\Server\ReportManager.Server\Wcf\ServicesConfiguration.cs" Link="Services\ServicesConfiguration.cs" />
+    <Compile Include="..\..\Server\ReportManager.Server\Wcf\IReportDownloadService.cs" Link="Services\IReportDownloadService.cs" />
+    <Compile Include="..\..\Server\ReportManager.Server\Wcf\IReportService.cs" Link="Services\IReportService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReportManager.Shared\ReportManager.Shared.csproj" />

@@ -10,11 +10,9 @@ CREATE TABLE dbo.ReportDefinition
 (
     ReportDefinitionId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReportDefinition PRIMARY KEY,
     [Key] NVARCHAR(100) NOT NULL CONSTRAINT UQ_ReportDefinition_Key UNIQUE,
-    [Name] NVARCHAR(200) NOT NULL,
     ViewSchema NVARCHAR(128) NOT NULL CONSTRAINT DF_ReportDefinition_ViewSchema DEFAULT('dbo'),
     ViewName NVARCHAR(128) NOT NULL,
     DefinitionJson NVARCHAR(MAX) NOT NULL,
-    Version INT NOT NULL CONSTRAINT DF_ReportDefinition_Version DEFAULT(1),
     IsActive BIT NOT NULL CONSTRAINT DF_ReportDefinition_IsActive DEFAULT(1),
     UpdatedUtc DATETIME2(0) NOT NULL CONSTRAINT DF_ReportDefinition_UpdatedUtc DEFAULT (SYSUTCDATETIME())
 );
@@ -24,7 +22,6 @@ CREATE TABLE dbo.ReportViewPreset
 (
     PresetId UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_ReportViewPreset PRIMARY KEY,
     ReportKey NVARCHAR(100) NOT NULL,
-    [Name] NVARCHAR(200) NOT NULL,
     OwnerUserId UNIQUEIDENTIFIER NULL, -- NULL = system preset
     PresetJson NVARCHAR(MAX) NOT NULL,
     IsDefault BIT NOT NULL CONSTRAINT DF_ReportViewPreset_IsDefault DEFAULT(0),

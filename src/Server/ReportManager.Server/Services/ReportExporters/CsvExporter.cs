@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ReportManager.Server.ReportExporters
+namespace ReportManager.Server.Services.ReportExporters
 {
 	internal sealed class CsvExporter : ReportExporterBase, IReportExporter
 	{

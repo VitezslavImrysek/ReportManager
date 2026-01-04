@@ -1,5 +1,6 @@
 ﻿using ReportManager.Shared.Dto;
 
+
 #if Server && NET
 using CoreWCF;
 #else
@@ -8,7 +9,7 @@ using System.ServiceModel;
 #endif
 
 #if Server
-namespace ReportManager.Server.Services
+namespace ReportManager.Server.Wcf
 #else
 namespace ReportManager.Proxy.Services
 #endif
@@ -17,18 +18,18 @@ namespace ReportManager.Proxy.Services
 	public interface IReportService
 	{
 		[OperationContract]
-		ReportManifestDto GetReportManifest(string reportKey, string culture);
+		ReportManifestDto GetReportManifest(string reportKey);
 
 		[OperationContract]
 		ReportPageDto QueryReport(ReportQueryRequestDto request);
 
-		[OperationContract]
-		List<PresetInfoDto> GetPresets(string reportKey, Guid userId);
+        [OperationContract]
+        List<PresetInfoDto> GetPresets(string reportKey, Guid userId);
 
-		[OperationContract]
-		PresetDto GetPreset(Guid presetId, Guid userId);
+        [OperationContract]
+        PresetDto GetPreset(Guid presetId, Guid userId);
 
-		[OperationContract]
+        [OperationContract]
 		Guid SavePreset(SavePresetRequestDto request);
 
 		[OperationContract]

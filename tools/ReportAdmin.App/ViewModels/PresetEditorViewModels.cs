@@ -172,7 +172,6 @@ public sealed class PresetEditorViewModel : NotificationObject
 
 		return new PresetContentUi
 		{
-			Version = _preset.Content?.Version ?? 1,
 			Grid = new GridStateUi
             {
 				HiddenColumns = hidden,

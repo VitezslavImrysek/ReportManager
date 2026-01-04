@@ -34,10 +34,8 @@ public static class ReportSqlGenerator
 		sb.AppendLine("BEGIN TRAN;");
 		sb.AppendLine();
 		sb.AppendLine($"DECLARE @ReportKey nvarchar(100) = N'{Esc(doc.ReportKey)}';");
-		sb.AppendLine($"DECLARE @ReportName nvarchar(200) = N'{Esc(doc.ReportName)}';");
 		sb.AppendLine($"DECLARE @ViewSchema nvarchar(128) = N'{Esc(doc.ViewSchema)}';");
 		sb.AppendLine($"DECLARE @ViewName   nvarchar(128) = N'{Esc(doc.ViewName)}';");
-		sb.AppendLine($"DECLARE @Version int = {doc.Version};");
 		sb.AppendLine();
 		sb.AppendLine("/* === ReportDefinitionJson BEGIN === */");
 		var defJson = JsonUtil.Serialize((ReportDefinitionJson)doc.Definition);
@@ -50,16 +48,14 @@ USING (SELECT @ReportKey AS [Key]) AS s
 ON t.[Key] = s.[Key]
 WHEN MATCHED THEN
   UPDATE SET
-	t.[Name] = @ReportName,
 	t.ViewSchema = @ViewSchema,
 	t.ViewName = @ViewName,
 	t.DefinitionJson = @DefinitionJson,
-	t.Version = @Version,
 	t.IsActive = 1,
 	t.UpdatedUtc = SYSUTCDATETIME()
 WHEN NOT MATCHED THEN
-  INSERT ([Key],[Name],ViewSchema,ViewName,DefinitionJson,Version,IsActive)
-  VALUES (@ReportKey,@ReportName,@ViewSchema,@ViewName,@DefinitionJson,@Version,1);");
+  INSERT ([Key],ViewSchema,ViewName,DefinitionJson,IsActive)
+  VALUES (@ReportKey,@ViewSchema,@ViewName,@DefinitionJson,1);");
 		sb.AppendLine();
 		sb.AppendLine("-- System presets (OwnerUserId IS NULL)");
 		sb.AppendLine("/* === SystemPresets BEGIN === */");
@@ -71,7 +67,6 @@ WHEN NOT MATCHED THEN
 			var idx = i.ToString();
 			sb.AppendLine($"-- preset: {p.PresetKey}");
 			sb.AppendLine($"DECLARE @PresetKey_{idx} nvarchar(100) = N'{Esc(p.PresetKey)}';");
-			sb.AppendLine($"DECLARE @PresetName_{idx} nvarchar(200) = N'{Esc(p.Name)}';");
 			sb.AppendLine($"DECLARE @PresetId_{idx} uniqueidentifier = '{p.PresetId}';");
 			sb.AppendLine($"DECLARE @IsDefault_{idx} bit = {(p.IsDefault ? 1 : 0)};");
 			sb.AppendLine();
@@ -84,14 +79,13 @@ ON pv.PresetId = s.PresetId
 WHEN MATCHED THEN
   UPDATE SET
 	pv.ReportKey = @ReportKey,
-	pv.[Name] = @PresetName_" + idx + @",
 	pv.OwnerUserId = NULL,
 	pv.PresetJson = @PresetJson_" + idx + @",
 	pv.IsDefault = @IsDefault_" + idx + @",
 	pv.UpdatedUtc = SYSUTCDATETIME()
 WHEN NOT MATCHED THEN
-  INSERT (PresetId, ReportKey, [Name], OwnerUserId, PresetJson, IsDefault, CreatedUtc, UpdatedUtc)
-  VALUES (@PresetId_" + idx + @", @ReportKey, @PresetName_" + idx + @", NULL, @PresetJson_" + idx + @", @IsDefault_" + idx + @", SYSUTCDATETIME(), SYSUTCDATETIME());");
+  INSERT (PresetId, ReportKey, OwnerUserId, PresetJson, IsDefault, CreatedUtc, UpdatedUtc)
+  VALUES (@PresetId_" + idx + @", @ReportKey, NULL, @PresetJson_" + idx + @", @IsDefault_" + idx + @", SYSUTCDATETIME(), SYSUTCDATETIME());");
 			sb.AppendLine();
 			i++;
 		}

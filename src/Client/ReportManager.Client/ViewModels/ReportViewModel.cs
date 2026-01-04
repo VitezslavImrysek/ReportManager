@@ -147,7 +147,7 @@ namespace ReportManager.Client.ViewModels
 		{
 			try
 			{
-				Manifest = _svc.GetReportManifest(ReportKey, Constants.DefaultLanguage);
+				Manifest = _svc.GetReportManifest(ReportKey);
 				AvailableColumns = Manifest.Columns.Select(c => new ColumnOption
 				{
 					Key = c.Key,
@@ -193,7 +193,7 @@ namespace ReportManager.Client.ViewModels
 					});
 				}
 
-				StatusText = $"Manifest načten: {Manifest.ReportKey} (v{Manifest.Version})";
+				StatusText = $"Manifest načten: {Manifest.ReportKey})";
 			}
 			catch (Exception ex)
 			{
@@ -419,7 +419,6 @@ namespace ReportManager.Client.ViewModels
 
 				var content = new PresetContentDto
 				{
-					Version = 1,
 					Grid = new GridStateDto
 					{
 						HiddenColumns = ColumnVisibility.Where(x => !x.IsVisible).Select(x => x.Key).ToList()

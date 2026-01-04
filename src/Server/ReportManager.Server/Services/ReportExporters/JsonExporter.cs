@@ -7,7 +7,7 @@ using System.Data;
 using System.IO;
 using System.Text;
 
-namespace ReportManager.Server.ReportExporters
+namespace ReportManager.Server.Services.ReportExporters
 {
 	internal sealed class JsonExporter : ReportExporterBase, IReportExporter
 	{

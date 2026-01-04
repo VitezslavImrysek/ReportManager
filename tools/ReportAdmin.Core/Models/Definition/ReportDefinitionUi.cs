@@ -6,7 +6,6 @@ namespace ReportAdmin.Core.Models.Definition;
 
 public sealed class ReportDefinitionUi : NotificationObject
 {
-    public int Version { get; set => SetValue(ref field, value); } = 1;
     public string DefaultCulture { get; set => SetValue(ref field, value); } = Constants.DefaultLanguage;
     public Dictionary<string, Dictionary<string, string>> Texts { get; set => SetValue(ref field, value); } = new(StringComparer.OrdinalIgnoreCase);
     public ObservableCollection<ReportColumnUi> Columns { get; set => SetValue(ref field, value); } = new();
@@ -17,7 +16,6 @@ public sealed class ReportDefinitionUi : NotificationObject
         if (ui == null) return null!;
         var r = new ReportDefinitionJson
         {
-            Version = ui.Version,
             DefaultCulture = ui.DefaultCulture,
             Texts = ui.Texts,
             Columns = [],
@@ -38,7 +36,6 @@ public sealed class ReportDefinitionUi : NotificationObject
         if (src == null) return null!;
         var ui = new ReportDefinitionUi
         {
-            Version = src.Version,
             DefaultCulture = src.DefaultCulture,
             Texts = src.Texts ?? new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase),
             Columns = [],

@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="linq2db" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" />
   </ItemGroup>
