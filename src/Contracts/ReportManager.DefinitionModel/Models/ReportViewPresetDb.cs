@@ -5,7 +5,7 @@ namespace ReportManager.DefinitionModel.Models
     [Table(Schema = "dbo", Name = "ReportViewPreset")]
     public class ReportViewPresetDb
     {
-        [PrimaryKey, Identity]
+        [PrimaryKey]
         public Guid PresetId { get; set; }
         [Column, NotNull]
         public string ReportKey { get; set; } = string.Empty;

@@ -9,5 +9,6 @@
         PrimaryKey = 1 << 2,
         Filterable = 1 << 3,
         Sortable = 1 << 4,
+        Virtual = 1 << 5
     }
 }
