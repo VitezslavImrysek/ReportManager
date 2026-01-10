@@ -25,14 +25,14 @@ namespace ReportManager.Server.Services
 			var culture = CultureInfo.CurrentUICulture.Name;
             var def = _repo.GetReportDefinitionByKey(reportKey);
 			var model = JsonUtil.Deserialize<ReportDefinitionJson>(def.DefinitionJson) ?? throw new InvalidOperationException("Report definition JSON is invalid.");
-			var manifest = new ReportManifestDto
-			{
-				ReportKey = reportKey
-			};
-			manifest.Title = TextsResolver.ResolveText(model.Texts, KnownTextKeys.ReportTitle, culture, model.DefaultCulture);
+            var manifest = new ReportManifestDto
+            {
+                ReportKey = reportKey,
+                Title = TextsResolver.ResolveText(model.Texts, KnownTextKeys.ReportTitle, culture, model.DefaultCulture)
+            };
 
-			// compute ops by type (server rules)
-			foreach (var c in model.Columns)
+            // compute ops by type (server rules)
+            foreach (var c in model.Columns)
 			{
 				var colType = c.Type;
 				
@@ -56,8 +56,9 @@ namespace ReportManager.Server.Services
 					SortEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Sortable),
 					SortHidden = sortHidden,
 					FilterOps = filterEnabled ? ComputeOps(colType, hasLookup) : [],
-					Lookup = null
-				};
+					Lookup = null,
+					Virtual = c.Flags.HasFlag(ReportColumnFlagsJson.Virtual)
+                };
 
 				// resolve lookup items (static or sql) INTO manifest
 				if (hasLookup)
@@ -133,7 +134,9 @@ namespace ReportManager.Server.Services
             var model = JsonUtil.Deserialize<ReportDefinitionJson>(definition.DefinitionJson) ?? throw new InvalidOperationException("Report definition JSON is invalid.");
 
             // allowed columns
-            var allowed = model.Columns.Select(c => new SqlQueryBuilder.ColumnInfo(
+            var allowed = model.Columns
+				.Where(c => !c.Flags.HasFlag(ReportColumnFlagsJson.Virtual))
+				.Select(c => new SqlQueryBuilder.ColumnInfo(
                 c.Key,
                 c.Type,
                 c.Flags.HasFlag(ReportColumnFlagsJson.Filterable),

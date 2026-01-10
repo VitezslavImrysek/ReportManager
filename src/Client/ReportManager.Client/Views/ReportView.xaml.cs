@@ -20,6 +20,25 @@ namespace ReportManager.Client.Views
             DataContextChanged += OnDataContextChanged;
         }
 
+        protected virtual DataGridColumn OnBuildVirtualColumn(ReportColumnManifestDto reportColumn)
+        {
+            // výchozí implementace – stejné jako běžný sloupec
+            var column = new DataGridTemplateColumn();
+
+            var cellTemplate = TryFindResource($"{reportColumn.Key}_CellTemplate");
+            if (cellTemplate is DataTemplate dt)
+            {
+                column.CellTemplate = dt;
+            }
+            else
+            {
+                // fallback for debugging
+                column.Header = reportColumn.DisplayName;
+            }
+
+            return column;
+        }
+
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (e.OldValue is ReportViewModel oldVM)
@@ -108,8 +127,13 @@ namespace ReportManager.Client.Views
             }
         }
 
-        private static DataGridBoundColumn BuildColumn(ReportColumnManifestDto reportColumn)
+        private DataGridColumn BuildColumn(ReportColumnManifestDto reportColumn)
         {
+            if (reportColumn.Virtual)
+            {
+                return OnBuildVirtualColumn(reportColumn);
+            }
+
             DataGridBoundColumn column;
 
             switch (reportColumn.Type)

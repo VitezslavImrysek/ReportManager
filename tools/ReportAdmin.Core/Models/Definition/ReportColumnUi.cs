@@ -12,6 +12,7 @@ public sealed class ReportColumnUi : NotificationObject
     public bool AlwaysSelect { get; set => SetValue(ref field, value); }
     public bool Hidden { get; set => SetValue(ref field, value); }
     public bool PrimaryKey { get; set => SetValue(ref field, value); }
+    public bool Virtual { get; set => SetValue(ref field, value); }
     public bool Filterable { get; set => SetValue(ref field, value, OnFilterableChanged); }
     public bool Sortable { get; set => SetValue(ref field, value, OnSortableChanged); }
 
@@ -34,6 +35,7 @@ public sealed class ReportColumnUi : NotificationObject
         if (ui.PrimaryKey) r.Flags |= ReportColumnFlagsJson.PrimaryKey;
         if (ui.Filterable) r.Flags |= ReportColumnFlagsJson.Filterable;
         if (ui.Sortable) r.Flags |= ReportColumnFlagsJson.Sortable;
+        if (ui.Virtual) r.Flags |= ReportColumnFlagsJson.Virtual;
         return r;
     }
 
@@ -51,6 +53,7 @@ public sealed class ReportColumnUi : NotificationObject
             PrimaryKey = src.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey),
             Filterable = src.Flags.HasFlag(ReportColumnFlagsJson.Filterable),
             Sortable = src.Flags.HasFlag(ReportColumnFlagsJson.Sortable),
+            Virtual = src.Flags.HasFlag(ReportColumnFlagsJson.Virtual)
         };
         return ui;
     }

@@ -68,6 +68,7 @@
                 <CheckBox Content="AlwaysSelect" IsChecked="{Binding Column.AlwaysSelect}"/>
                 <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Hidden}"/>
                 <CheckBox Margin="12,0,0,0" Content="PrimaryKey" IsChecked="{Binding Column.PrimaryKey}"/>
+                <CheckBox Margin="12,0,0,0" Content="Virtual" IsChecked="{Binding Column.Virtual}"/>
             </StackPanel>
 
             <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,8,0,0" Text="Filter:" VerticalAlignment="Center"/>
