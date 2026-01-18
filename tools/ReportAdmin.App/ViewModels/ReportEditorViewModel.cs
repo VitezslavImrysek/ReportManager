@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using ReportAdmin.App.Dialogs;
+﻿using ReportAdmin.App.Dialogs;
 using ReportAdmin.App.Messages;
 using ReportAdmin.Core.Db;
 using ReportAdmin.Core.Models;

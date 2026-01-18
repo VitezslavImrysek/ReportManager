@@ -32,7 +32,7 @@ namespace ReportAdmin.App.ViewModels
         public string RepoPath { get; set => SetValue(ref field, value); } = "(no folder)";
         public string? StatusText { get; set => SetValue(ref field, value); } = "Ready";
 
-        public ObservableCollection<ReportFileItem> ReportFiles { get; } = new();
+        public ObservableCollection<ReportFileItem> ReportFiles { get; } = [];
 
         public ReportFileItem? SelectedFile { get; set => SetValue(ref field, value, OnSelectedFileChanged); }
 
