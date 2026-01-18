@@ -349,7 +349,7 @@ namespace ReportManager.Server.Services
 			}
 			content.Query.Filters = normalizedFilters;
 
-			// 3) Query.Sorting: vyházej nevalidní
+			// 3) Query.Sorting: Remove invalid
 			var normalizedSorting = new List<SortSpecDto>();
 			foreach (var s in content.Query.Sorting ?? new List<SortSpecDto>())
 			{
@@ -367,8 +367,8 @@ namespace ReportManager.Server.Services
 			}
 			content.Query.Sorting = normalizedSorting;
 
-			// 4) SelectedColumns: nepouštěl bych z presetu vůbec (zjednodušení)
-			// Nech server dál rozhodovat podle hidden + alwaysSelect (přes tvůj UI stav).
+			// 4) SelectedColumns: Not used in presets.
+			// Let the server decide based on hidden + alwaysSelect.
 			content.Query.SelectedColumns = new List<string>();
 		}
 	}

@@ -3,11 +3,11 @@
 namespace ReportAdmin.App.Views
 {
     /// <summary>
-    /// Interaction logic for TextsEditorView.xaml
+    /// Interaction logic for ReportHeaderView.xaml
     /// </summary>
-    public partial class TextsEditorView : UserControl
+    public partial class ReportHeaderView : UserControl
     {
-        public TextsEditorView()
+        public ReportHeaderView()
         {
             InitializeComponent();
         }

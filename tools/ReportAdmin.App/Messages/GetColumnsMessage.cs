@@ -1,7 +1,9 @@
-﻿namespace ReportAdmin.App.Messages
+﻿using ReportAdmin.Core.Models.Definition;
+
+namespace ReportAdmin.App.Messages
 {
     public sealed class GetColumnsMessage
     {
-        public List<string> ColumnNames { get; init; } = new();
+        public List<ReportColumnUi> Columns { get; init; } = new();
     }
 }

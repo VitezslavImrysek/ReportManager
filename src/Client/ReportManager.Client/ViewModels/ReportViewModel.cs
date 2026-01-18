@@ -372,7 +372,7 @@ namespace ReportManager.Client.ViewModels
 					Conditions.Add(vm);
 				}
 
-				foreach (var s in content.Query.Sorting ?? new List<SortSpecDto>())
+				foreach (var s in content.Query.Sorting ?? [])
 				{
 					var col = AvailableColumns.FirstOrDefault(x => x.Key.Equals(s.ColumnKey, StringComparison.OrdinalIgnoreCase));
 					if (col == null) continue;
@@ -393,13 +393,12 @@ namespace ReportManager.Client.ViewModels
 					Sorts.Add(vm);
 				}
 
-				// 2) apply grid hidden columns (pokud už máš ColumnVisibility checkboxy)
-				// Příklad: pro každý toggle sloupec nastav IsVisible podle HiddenColumns
-				var hidden = new HashSet<string>(content.Grid?.HiddenColumns ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
-				foreach (var cv in ColumnVisibility)
-					cv.IsVisible = !hidden.Contains(cv.Key);
+                // 2) apply grid hidden columns
+                var hidden = new HashSet<string>(content.Grid?.HiddenColumns ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+                foreach (var cv in ColumnVisibility)
+                    cv.IsVisible = !hidden.Contains(cv.Key);
 
-				_pageIndex = 0;
+                _pageIndex = 0;
 				Query();
 			}
 			catch (Exception ex)
@@ -419,10 +418,6 @@ namespace ReportManager.Client.ViewModels
 
 				var content = new PresetContentDto
 				{
-					Grid = new GridStateDto
-					{
-						HiddenColumns = ColumnVisibility.Where(x => !x.IsVisible).Select(x => x.Key).ToList()
-					},
 					Query = query
 				};
 

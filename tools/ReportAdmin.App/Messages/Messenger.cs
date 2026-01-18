@@ -1,26 +1,39 @@
-﻿namespace ReportAdmin.App.Messages
+﻿using System.Reflection;
+
+namespace ReportAdmin.App.Messages
 {
     public sealed class Messenger
     {
-        private readonly List<WeakReference> _recipients = [];
+        private record MessageListener(WeakReference? Listener, MethodInfo Method);
+
+        private readonly Dictionary<Type, List<MessageListener>> _recipients = [];
 
         public static Messenger Instance { get; } = new Messenger();
 
-        public void Register<TMessage>(IMessageReceiver<TMessage> recipient)
+        public void Register<TMessage>(Action<TMessage> handler)
             where TMessage : class
         {
-            if (recipient == null)
+            if (handler == null)
             {
-                throw new ArgumentNullException(nameof(recipient));
+                throw new ArgumentNullException(nameof(handler));
             }
 
-            _recipients.Add(new WeakReference(recipient));
-        }
+            var messageType = typeof(TMessage);
+            if (!_recipients.TryGetValue(messageType, out var recipients))
+            {
+                _recipients[messageType] = recipients = [];
+            }
 
-        public TMessage Send<TMessage>()
-            where TMessage : class, new()
-        {
-            return Send(new TMessage());
+            if (handler.Target == null)
+            {
+                // Static
+                recipients.Add(new MessageListener(null, handler.GetMethodInfo()));
+            }
+            else
+            {
+                // Instance
+                recipients.Add(new MessageListener(new WeakReference(handler.Target), handler.GetMethodInfo()));
+            }
         }
 
         public TMessage Send<TMessage>(TMessage message)
@@ -31,17 +44,34 @@
                 throw new ArgumentNullException(nameof(message));
             }
 
-            List<WeakReference>? deadReferences = null;
-            foreach (var weakReference in _recipients)
+            var messageType = typeof(TMessage);
+            if (!_recipients.TryGetValue(messageType, out var recipients))
             {
-                if (weakReference.Target is IMessageReceiver<TMessage> recipient)
+                return message;
+            }
+
+            List<MessageListener>? deadReferences = null;
+            foreach (var recipient in recipients)
+            {
+                var weakReference = recipient.Listener;
+                if (weakReference == null)
                 {
-                    recipient.Receive(message);
+                    // Static
+                    recipient.Method.Invoke(null, [message]);
                 }
-                else if (!weakReference.IsAlive)
+                else
                 {
-                    deadReferences ??= [];
-                    deadReferences.Add(weakReference);
+                    // Instance
+                    var target = weakReference.Target;
+                    if (target != null)
+                    {
+                        recipient.Method.Invoke(target, [message]);
+                    }
+                    else
+                    {
+                        deadReferences ??= [];
+                        deadReferences.Add(recipient);
+                    }
                 }
             }
 
@@ -50,7 +80,7 @@
             {
                 foreach (var deadReference in deadReferences)
                 {
-                    _recipients.Remove(deadReference);
+                    recipients.Remove(deadReference);
                 }
             }
 

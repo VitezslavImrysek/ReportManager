@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:ReportAdmin.App.Views"
              xmlns:vm="clr-namespace:ReportAdmin.App.ViewModels"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:ReportColumnViewModel}"
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignWidth="800">
     <Grid>
         <Grid.Resources>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -25,7 +25,7 @@
 
         <TextBlock FontSize="14" FontWeight="SemiBold" Text="Column details"/>
 
-        <TextBlock Grid.Row="1" Margin="0,8,0,0" Foreground="#666"
+        <!--<TextBlock Grid.Row="1" Margin="0,8,0,0" Foreground="#666"
                    Text="Select a column in the grid above to edit its details.">
             <TextBlock.Style>
                 <Style TargetType="TextBlock">
@@ -37,10 +37,9 @@
                     </Style.Triggers>
                 </Style>
             </TextBlock.Style>
-        </TextBlock>
+        </TextBlock>-->
 
-        <Grid Grid.Row="2" Margin="0,8,0,0"
-              Visibility="{Binding HasColumn, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Grid Grid.Row="2" Margin="0,8,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200"/>
                 <ColumnDefinition Width="*"/>
@@ -52,35 +51,49 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Key:" VerticalAlignment="Center"/>
             <TextBox Grid.Row="0" Grid.Column="1" Margin="8,0,0,0"
-                     Text="{Binding Column.Key, UpdateSourceTrigger=PropertyChanged}"/>
+                     Text="{Binding Key, UpdateSourceTrigger=PropertyChanged}"/>
 
             <TextBlock Grid.Row="0" Grid.Column="2" Margin="16,0,0,0" Text="Type:" VerticalAlignment="Center"/>
             <ComboBox Grid.Row="0" Grid.Column="3" Margin="8,0,0,0"
                       ItemsSource="{Binding ColumnTypeValues}"
-                      SelectedItem="{Binding Column.Type, UpdateSourceTrigger=PropertyChanged}"/>
+                      SelectedItem="{Binding Type, UpdateSourceTrigger=PropertyChanged}"/>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,0,0" Text="Flags:" VerticalAlignment="Center"/>
             <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
-                <CheckBox Content="AlwaysSelect" IsChecked="{Binding Column.AlwaysSelect}"/>
-                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Hidden}"/>
-                <CheckBox Margin="12,0,0,0" Content="PrimaryKey" IsChecked="{Binding Column.PrimaryKey}"/>
-                <CheckBox Margin="12,0,0,0" Content="Virtual" IsChecked="{Binding Column.Virtual}"/>
+                <CheckBox Content="AlwaysSelect" IsChecked="{Binding AlwaysSelect}"/>
+                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Hidden}"/>
+                <CheckBox Margin="12,0,0,0" Content="PrimaryKey" IsChecked="{Binding PrimaryKey}"/>
+                <CheckBox Margin="12,0,0,0" Content="Virtual" IsChecked="{Binding Virtual}"/>
             </StackPanel>
 
             <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,8,0,0" Text="Filter:" VerticalAlignment="Center"/>
             <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
-                <CheckBox Content="Enabled" IsChecked="{Binding Column.Filterable}"/>
-                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Filter.Hidden}" Visibility="{Binding Column.Filterable, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <CheckBox Content="Enabled" IsChecked="{Binding Filterable}"/>
+                <CheckBox Margin="12,0,0,0" Content="HasLookup" IsChecked="{Binding HasLookup}" Visibility="{Binding Filterable, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Filter.Hidden}" Visibility="{Binding Filterable, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
 
             <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,8,0,0" Text="Sort:" VerticalAlignment="Center"/>
             <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
-                <CheckBox Content="Enabled" IsChecked="{Binding Column.Sortable}"/>
-                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Column.Sort.Hidden}" Visibility="{Binding Column.Sortable, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <CheckBox Content="Enabled" IsChecked="{Binding Sortable}"/>
+                <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Sort.Hidden}" Visibility="{Binding Sortable, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Margin="0,8,0,0" Visibility="{Binding HasLookup, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock FontWeight="SemiBold" Text="SQL lookup"/>
+                <TextBlock Margin="0,8,0,0" Text="CommandText:"/>
+                <TextBox AcceptsReturn="True" MinLines="4" Text="{Binding Filter.Lookup.Sql.CommandText, UpdateSourceTrigger=PropertyChanged}"/>
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <TextBlock VerticalAlignment="Center" Text="KeyColumn:"/>
+                    <TextBox Margin="8,0,0,0" Width="160" Text="{Binding Filter.Lookup.Sql.KeyColumn, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Margin="16,0,0,0" VerticalAlignment="Center" Text="TextColumn:"/>
+                    <TextBox Margin="8,0,0,0" Width="160" Text="{Binding Filter.Lookup.Sql.TextColumn, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
             </StackPanel>
         </Grid>
     </Grid>

@@ -1,11 +1,11 @@
 ﻿using Microsoft.Win32;
 using ReportAdmin.App.Dialogs;
+using ReportAdmin.App.Extensions;
 using ReportAdmin.App.Messages;
 using ReportAdmin.Core;
 using ReportAdmin.Core.Db;
 using ReportAdmin.Core.Models;
 using ReportAdmin.Core.Models.Definition;
-using ReportAdmin.Core.Models.Preset;
 using ReportAdmin.Core.Sql;
 using ReportAdmin.Core.Utils;
 using ReportManager.DefinitionModel.Utils;
@@ -18,12 +18,36 @@ using System.Windows;
 
 namespace ReportAdmin.App.ViewModels;
 
-public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColumnsMessage>
+public sealed class MainViewModel : NotificationObject
 {
-	public PresetEditorViewModel PresetEditor { get; } = new();
-	public ReportColumnViewModel ColumnEditor { get; } = new();
+    #region Ctor
 
-	public string RepoPath { get; set => SetValue(ref field, value); } = "(no folder)";
+    public MainViewModel()
+    {
+        OpenFolderCommand = new RelayCommand(OpenFolder);
+        NewReportCommand = new RelayCommand(NewReport);
+        SaveGenerateCommand = new RelayCommand(SaveGenerate);
+        ApplyToDbCommand = new RelayCommand(ApplyToDb);
+        AddColumnCommand = new RelayCommand(AddColumn);
+        RemoveSelectedColumnCommand = new RelayCommand(RemoveSelectedColumn);
+
+		ReportHeaderVM = new ReportHeaderViewModel() { ImportColumnsCommand = new RelayCommand(ImportColumnsFromDb) };
+        ReportTextsEditorVM = new TextsEditorViewModel() { Mode = TextsEditorMode.Report };
+
+        Messenger.Instance.Register<GetColumnsMessage>(OnGetColumnsMessageReceived);
+		Messenger.Instance.Register<GetCultureMessage>(OnGetCultureMessageReceived);
+        Messenger.Instance.Register<GetReportKeyMessage>(OnGetReportKeyMessageReceived);
+
+        var defaultReports = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Reports");
+        if (Directory.Exists(defaultReports))
+            LoadFolder(defaultReports);
+    }
+
+    #endregion
+
+    #region Properties
+
+    public string RepoPath { get; set => SetValue(ref field, value); } = "(no folder)";
 
     public ObservableCollection<ReportFileItem> ReportFiles { get; } = new();
 
@@ -39,167 +63,36 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 	}
 
 	public ReportSqlDocumentUi? Current { get; set => SetValue(ref field, value); }
-
 	public ObservableCollection<ReportColumnType> ColumnTypeValues { get; } = new(Enum.GetValues(typeof(ReportColumnType)).Cast<ReportColumnType>());
-
-	public ReportColumnUi? SelectedColumn
-	{
-		get;
-		set
-		{
-			if (SetValue(ref field, value))
-			{
-				ColumnEditor.Column = value;
-				OnPropertyChanged(nameof(SelectedColumnHasLookup));
-				OnPropertyChanged(nameof(SelectedLookupCommandText));
-				OnPropertyChanged(nameof(SelectedLookupKeyColumn));
-				OnPropertyChanged(nameof(SelectedLookupTextColumn));
-			}
-		}
-	}
-
-	public SystemPresetUi? SelectedPreset { get; set => SetValue(ref field, value, OnSelectedPresetChanged); }
-
-    private void OnSelectedPresetChanged(SystemPresetUi? oldPreset, SystemPresetUi? newPreset)
-    {
-		if (oldPreset != null)
-		{
-			oldPreset.Name = PresetsTextsEditorVM.Title;
-			oldPreset.Content = PresetEditor.BuildContent();
-            oldPreset.Content.Texts = PresetsTextsEditorVM.GetData();
-        }
-
-		if (newPreset != null)
-		{
-            PresetsTextsEditorVM.DefaultCulture = Current.Definition.DefaultCulture;
-            PresetsTextsEditorVM.SetData(newPreset.Content.Texts);
-        }
-
-        // pass UI model into preset editor
-        PresetEditor.Load(Current?.Definition, newPreset);
-    }
-
+	public ObservableCollection<ReportColumnViewModel> Columns { get; set => SetValue(ref field, value); }
+    public ReportColumnViewModel? SelectedColumn { get; set => SetValue(ref field, value); }
+    
     public string GeneratedSql { get; set => SetValue(ref field, value); } = string.Empty;
 	public string StatusText { get; set => SetValue(ref field, value); } = "Ready";
 	public string ApplyConnectionString { get; set => SetValue(ref field, value); } = string.Empty;
 
-	// Lookup bindings for selected column
-	public bool SelectedColumnHasLookup
-	{
-		get => SelectedColumn?.Filter?.Lookup != null;
-		set
-		{
-			if (SelectedColumn?.Filter == null) return;
+    #endregion
 
-			// lookup je “rozšíření filtru” -> smí existovat jen když je filtr enabled
-			if (!SelectedColumn.Filterable)
-			{
-				SelectedColumn.Filter.Lookup = null;
-				OnPropertyChanged();
-				OnPropertyChanged(nameof(SelectedLookupCommandText));
-				OnPropertyChanged(nameof(SelectedLookupKeyColumn));
-				OnPropertyChanged(nameof(SelectedLookupTextColumn));
-				return;
-			}
+    #region Commands
 
-			if (value)
-			{
-				SelectedColumn.Filter.Lookup ??= new LookupConfigUi
-				{
-					Mode = LookupMode.Sql,
-					Sql = new SqlLookupUi()
-				};
-			}
-			else
-			{
-				SelectedColumn.Filter.Lookup = null;
-			}
-
-			OnPropertyChanged();
-			OnPropertyChanged(nameof(SelectedLookupCommandText));
-			OnPropertyChanged(nameof(SelectedLookupKeyColumn));
-			OnPropertyChanged(nameof(SelectedLookupTextColumn));
-		}
-	}
-
-	public string SelectedLookupCommandText
-	{
-		get => SelectedColumn?.Filter?.Lookup?.Sql?.CommandText ?? "";
-		set
-		{
-			if (SelectedColumn?.Filter == null) return;
-			if (!SelectedColumn.Filterable) return;
-
-			SelectedColumn.Filter.Lookup ??= new LookupConfigUi { Mode = LookupMode.Sql, Sql = new SqlLookupUi() };
-			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupUi();
-			SelectedColumn.Filter.Lookup.Sql.CommandText = value;
-			OnPropertyChanged();
-		}
-	}
-	public string SelectedLookupKeyColumn
-	{
-		get => SelectedColumn?.Filter?.Lookup?.Sql?.KeyColumn ?? "Id";
-		set
-		{
-			if (SelectedColumn?.Filter == null) return;
-			if (!SelectedColumn.Filterable) return;
-
-			SelectedColumn.Filter.Lookup ??= new LookupConfigUi { Mode = LookupMode.Sql, Sql = new SqlLookupUi() };
-			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupUi();
-			SelectedColumn.Filter.Lookup.Sql.KeyColumn = value;
-			OnPropertyChanged();
-		}
-	}
-	public string SelectedLookupTextColumn
-	{
-		get => SelectedColumn?.Filter?.Lookup?.Sql?.TextColumn ?? "Name";
-		set
-		{
-			if (SelectedColumn?.Filter == null) return;
-			if (!SelectedColumn.Filterable) return;
-
-			SelectedColumn.Filter.Lookup ??= new LookupConfigUi { Mode = LookupMode.Sql, Sql = new SqlLookupUi() };
-			SelectedColumn.Filter.Lookup.Sql ??= new SqlLookupUi();
-			SelectedColumn.Filter.Lookup.Sql.TextColumn = value;
-			OnPropertyChanged();
-		}
-	}
-
-	public RelayCommand OpenFolderCommand { get; }
+    public RelayCommand OpenFolderCommand { get; }
 	public RelayCommand NewReportCommand { get; }
 	public RelayCommand SaveGenerateCommand { get; }
 	public RelayCommand ApplyToDbCommand { get; }
-	public RelayCommand ImportColumnsCommand { get; }
 	public RelayCommand AddColumnCommand { get; }
 	public RelayCommand RemoveSelectedColumnCommand { get; }
-    public RelayCommand AddPresetCommand { get; }
-	public RelayCommand RemovePresetCommand { get; }
 
-	public MainViewModel()
-	{
-		OpenFolderCommand = new RelayCommand(OpenFolder);
-		NewReportCommand = new RelayCommand(NewReport);
-		SaveGenerateCommand = new RelayCommand(SaveGenerate);
-		ApplyToDbCommand = new RelayCommand(ApplyToDb);
-		ImportColumnsCommand = new RelayCommand(ImportColumnsFromDb);
-		AddColumnCommand = new RelayCommand(AddColumn);
-		RemoveSelectedColumnCommand = new RelayCommand(RemoveSelectedColumn);
-        AddPresetCommand = new RelayCommand(AddPreset);
-		RemovePresetCommand = new RelayCommand(RemovePreset);
-		ColumnEditor.ColumnTypeValues = ColumnTypeValues;
+    #endregion
 
-		ReportTextsEditorVM = new TextsEditorViewModel() { Mode = TextsEditorMode.Report };
-        PresetsTextsEditorVM = new TextsEditorViewModel() { Mode = TextsEditorMode.Preset };
+    #region ViewModels
 
-        var defaultReports = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Reports");
-		if (Directory.Exists(defaultReports))
-			LoadFolder(defaultReports);
+    public SystemPresetsEditorViewModel SystemPresetsEditorVM { get; } = new();
+    public TextsEditorViewModel ReportTextsEditorVM { get; set => SetValue(ref field, value); }
+    public ReportHeaderViewModel ReportHeaderVM { get; set => SetValue(ref field, value); }
 
-		Messenger.Instance.Register<GetColumnsMessage>(this);
-    }
+    #endregion
 
-	public TextsEditorViewModel ReportTextsEditorVM { get; set => SetValue(ref field, value); }
-	public TextsEditorViewModel PresetsTextsEditorVM { get; set => SetValue(ref field, value); }
+    #region Private Methods
 
     private void OpenFolder()
 	{
@@ -245,14 +138,22 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 				return;
             }
 
-			ReportTextsEditorVM.DefaultCulture = Current.Definition.DefaultCulture;
+			ReportHeaderVM.SetData(Current);
+
+            ReportTextsEditorVM.DefaultCulture = Current.Definition.DefaultCulture;
 			ReportTextsEditorVM.SetData(Current.Definition.Texts);
 
-            SelectedPreset = Current.SystemPresets.FirstOrDefault();
-			// pass UI model into preset editor
-			PresetEditor.Load(Current.Definition, SelectedPreset);
+			SystemPresetsEditorVM.SetData(Current.SystemPresets);
 			// map selected column to UI model
-			SelectedColumn = Current.Definition.Columns.FirstOrDefault() is var firstCol && firstCol != null ? (ReportColumnUi)firstCol : null;
+			Columns = Current.Definition.Columns.Select(x => {
+				var vm = new ReportColumnViewModel()
+				{
+					ColumnTypeValues = ColumnTypeValues
+                };
+				vm.SetData(x);
+				return vm;
+            }).ToObservable();
+            SelectedColumn = Columns.FirstOrDefault();
 
 			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 			StatusText = $"Loaded: {Path.GetFileName(path)}";
@@ -284,7 +185,9 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
         {
             ["report.title"] = "New report"
         };
-		ReportTextsEditorVM.SetData(Current.Definition.Texts);
+
+        ReportHeaderVM.SetData(Current);
+        ReportTextsEditorVM.SetData(Current.Definition.Texts);
 
 		GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 		StatusText = "New report created (not saved yet).";
@@ -296,8 +199,8 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 		{
 			if (Current == null) return;
 
-			// Commit preset editor UI into typed content
-			SelectedPreset = null;
+			Current.SystemPresets = [];
+            SystemPresetsEditorVM.GetData(Current.SystemPresets);
 
 			foreach (var p in Current.SystemPresets)
 			{
@@ -309,7 +212,9 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
             ValidateReportDefinition();
             ValidateLookupSqls();
 
-			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
+			var report = GenerateReport();
+
+			GeneratedSql = ReportSqlGenerator.GenerateSql(report);
 
 			if (string.IsNullOrWhiteSpace(RepoPath) || RepoPath == "(no folder)")
 				throw new InvalidOperationException("Open folder first.");
@@ -328,7 +233,7 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 		}
 	}
 
-	private async void ApplyToDb()
+    private async void ApplyToDb()
 	{
 		if (Current == null) return;
 
@@ -337,13 +242,15 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 			if (string.IsNullOrWhiteSpace(ApplyConnectionString))
 				throw new InvalidOperationException("Connection string is empty.");
 
-            // Commit preset editor UI into typed content
-            SelectedPreset = null;
+            Current.SystemPresets = [];
+            SystemPresetsEditorVM.GetData(Current.SystemPresets);
 
             ValidateReportDefinition();
 			ValidateLookupSqls();
-            
-			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
+
+            var report = GenerateReport();
+
+            GeneratedSql = ReportSqlGenerator.GenerateSql(report);
 
 			StatusText = "Applying to DB...";
 			await SqlBatchExecutor.ExecuteScriptAsync(ApplyConnectionString, GeneratedSql);
@@ -355,7 +262,27 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 		}
 	}
 
-	private async void ImportColumnsFromDb()
+    private ReportSqlDocumentUi GenerateReport()
+    {
+        var report = Current;
+        report.Definition.Columns = Columns.Select(vm =>
+        {
+            var ui = new ReportColumnUi();
+            vm.GetData(ui);
+            return ui;
+        }).ToObservable();
+        ReportHeaderVM.GetData(report);
+
+		report.Definition.Texts = new Dictionary<string, Dictionary<string, string>>();
+        ReportTextsEditorVM.GetData(report.Definition.Texts);
+
+		report.SystemPresets = new ObservableCollection<Core.Models.Preset.SystemPresetUi>();
+        SystemPresetsEditorVM.GetData(report.SystemPresets);
+
+        return report;
+    }
+
+    private async void ImportColumnsFromDb()
 	{
 		if (Current?.Definition == null) return;
 
@@ -378,15 +305,19 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 			StatusText = "Reading view metadata...";
 			var cols = await DbIntrospector.GetViewColumnsAsync(dlgVM.ConnStringText, dlgVM.SchemaText, dlgVM.ViewText);
 
-            //Current.Definition.Columns.Clear();
-            // Delete columns which are not present in the imported view
+            // Delete non-virtual columns which are not present in the imported view
 			var existingColumnKeys = cols.Select(c => c.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            for (var i = 0; i < Current.Definition.Columns.Count; i++)
+            for (var i = 0; i < Columns.Count; i++)
             {
-                var col = Current.Definition.Columns[i];
+                var col = Columns[i];
+				if (col.Virtual)
+				{
+					continue;
+				}
+
 				if (!existingColumnKeys.Contains(col.Key))
 				{
-                    Current.Definition.Columns.RemoveAt(i);
+                    Columns.RemoveAt(i);
                     i--;
                     Messenger.Instance.Send(new ReportColumnKeyChangedMessage() { OldName = col.Key });
                 }
@@ -395,7 +326,7 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
             // Add or update imported columns
             foreach (var col in cols)
 			{
-				var oldColumn = Current.Definition.Columns.FirstOrDefault(c => string.Equals(c.Key, col.Name, StringComparison.OrdinalIgnoreCase));
+				var oldColumn = Columns.FirstOrDefault(c => string.Equals(c.Key, col.Name, StringComparison.OrdinalIgnoreCase));
 				if (oldColumn != null)
 				{
                     // Update type if changed
@@ -407,17 +338,26 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 				{
                     var type = DbIntrospector.MapSqlType(col.SqlType);
                     var textKey = KnownTextKeys.GetColumnHeaderKey(col.Name);
-                    Current.Definition.Columns.Add(new ReportColumnUi
-                    {
-                        Key = col.Name,
-                        Type = type,
-                    });
+
+					var ui = new ReportColumnUi
+					{
+						Key = col.Name,
+						Type = type,
+					};
+
+                    var vm = new ReportColumnViewModel()
+					{
+						 ColumnTypeValues = ColumnTypeValues
+                    };
+					vm.SetData(ui);
+
+                    Columns.Add(vm);
 
                     Messenger.Instance.Send(new ReportColumnKeyChangedMessage() { NewName = col.Name });
                 }
             }
 
-			SelectedColumn = Current.Definition.Columns.FirstOrDefault();
+			SelectedColumn = Columns.FirstOrDefault();
 			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
 			StatusText = $"Imported {cols.Count} columns from {dlgVM.SchemaText}.{dlgVM.ViewText}.";
 		}
@@ -431,56 +371,29 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 	{
 		if (Current?.Definition == null) return;
 
-		Current.Definition.Columns.Add(new ReportColumnUi
+		var ui = new ReportColumnUi
 		{
 			Key = "new_column",
 			Type = ReportColumnType.String,
-		});
-		StatusText = "Column added.";
-	}
+		};
+
+		var vm = new ReportColumnViewModel()
+		{
+			ColumnTypeValues = ColumnTypeValues
+        };
+		vm.SetData(ui);
+		Columns.Add(vm);
+		SelectedColumn = vm;
+    }
 
 	private void RemoveSelectedColumn()
 	{
 		if (Current?.Definition == null) return;
 		if (SelectedColumn == null) return;
 		// remove underlying json column by key
-		var toRemove = Current.Definition.Columns.FirstOrDefault(c => string.Equals(c.Key, SelectedColumn.Key, StringComparison.OrdinalIgnoreCase));
-		if (toRemove != null) Current.Definition.Columns.Remove(toRemove);
-		SelectedColumn = Current.Definition.Columns.FirstOrDefault();
+		Columns.Remove(SelectedColumn);
+		SelectedColumn = Columns.FirstOrDefault();
 		StatusText = "Column removed.";
-	}
-
-	private void AddPreset()
-	{
-		if (Current == null) return;
-		var key = $"{Current.ReportKey}_{Guid.NewGuid():N}";
-		var name = "New preset";
-		var p = new SystemPresetUi
-		{
-			PresetKey = key,
-            Name = name,
-            IsDefault = Current.SystemPresets.Count == 0,
-			PresetId = GuidUtil.FromPresetKey(key),
-			Content = new PresetContentUi()
-		};
-		p.Content.Texts[Constants.DefaultLanguage] = new Dictionary<string, string>
-		{
-			[KnownTextKeys.PresetTitle] = name
-        };
-        Current.SystemPresets.Add(p);
-		SelectedPreset = p;
-		StatusText = "Preset added.";
-	}
-
-	private void RemovePreset()
-	{
-		if (Current == null) return;
-		if (SelectedPreset == null) return;
-		Current.SystemPresets.Remove(SelectedPreset);
-		SelectedPreset = Current.SystemPresets.FirstOrDefault();
-		// reload preset editor with UI model
-		PresetEditor.Load(Current.Definition, SelectedPreset);
-		StatusText = "Preset removed.";
 	}
 
 	private void ValidateLookupSqls()
@@ -488,7 +401,7 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 		if (Current?.Definition == null) return;
 
 		var errors = new List<string>();
-		foreach (var column in Current.Definition.Columns)
+		foreach (var column in Columns)
 		{
 			var lookup = column.Filter?.Lookup;
 			if (lookup?.Mode != LookupMode.Sql || lookup.Sql == null)
@@ -524,7 +437,7 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
             { KnownTextKeys.ReportTitle, "New report" }
         };
 
-        foreach (var col in Current.Definition.Columns)
+        foreach (var col in Columns)
         {
             expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
         }
@@ -569,11 +482,27 @@ public sealed class MainViewModel : NotificationObject, IMessageReceiver<GetColu
 
 	private static string ToTitle(string s) => string.IsNullOrWhiteSpace(s) ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
-    void IMessageReceiver<GetColumnsMessage>.Receive(GetColumnsMessage message)
+    #endregion
+
+    #region IMessageReceiver implementation
+
+    private void OnGetColumnsMessageReceived(GetColumnsMessage message)
     {
         foreach (var col in Current?.Definition?.Columns ?? [])
-		{
-			message.ColumnNames.Add(col.Key);
+        {
+            message.Columns.Add(col);
         }
     }
+
+    private void OnGetCultureMessageReceived(GetCultureMessage message)
+    {
+		message.Culture = Current.Definition.DefaultCulture;
+    }
+
+    private void OnGetReportKeyMessageReceived(GetReportKeyMessage message)
+    {
+		message.ReportKey = Current.ReportKey;
+    }
+
+    #endregion
 }

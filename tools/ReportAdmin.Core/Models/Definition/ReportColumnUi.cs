@@ -5,7 +5,7 @@ namespace ReportAdmin.Core.Models.Definition;
 
 public sealed class ReportColumnUi : NotificationObject
 {
-    public required string Key { get; set => SetValue(ref field, value); }
+    public string Key { get; set => SetValue(ref field, value); } = string.Empty;
     public ReportColumnType Type { get; set => SetValue(ref field, value); }
 
     // flags expanded

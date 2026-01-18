@@ -11,16 +11,15 @@ namespace ReportAdmin.App.ViewModels
 
     }
 
-    public class TextsEditorViewModel : DataEditorVM<Dictionary<string, Dictionary<string, string>>, TextsEditorContext>, 
-        IMessageReceiver<ReportColumnKeyChangedMessage>,
-        IMessageReceiver<DefaultCultureChangedMessage>
+    public class TextsEditorViewModel : DataEditorVM<Dictionary<string, Dictionary<string, string>>, TextsEditorContext>
     {
         private Dictionary<string, Dictionary<string, string>>? _texts;
 
         public TextsEditorViewModel()
         {
-            Messenger.Instance.Register<ReportColumnKeyChangedMessage>(this);
-            Messenger.Instance.Register<DefaultCultureChangedMessage>(this);
+            Messenger.Instance.Register<ReportColumnKeyChangedMessage>(OnReportColumnKeyChangedMessageReceived);
+            Messenger.Instance.Register<CultureChangedMessage>(OnCultureChangedMessageReceived);
+            Messenger.Instance.Register<ResolveTextKeyMessage>(OnResolveTextKeyMessageReceived);
 
             AddCultureCommand = new RelayCommand(AddCulture);
             RemoveCultureCommand = new RelayCommand(RemoveCulture);
@@ -79,10 +78,14 @@ namespace ReportAdmin.App.ViewModels
             SelectedCultureKey = CultureKeys.FirstOrDefault();
         }
 
-        protected override Dictionary<string, Dictionary<string, string>> OnGetData()
+        protected override void OnGetData(Dictionary<string, Dictionary<string, string>> data)
         {
             CommitCultureEntries();
-            return _texts;
+
+            foreach (var kv in _texts!)
+            {
+                data[kv.Key] = kv.Value;
+            }
         }
 
         private void LoadCultureEntries()
@@ -191,16 +194,16 @@ namespace ReportAdmin.App.ViewModels
             }
             else
             {
-                var msg = Messenger.Instance.Send<GetColumnsMessage>();
+                var msg = SendMessage<GetColumnsMessage>();
 
                 var expectedTextKeys = new Dictionary<string, string>()
                 {
                     { KnownTextKeys.ReportTitle, "New report" }
                 };
 
-                foreach (var col in msg.ColumnNames)
+                foreach (var col in msg.Columns)
                 {
-                    expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col)] = Humanize(col);
+                    expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
                 }
 
                 return expectedTextKeys;
@@ -229,9 +232,18 @@ namespace ReportAdmin.App.ViewModels
             }
         }
 
-        private void NotifyStatus(string status)
+        private string? ResolveText(string culture, string textKey)
         {
-            Messenger.Instance.Send(new StatusMessage { Text = status });
+            if (_texts.TryGetValue(culture, out var dict) &&
+                dict.TryGetValue(textKey, out var s) &&
+                !string.IsNullOrWhiteSpace(s))
+                return s;
+
+            foreach (var d in _texts.Values)
+                if (d.TryGetValue(textKey, out var s2) && !string.IsNullOrWhiteSpace(s2))
+                    return s2;
+
+            return null;
         }
 
         private static string Humanize(string key)
@@ -247,7 +259,7 @@ namespace ReportAdmin.App.ViewModels
 
         private static string ToTitle(string s) => string.IsNullOrWhiteSpace(s) ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
-        void IMessageReceiver<ReportColumnKeyChangedMessage>.Receive(ReportColumnKeyChangedMessage message)
+        private void OnReportColumnKeyChangedMessageReceived(ReportColumnKeyChangedMessage message)
         {
             if (Mode != TextsEditorMode.Report)
                 return;
@@ -272,10 +284,20 @@ namespace ReportAdmin.App.ViewModels
             }
         }
 
-        void IMessageReceiver<DefaultCultureChangedMessage>.Receive(DefaultCultureChangedMessage message)
+        private void OnCultureChangedMessageReceived(CultureChangedMessage message)
         {
-            DefaultCulture = message.NewDefaultCulture;
+            DefaultCulture = message.NewCulture;
             EnsureCulture(DefaultCulture);
+        }
+
+        private void OnResolveTextKeyMessageReceived(ResolveTextKeyMessage message)
+        {
+            if (message.TextsEditorMode != Mode)
+            {
+                return;
+            }
+
+            message.Value = ResolveText(message.Culture, message.Key);
         }
     }
 
