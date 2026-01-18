@@ -3,6 +3,10 @@ using ReportAdmin.Core;
 
 namespace ReportAdmin.App.ViewModels
 {
+    public abstract class DataEditorVM<TData> : DataEditorVM<TData, object>
+        where TData : class, new()
+    { }
+
     public abstract class DataEditorVM<TData, TContext> : NotificationObject
         where TData : class, new()
         where TContext : class
@@ -34,7 +38,7 @@ namespace ReportAdmin.App.ViewModels
 
         protected void NotifyStatus(string status)
         {
-            Messenger.Instance.Send(new StatusMessage { Text = status });
+            SendMessage(new StatusMessage { Text = status });
         }
 
         protected TMessage SendMessage<TMessage>() 
@@ -48,6 +52,12 @@ namespace ReportAdmin.App.ViewModels
         {
             Messenger.Instance.Send<TMessage>(msg);
             return msg;
+        }
+
+        protected void RegisterMesssage<TMessage>(Action<TMessage> handler) 
+            where TMessage : class
+        {
+            Messenger.Instance.Register<TMessage>(handler);
         }
     }
 }

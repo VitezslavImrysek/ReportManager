@@ -6,118 +6,14 @@
         xmlns:converters="clr-namespace:ReportAdmin.App.Converters"
         xmlns:vm="clr-namespace:ReportAdmin.App.ViewModels"
         xmlns:views="clr-namespace:ReportAdmin.App.Views"
-        mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:MainViewModel}"
+        mc:Ignorable="d"
         Title="Report Admin"
         Height="900" Width="1450">
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <converters:LookupPresenceConverter x:Key="LookupPresenceConverter"/>
-    </Window.Resources>
-    
     <Grid Margin="12">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="340"/>
-            <ColumnDefinition Width="12"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <DockPanel Grid.Column="0">
-            <StackPanel DockPanel.Dock="Top">
-                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Reports"/>
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <Button Padding="10,4" Content="Open folder" Command="{Binding OpenFolderCommand}"/>
-                    <Button Margin="8,0,0,0" Padding="10,4" Content="New report" Command="{Binding NewReportCommand}"/>
-                </StackPanel>
-                <TextBlock Margin="0,10,0,0" Foreground="#666" TextWrapping="Wrap" Text="{Binding RepoPath}"/>
-                <Separator Margin="0,10,0,10"/>
-                <TextBlock FontWeight="SemiBold" Text="Files"/>
-            </StackPanel>
-
-            <ListBox ItemsSource="{Binding ReportFiles}"
-                     SelectedItem="{Binding SelectedFile}"
-                     DisplayMemberPath="FileName" />
-        </DockPanel>
-
-        <GridSplitter Grid.Column="1" Width="12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-
-        <DockPanel Grid.Column="2">
-            <StackPanel DockPanel.Dock="Top">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding StatusText}"/>
-                    <Button Margin="12,0,0,0" Padding="10,4" Content="Save &amp; Generate SQL" Command="{Binding SaveGenerateCommand}"/>
-                    <Button Margin="8,0,0,0" Padding="10,4" Content="Apply to DB" Command="{Binding ApplyToDbCommand}"/>
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <TextBlock VerticalAlignment="Center" Text="Apply connection string:"/>
-                    <TextBox Margin="8,0,0,0" Width="980" Text="{Binding ApplyConnectionString, UpdateSourceTrigger=PropertyChanged}"/>
-                </StackPanel>
-
-                <Separator Margin="0,10,0,10"/>
-            </StackPanel>
-
-            <TabControl>
-                <TabItem Header="Header">
-                    <views:ReportHeaderView Margin="10" DataContext="{Binding ReportHeaderVM}" />
-                </TabItem>
-
-                <TabItem Header="Columns">
-                    <TabItem.Resources>
-                        <CollectionViewSource x:Key="ColumnTypeValues" Source="{Binding ColumnTypeValues}" />
-                    </TabItem.Resources>
-                    
-                    <Grid Margin="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        
-                        <StackPanel Grid.Row="0" Orientation="Horizontal">
-                            <Button Padding="10,4" Content="+ Add column" Command="{Binding AddColumnCommand}"/>
-                            <Button Margin="8,0,0,0" Padding="10,4" Content="- Remove selected" Command="{Binding RemoveSelectedColumnCommand}"/>
-                        </StackPanel>
-
-                        <DataGrid x:Name="dataGrid" Grid.Row="1" Margin="0,10,0,0"
-                                  ItemsSource="{Binding Columns}"
-                                  SelectedItem="{Binding SelectedColumn}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  IsReadOnly="False">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Key" Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}" Width="220"/>
-                                <DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding Type}" Width="150"
-                                                        ItemsSource="{Binding Source={StaticResource ColumnTypeValues}}"/>
-                                <DataGridCheckBoxColumn Header="AlwaysSelect" Binding="{Binding AlwaysSelect}" Width="120"/>
-                                <DataGridCheckBoxColumn Header="Hidden" Binding="{Binding Hidden}" Width="120"/>
-                                <DataGridCheckBoxColumn Header="Filter" Binding="{Binding Filterable}" Width="80"/>
-                                <DataGridCheckBoxColumn Header="Sort" Binding="{Binding Sortable}" Width="80"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-
-                        <views:ReportColumnView Grid.Row="2"
-                                                Margin="0,12,0,0"
-                                                DataContext="{Binding SelectedColumn}"/>
-                    </Grid>
-                </TabItem>
-
-                <TabItem Header="Texts">
-                    <views:TextsEditorView Margin="10" DataContext="{Binding ReportTextsEditorVM}" />
-                </TabItem>
-
-                <TabItem Header="System Presets">
-                    <views:SystemPresetsView Margin="10" DataContext="{Binding SystemPresetsEditorVM}" />
-                </TabItem>
-
-                <TabItem Header="Generated SQL">
-                    <!-- TODO: Add regenerate button -->
-                    <TextBox Margin="10"
-                             AcceptsReturn="True"
-                             VerticalScrollBarVisibility="Auto"
-                             Text="{Binding GeneratedSql}"
-                             IsReadOnly="True"/>
-                </TabItem>
-            </TabControl>
-        </DockPanel>
+        <views:ReportsView>
+            <views:ReportsView.DataContext>
+                <vm:ReportsEditorViewModel />
+            </views:ReportsView.DataContext>
+        </views:ReportsView>
     </Grid>
 </Window>

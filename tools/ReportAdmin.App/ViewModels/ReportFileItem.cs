@@ -4,7 +4,7 @@ namespace ReportAdmin.App.ViewModels;
 
 public sealed class ReportFileItem : NotificationObject
 {
-	public required string FilePath { get; init; }
+	public string FilePath { get; set; } = string.Empty;
 	public string FileName => System.IO.Path.GetFileName(FilePath);
 	public override string ToString() => FileName;
 }
