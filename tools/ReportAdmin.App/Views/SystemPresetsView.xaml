@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ReportAdmin.App.Views"
              xmlns:vm="clr-namespace:ReportAdmin.App.ViewModels"
-             mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:SystemPresetsEditorViewModel}"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:SystemPresetsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
@@ -25,6 +25,6 @@
                      DisplayMemberPath="Name"/>
         </StackPanel>
 
-        <local:SystemPresetView Grid.Column="1" Margin="12,0,0,0" DataContext="{Binding PresetEditorVM}" />
+        <local:SystemPresetView Grid.Column="1" Margin="12,0,0,0" DataContext="{Binding PresetVM}" />
     </Grid>
 </UserControl>

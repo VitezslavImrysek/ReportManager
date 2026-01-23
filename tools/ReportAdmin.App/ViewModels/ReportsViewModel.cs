@@ -6,13 +6,13 @@ using System.IO;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ReportsEditorViewModel : NotificationObject
+    public class ReportsViewModel : NotificationObject
     {
         #region Ctor
 
-        public ReportsEditorViewModel()
+        public ReportsViewModel()
         {
-            ReportEditorVM = new ReportEditorViewModel();
+            ReportVM = new ReportViewModel();
 
             OpenFolderCommand = new RelayCommand(OpenFolder);
             NewReportCommand = new RelayCommand(NewReport);
@@ -40,7 +40,7 @@ namespace ReportAdmin.App.ViewModels
         {
             if (item == null) return;
 
-            ReportEditorVM.SetData(item);
+            ReportVM.SetData(item);
         }
 
         #endregion
@@ -54,7 +54,7 @@ namespace ReportAdmin.App.ViewModels
 
         #region ViewModels
 
-        public ReportEditorViewModel ReportEditorVM { get; set => SetValue(ref field, value); }
+        public ReportViewModel ReportVM { get; set => SetValue(ref field, value); }
 
         #endregion
 
@@ -97,7 +97,7 @@ namespace ReportAdmin.App.ViewModels
 
         private void NewReport()
         {
-            ReportEditorVM.New(new ReportEditorContext() { ReportFolder = RepoPath });
+            ReportVM.New(new ReportContext() { ReportFolder = RepoPath });
         }
 
         private void OnStatusMessageReceived(StatusMessage message)

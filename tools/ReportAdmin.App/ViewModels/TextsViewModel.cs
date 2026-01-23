@@ -11,11 +11,11 @@ namespace ReportAdmin.App.ViewModels
 
     }
 
-    public class TextsEditorViewModel : DataEditorVM<Dictionary<string, Dictionary<string, string>>, TextsEditorContext>
+    public class TextsViewModel : DataEditorVM<Dictionary<string, Dictionary<string, string>>, TextsEditorContext>
     {
         private Dictionary<string, Dictionary<string, string>> _texts = [];
 
-        public TextsEditorViewModel()
+        public TextsViewModel()
         {
             Messenger.Instance.Register<ReportColumnKeyChangedMessage>(OnReportColumnKeyChangedMessageReceived);
             Messenger.Instance.Register<CultureChangedMessage>(OnCultureChangedMessageReceived);
@@ -59,7 +59,7 @@ namespace ReportAdmin.App.ViewModels
             }
         }
 
-        public ObservableCollection<KvRowVm> CultureEntries { get; } = [];
+        public ObservableCollection<TextEntryViewModel> CultureEntries { get; } = [];
         public string SelectedCultureTitle => SelectedCultureKey == null ? "No culture selected" : $"Culture: {SelectedCultureKey}";
 
         protected override void OnNew(TextsEditorContext context)
@@ -97,7 +97,7 @@ namespace ReportAdmin.App.ViewModels
             var cultureTexts = EnsureCulture(SelectedCultureKey);
 
             foreach (var kv in cultureTexts.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase))
-                CultureEntries.Add(new KvRowVm { Key = kv.Key, Value = kv.Value });
+                CultureEntries.Add(new TextEntryViewModel { Key = kv.Key, Value = kv.Value });
 
             OnPropertyChanged(nameof(SelectedCultureTitle));
         }

@@ -8,9 +8,9 @@ using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ReportColumnsEditorViewModel : DataEditorVM<ObservableCollection<ReportColumnUi>, object>
+    public class ReportColumnsViewModel : DataEditorVM<ObservableCollection<ReportColumnUi>, object>
     {
-        public ReportColumnsEditorViewModel()
+        public ReportColumnsViewModel()
         {
             Columns = [];
 

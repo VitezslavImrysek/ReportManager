@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ReportAdmin.App.Views"
              xmlns:vm="clr-namespace:ReportAdmin.App.ViewModels"
-             mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:ReportEditorViewModel}"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:ReportViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <DockPanel>
         <StackPanel DockPanel.Dock="Top">
@@ -28,7 +28,7 @@
             </TabItem>
 
             <TabItem Header="Columns">
-                <local:ReportColumnsView Margin="10" DataContext="{Binding ReportColumnsEditorVM}" />
+                <local:ReportColumnsView Margin="10" DataContext="{Binding ReportColumnsVM}" />
             </TabItem>
 
             <TabItem Header="Default Sort">
@@ -36,11 +36,11 @@
             </TabItem>
 
             <TabItem Header="Texts">
-                <local:TextsEditorView Margin="10" DataContext="{Binding ReportTextsEditorVM}" />
+                <local:TextsEditorView Margin="10" DataContext="{Binding ReportTextsVM}" />
             </TabItem>
 
             <TabItem Header="System Presets">
-                <local:SystemPresetsView Margin="10" DataContext="{Binding SystemPresetsEditorVM}" />
+                <local:SystemPresetsView Margin="10" DataContext="{Binding SystemPresetsVM}" />
             </TabItem>
 
             <TabItem Header="Generated SQL">

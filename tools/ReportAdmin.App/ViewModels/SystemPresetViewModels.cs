@@ -12,12 +12,12 @@ namespace ReportAdmin.App.ViewModels;
 /// <summary>
 /// UI editor for PresetContentJson.
 /// </summary>
-public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, object>
+public sealed class SystemPresetViewModel : DataEditorVM<SystemPresetUi, object>
 {
-    public SystemPresetEditorViewModel()
+    public SystemPresetViewModel()
     {
         SortVM = new SortViewModel();
-        PresetsTextsEditorVM = new TextsEditorViewModel() { Mode = TextsEditorMode.Preset };
+        PresetsTextsVM = new TextsViewModel() { Mode = TextsEditorMode.Preset };
 
         AddFilterCommand = new RelayCommand(AddFilter);
         RemoveFilterCommand = new RelayCommand(RemoveFilter, () => SelectedFilter != null);
@@ -49,7 +49,7 @@ public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, o
 	public FilterRuleVm? SelectedFilter { get; set => SetValue(ref field, value); }
 
     public SortViewModel SortVM { get; set => SetValue(ref field, value); }
-    public TextsEditorViewModel PresetsTextsEditorVM { get; set => SetValue(ref field, value); }
+    public TextsViewModel PresetsTextsVM { get; set => SetValue(ref field, value); }
 
 	public RelayCommand AddFilterCommand { get; }
 	public RelayCommand RemoveFilterCommand { get; }
@@ -113,8 +113,8 @@ public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, o
             Filters.Add(vm);
         }
 
-        PresetsTextsEditorVM.DefaultCulture = SendMessage<GetCultureMessage>().Culture;
-        PresetsTextsEditorVM.SetData(data.Content.Texts);
+        PresetsTextsVM.DefaultCulture = SendMessage<GetCultureMessage>().Culture;
+        PresetsTextsVM.SetData(data.Content.Texts);
 
         RaiseCanExec();
     }
@@ -175,9 +175,9 @@ public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, o
         data.PresetId = PresetId;
         data.PresetKey = PresetKey;
 
-        data.Name = PresetsTextsEditorVM.Title;
+        data.Name = PresetsTextsVM.Title;
         data.Content.Texts = new Dictionary<string, Dictionary<string, string>>();
-        PresetsTextsEditorVM.GetData(data.Content.Texts);
+        PresetsTextsVM.GetData(data.Content.Texts);
     }
 
 	private void AddFilter()

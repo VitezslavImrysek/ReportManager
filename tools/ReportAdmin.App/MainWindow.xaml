@@ -12,7 +12,7 @@
     <Grid Margin="12">
         <views:ReportsView>
             <views:ReportsView.DataContext>
-                <vm:ReportsEditorViewModel />
+                <vm:ReportsViewModel />
             </views:ReportsView.DataContext>
         </views:ReportsView>
     </Grid>

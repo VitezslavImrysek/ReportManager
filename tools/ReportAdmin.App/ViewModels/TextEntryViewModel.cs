@@ -2,7 +2,7 @@
 
 namespace ReportAdmin.App.ViewModels;
 
-public sealed class KvRowVm : NotificationObject
+public sealed class TextEntryViewModel : NotificationObject
 {
 	public required string Key { get; set => SetValue(ref field, value); }
 	public required string Value { get; set => SetValue(ref field, value); }

@@ -6,7 +6,7 @@
              xmlns:converters="clr-namespace:ReportAdmin.App.Converters"
              xmlns:local="clr-namespace:ReportAdmin.App.Views" 
              xmlns:vm="clr-namespace:ReportAdmin.App.ViewModels"
-             mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:ReportsEditorViewModel}"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:ReportsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -42,7 +42,7 @@
 
         <GridSplitter Grid.Column="1" Width="12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
-        <local:ReportView Grid.Column="2" DataContext="{Binding ReportEditorVM}" />
+        <local:ReportView Grid.Column="2" DataContext="{Binding ReportVM}" />
 
         <StatusBar Grid.ColumnSpan="3" Grid.Row="1">
             <StatusBarItem>

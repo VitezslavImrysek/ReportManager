@@ -8,33 +8,32 @@ using ReportManager.DefinitionModel.Utils;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
 using System.IO;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using System.Windows;
 
 namespace ReportAdmin.App.ViewModels;
 
-public class ReportEditorContext
+public class ReportContext
 {
     public required string ReportFolder { get; init; }
 }
 
-public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportEditorContext>
+public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext>
 {
     private string? _filePath;
 
     #region Ctor
 
-    public ReportEditorViewModel()
+    public ReportViewModel()
     {
         SaveGenerateCommand = new RelayCommand(SaveGenerate);
         ApplyToDbCommand = new RelayCommand(ApplyToDb);
 
-		ReportColumnsEditorVM = new ReportColumnsEditorViewModel();
+		ReportColumnsVM = new ReportColumnsViewModel();
         DefaultSortVM = new SortViewModel();
-        SystemPresetsEditorVM = new SystemPresetsEditorViewModel();
+        SystemPresetsVM = new SystemPresetsViewModel();
         ReportHeaderVM = new ReportHeaderViewModel() { ImportColumnsCommand = new RelayCommand(ImportColumnsFromDb) };
-        ReportTextsEditorVM = new TextsEditorViewModel() { Mode = TextsEditorMode.Report };
+        ReportTextsVM = new TextsViewModel() { Mode = TextsEditorMode.Report };
     }
 
     #endregion
@@ -56,10 +55,10 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
 
     #region ViewModels
 
-	public ReportColumnsEditorViewModel ReportColumnsEditorVM { get; set => SetValue(ref field, value); }
+	public ReportColumnsViewModel ReportColumnsVM { get; set => SetValue(ref field, value); }
     public SortViewModel DefaultSortVM { get; set => SetValue(ref field, value); }
-    public SystemPresetsEditorViewModel SystemPresetsEditorVM { get; set => SetValue(ref field, value); }
-    public TextsEditorViewModel ReportTextsEditorVM { get; set => SetValue(ref field, value); }
+    public SystemPresetsViewModel SystemPresetsVM { get; set => SetValue(ref field, value); }
+    public TextsViewModel ReportTextsVM { get; set => SetValue(ref field, value); }
     public ReportHeaderViewModel ReportHeaderVM { get; set => SetValue(ref field, value); }
 
     #endregion
@@ -96,7 +95,7 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
         SaveGenerate();
     }
 
-    protected override void OnNew(ReportEditorContext context)
+    protected override void OnNew(ReportContext context)
     {
         RepoPath = context.ReportFolder;
 
@@ -132,12 +131,12 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
     {
         ReportHeaderVM.SetData(report);
 
-        ReportTextsEditorVM.DefaultCulture = report.Definition.DefaultCulture;
-        ReportTextsEditorVM.SetData(report.Definition.Texts);
+        ReportTextsVM.DefaultCulture = report.Definition.DefaultCulture;
+        ReportTextsVM.SetData(report.Definition.Texts);
 
-        ReportColumnsEditorVM.SetData(report.Definition.Columns);
+        ReportColumnsVM.SetData(report.Definition.Columns);
         DefaultSortVM.SetData(report.Definition.DefaultSort);
-        SystemPresetsEditorVM.SetData(report.SystemPresets);
+        SystemPresetsVM.SetData(report.SystemPresets);
 
         GeneratedSql = ReportSqlGenerator.GenerateSql(report);
     }
@@ -158,16 +157,16 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
         ReportHeaderVM.GetData(report);
 
         report.Definition.Columns = [];
-        ReportColumnsEditorVM.GetData(report.Definition.Columns);
+        ReportColumnsVM.GetData(report.Definition.Columns);
 
         report.Definition.DefaultSort = [];
         DefaultSortVM.GetData(report.Definition.DefaultSort);
 
         report.Definition.Texts = [];
-        ReportTextsEditorVM.GetData(report.Definition.Texts);
+        ReportTextsVM.GetData(report.Definition.Texts);
 
         report.SystemPresets = [];
-        SystemPresetsEditorVM.GetData(report.SystemPresets);
+        SystemPresetsVM.GetData(report.SystemPresets);
 
         return report;
     }
@@ -250,7 +249,7 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
             NotifyStatus("Reading view metadata...");
 			var cols = await DbIntrospector.GetViewColumnsAsync(dlgVM.ConnStringText, dlgVM.SchemaText, dlgVM.ViewText);
 
-			ReportColumnsEditorVM.UpdateColumns(cols);
+			ReportColumnsVM.UpdateColumns(cols);
 
             var report = GetData();
             if (report == null)
