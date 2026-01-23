@@ -12,9 +12,9 @@ namespace ReportAdmin.App.ViewModels;
 /// <summary>
 /// UI editor for PresetContentJson.
 /// </summary>
-public sealed class SystemPresetViewModel : DataEditorVM<SystemPresetUi, object>
+public sealed class PresetViewModel : DataEditorVM<SystemPresetUi, object>
 {
-    public SystemPresetViewModel()
+    public PresetViewModel()
     {
         SortVM = new SortViewModel();
         PresetsTextsVM = new TextsViewModel() { Mode = TextsEditorMode.Preset };

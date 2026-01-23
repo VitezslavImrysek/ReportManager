@@ -8,9 +8,9 @@ using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ReportColumnsViewModel : DataEditorVM<ObservableCollection<ReportColumnUi>, object>
+    public class ColumnsViewModel : DataEditorVM<ObservableCollection<ReportColumnUi>, object>
     {
-        public ReportColumnsViewModel()
+        public ColumnsViewModel()
         {
             Columns = [];
 
@@ -23,8 +23,8 @@ namespace ReportAdmin.App.ViewModels
         #region Properties
 
         public ObservableCollection<ReportColumnType> ColumnTypeValues { get; } = new(Enum.GetValues(typeof(ReportColumnType)).Cast<ReportColumnType>());
-        public ObservableCollection<ReportColumnViewModel> Columns { get; set => SetValue(ref field, value); }
-        public ReportColumnViewModel? SelectedColumn { get; set => SetValue(ref field, value); }
+        public ObservableCollection<ColumnViewModel> Columns { get; set => SetValue(ref field, value); }
+        public ColumnViewModel? SelectedColumn { get; set => SetValue(ref field, value); }
 
         #endregion
 
@@ -79,7 +79,7 @@ namespace ReportAdmin.App.ViewModels
                         Type = type,
                     };
 
-                    var vm = new ReportColumnViewModel()
+                    var vm = new ColumnViewModel()
                     {
                         ColumnTypeValues = ColumnTypeValues
                     };
@@ -112,7 +112,7 @@ namespace ReportAdmin.App.ViewModels
         {
             // map selected column to UI model
             Columns = data.Select(x => {
-                var vm = new ReportColumnViewModel()
+                var vm = new ColumnViewModel()
                 {
                     ColumnTypeValues = ColumnTypeValues
                 };
@@ -134,7 +134,7 @@ namespace ReportAdmin.App.ViewModels
                 Type = ReportColumnType.String,
             };
 
-            var vm = new ReportColumnViewModel()
+            var vm = new ColumnViewModel()
             {
                 ColumnTypeValues = ColumnTypeValues
             };

@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ReportColumnViewModel : DataEditorVM<ReportColumnUi, object>
+    public class ColumnViewModel : DataEditorVM<ReportColumnUi, object>
     {
         public string Key { get; set => SetValue(ref field, value, OnKeyChanged); } = string.Empty;
         public ReportColumnType Type { get; set => SetValue(ref field, value); }

@@ -28,7 +28,7 @@
             </TabItem>
 
             <TabItem Header="Columns">
-                <local:ReportColumnsView Margin="10" DataContext="{Binding ReportColumnsVM}" />
+                <local:ColumnsView Margin="10" DataContext="{Binding ColumnsVM}" />
             </TabItem>
 
             <TabItem Header="Default Sort">
@@ -36,11 +36,11 @@
             </TabItem>
 
             <TabItem Header="Texts">
-                <local:TextsEditorView Margin="10" DataContext="{Binding ReportTextsVM}" />
+                <local:TextsView Margin="10" DataContext="{Binding TextsVM}" />
             </TabItem>
 
             <TabItem Header="System Presets">
-                <local:SystemPresetsView Margin="10" DataContext="{Binding SystemPresetsVM}" />
+                <local:PresetsView Margin="10" DataContext="{Binding PresetsVM}" />
             </TabItem>
 
             <TabItem Header="Generated SQL">

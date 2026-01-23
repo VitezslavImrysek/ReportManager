@@ -3,11 +3,11 @@
 namespace ReportAdmin.App.Views
 {
     /// <summary>
-    /// Interaction logic for ReportColumnView.xaml
+    /// Interaction logic for PresetView.xaml
     /// </summary>
-    public partial class ReportColumnView : UserControl
+    public partial class PresetView : UserControl
     {
-        public ReportColumnView()
+        public PresetView()
         {
             InitializeComponent();
         }

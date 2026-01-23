@@ -6,9 +6,9 @@ using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class SystemPresetsViewModel : DataEditorVM<ObservableCollection<SystemPresetUi>, object>
+    public class PresetsViewModel : DataEditorVM<ObservableCollection<SystemPresetUi>, object>
     {
-        public SystemPresetsViewModel()
+        public PresetsViewModel()
         {
             AddPresetCommand = new RelayCommand(AddPreset);
             RemovePresetCommand = new RelayCommand(RemovePreset);
@@ -19,7 +19,7 @@ namespace ReportAdmin.App.ViewModels
         public ObservableCollection<SystemPresetUi> SystemPresets { get; set => SetValue(ref field, value); } = [];
         public SystemPresetUi? SelectedPreset { get; set => SetValue(ref field, value, OnSelectedPresetChanged); }
 
-        public SystemPresetViewModel PresetVM { get; } = new();
+        public PresetViewModel PresetVM { get; } = new();
 
         #endregion
 
