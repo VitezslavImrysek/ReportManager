@@ -1,7 +1,7 @@
-using ReportManager.DefinitionModel.Models.ReportPreset;
+using ReportManager.DefinitionModel.Models;
 using ReportManager.Shared.Dto;
 
-namespace ReportAdmin.Core.Models.Preset;
+namespace ReportAdmin.Core.Models;
 
 public sealed class SortSpecUi : NotificationObject
 {

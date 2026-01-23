@@ -1,3 +1,4 @@
+using ReportManager.DefinitionModel.Models;
 using ReportManager.DefinitionModel.Models.ReportPreset;
 using System.Collections.ObjectModel;
 

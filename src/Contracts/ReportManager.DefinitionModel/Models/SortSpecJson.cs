@@ -1,11 +1,12 @@
 ﻿using ReportManager.Shared.Dto;
 
-namespace ReportManager.DefinitionModel.Models.ReportPreset;
+namespace ReportManager.DefinitionModel.Models;
 
 public sealed class SortSpecJson
 {
     public required string ColumnKey { get; set; }
     public SortDirection Direction { get; set; }
+
 
     public static explicit operator SortSpecJson(SortSpecDto dto)
     {

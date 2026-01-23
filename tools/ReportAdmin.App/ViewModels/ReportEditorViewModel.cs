@@ -4,11 +4,11 @@ using ReportAdmin.Core.Db;
 using ReportAdmin.Core.Models;
 using ReportAdmin.Core.Models.Definition;
 using ReportAdmin.Core.Sql;
-using ReportAdmin.Core.Utils;
 using ReportManager.DefinitionModel.Utils;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
 using System.IO;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using System.Windows;
 
@@ -21,6 +21,8 @@ public class ReportEditorContext
 
 public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportEditorContext>
 {
+    private string? _filePath;
+
     #region Ctor
 
     public ReportEditorViewModel()
@@ -29,12 +31,10 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
         ApplyToDbCommand = new RelayCommand(ApplyToDb);
 
 		ReportColumnsEditorVM = new ReportColumnsEditorViewModel();
+        DefaultSortVM = new SortViewModel();
         SystemPresetsEditorVM = new SystemPresetsEditorViewModel();
         ReportHeaderVM = new ReportHeaderViewModel() { ImportColumnsCommand = new RelayCommand(ImportColumnsFromDb) };
         ReportTextsEditorVM = new TextsEditorViewModel() { Mode = TextsEditorMode.Report };
-
-		Messenger.Instance.Register<GetCultureMessage>(OnGetCultureMessageReceived);
-        Messenger.Instance.Register<GetReportKeyMessage>(OnGetReportKeyMessageReceived);
     }
 
     #endregion
@@ -42,9 +42,6 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
     #region Properties
 
     public string? RepoPath { get; set => SetValue(ref field, value); }
-
-	public ReportSqlDocumentUi? Current { get; set => SetValue(ref field, value); }
-	
     public string GeneratedSql { get; set => SetValue(ref field, value); } = string.Empty;
 	public string ApplyConnectionString { get; set => SetValue(ref field, value); } = string.Empty;
 
@@ -60,6 +57,7 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
     #region ViewModels
 
 	public ReportColumnsEditorViewModel ReportColumnsEditorVM { get; set => SetValue(ref field, value); }
+    public SortViewModel DefaultSortVM { get; set => SetValue(ref field, value); }
     public SystemPresetsEditorViewModel SystemPresetsEditorVM { get; set => SetValue(ref field, value); }
     public TextsEditorViewModel ReportTextsEditorVM { get; set => SetValue(ref field, value); }
     public ReportHeaderViewModel ReportHeaderVM { get; set => SetValue(ref field, value); }
@@ -70,13 +68,31 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
 
     protected override void OnSetData(ReportFileItem data)
     {
+        _filePath = data.FilePath;
         RepoPath = Path.GetDirectoryName(data.FilePath);
-        LoadFile(data.FilePath);
+
+        try
+        {
+            var report = ReportSqlParser.LoadFromFile(data.FilePath);
+            if (report.Definition == null)
+            {
+                // Contains no or invalid definition.
+                MessageBox.Show("The report SQL file does not contain a valid report definition.");
+                return;
+            }
+
+            SetData(report);
+            NotifyStatus($"Loaded: {Path.GetFileName(data.FilePath)}");
+        }
+        catch (Exception ex)
+        {
+            NotifyStatus("Load error: " + ex.Message);
+        }
     }
 
     protected override void OnGetData(ReportFileItem data)
     {
-		data.FilePath = Current.FilePath;
+		data.FilePath = _filePath;
         SaveGenerate();
     }
 
@@ -84,7 +100,7 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
     {
         RepoPath = context.ReportFolder;
 
-        Current = new ReportSqlDocumentUi
+        var report = new ReportSqlDocumentUi
         {
             ReportKey = "NewReport",
             ViewSchema = "dbo",
@@ -99,15 +115,12 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
             SystemPresets = []
         };
 
-        Current.Definition.Texts[Constants.DefaultLanguage] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        report.Definition.Texts[Constants.DefaultLanguage] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["report.title"] = "New report"
         };
 
-        ReportHeaderVM.SetData(Current);
-        ReportTextsEditorVM.SetData(Current.Definition.Texts);
-
-        GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
+        SetData(report);
         NotifyStatus("New report created (not saved yet).");
     }
 
@@ -115,52 +128,59 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
 
     #region Private Methods
 
-	private void LoadFile(string path)
+    private void SetData(ReportSqlDocumentUi report)
+    {
+        ReportHeaderVM.SetData(report);
+
+        ReportTextsEditorVM.DefaultCulture = report.Definition.DefaultCulture;
+        ReportTextsEditorVM.SetData(report.Definition.Texts);
+
+        ReportColumnsEditorVM.SetData(report.Definition.Columns);
+        DefaultSortVM.SetData(report.Definition.DefaultSort);
+        SystemPresetsEditorVM.SetData(report.SystemPresets);
+
+        GeneratedSql = ReportSqlGenerator.GenerateSql(report);
+    }
+
+    private ReportSqlDocumentUi? GetData()
+    {
+        var isOK = Validate();
+        if (!isOK)
+        {
+            return null;
+        }
+
+        var report = new ReportSqlDocumentUi()
+        {
+            Definition = new ReportDefinitionUi()
+        };
+
+        ReportHeaderVM.GetData(report);
+
+        report.Definition.Columns = [];
+        ReportColumnsEditorVM.GetData(report.Definition.Columns);
+
+        report.Definition.DefaultSort = [];
+        DefaultSortVM.GetData(report.Definition.DefaultSort);
+
+        report.Definition.Texts = [];
+        ReportTextsEditorVM.GetData(report.Definition.Texts);
+
+        report.SystemPresets = [];
+        SystemPresetsEditorVM.GetData(report.SystemPresets);
+
+        return report;
+    }
+
+    private void SaveGenerate()
 	{
 		try
 		{
-			Current = ReportSqlParser.LoadFromFile(path);
-			if (Current.Definition == null)
-			{
-                // Contains no or invalid definition.
-				MessageBox.Show("The report SQL file does not contain a valid report definition.");
-				return;
+			var report = GetData(); 
+            if (report == null)
+            {
+                return;
             }
-
-			ReportHeaderVM.SetData(Current);
-
-            ReportTextsEditorVM.DefaultCulture = Current.Definition.DefaultCulture;
-			ReportTextsEditorVM.SetData(Current.Definition.Texts);
-
-			ReportColumnsEditorVM.SetData(Current.Definition.Columns);
-			SystemPresetsEditorVM.SetData(Current.SystemPresets);
-
-			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
-            NotifyStatus($"Loaded: {Path.GetFileName(path)}");
-		}
-		catch (Exception ex)
-		{
-            NotifyStatus("Load error: " + ex.Message);
-		}
-	}
-
-	private void SaveGenerate()
-	{
-		try
-		{
-			if (Current == null) return;
-
-			Current.SystemPresets = [];
-            SystemPresetsEditorVM.GetData(Current.SystemPresets);
-
-			foreach (var p in Current.SystemPresets)
-			{
-				if (string.IsNullOrWhiteSpace(p.PresetKey))
-					throw new InvalidOperationException("PresetKey cannot be empty.");
-				p.PresetId = GuidUtil.FromPresetKey(p.PresetKey);
-			}
-
-			var report = GenerateReport();
 
             ValidateReportDefinition(report);
             ValidateLookupSqls(report);
@@ -170,7 +190,7 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
 			if (string.IsNullOrWhiteSpace(RepoPath))
 				throw new InvalidOperationException("Open folder first.");
 
-			var file = Path.Combine(RepoPath, Current.ReportKey + ".sql");
+			var file = Path.Combine(RepoPath, report.ReportKey + ".sql");
 			File.WriteAllText(file, GeneratedSql);
 
             SendMessage<RefreshReportsMessage>();
@@ -185,17 +205,16 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
 
     private async void ApplyToDb()
 	{
-		if (Current == null) return;
-
 		try
 		{
 			if (string.IsNullOrWhiteSpace(ApplyConnectionString))
 				throw new InvalidOperationException("Connection string is empty.");
 
-            Current.SystemPresets = [];
-            SystemPresetsEditorVM.GetData(Current.SystemPresets);
-
-            var report = GenerateReport();
+            var report = GetData();
+            if (report == null)
+            {
+                return;
+            }
 
             ValidateReportDefinition(report);
 			ValidateLookupSqls(report);
@@ -212,50 +231,34 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
 		}
 	}
 
-    private ReportSqlDocumentUi GenerateReport()
-    {
-        var report = Current;
-
-        ReportHeaderVM.GetData(report);
-
-		report.Definition.Columns = [];
-		ReportColumnsEditorVM.GetData(report.Definition.Columns);
-
-		report.Definition.Texts = [];
-        ReportTextsEditorVM.GetData(report.Definition.Texts);
-
-		report.SystemPresets = [];
-        SystemPresetsEditorVM.GetData(report.SystemPresets);
-
-        return report;
-    }
-
     private async void ImportColumnsFromDb()
 	{
-		if (Current?.Definition == null) return;
-
 		try
 		{
 			var dlgVM = new ImportDialogViewModel
 			{
 				ConnStringText = ApplyConnectionString,
-				SchemaText = Current.ViewSchema,
-				ViewText = Current.ViewName
+				SchemaText = ReportHeaderVM.ViewSchema ?? string.Empty,
+				ViewText = ReportHeaderVM.ViewName ?? string.Empty
 			};
 
 			var dlg = new ImportDialog { DataContext = dlgVM, Owner = Application.Current.MainWindow };
 			if (dlg.ShowDialog() != true) return;
 
 			ApplyConnectionString = dlgVM.ConnStringText;
-			Current.ViewSchema = dlgVM.SchemaText;
-			Current.ViewName = dlgVM.ViewText;
-
+			
             NotifyStatus("Reading view metadata...");
 			var cols = await DbIntrospector.GetViewColumnsAsync(dlgVM.ConnStringText, dlgVM.SchemaText, dlgVM.ViewText);
 
 			ReportColumnsEditorVM.UpdateColumns(cols);
 
-			GeneratedSql = ReportSqlGenerator.GenerateSql(Current);
+            var report = GetData();
+            if (report == null)
+            {
+                return;
+            }
+
+            GeneratedSql = ReportSqlGenerator.GenerateSql(report);
             NotifyStatus($"Imported {cols.Count} columns from {dlgVM.SchemaText}.{dlgVM.ViewText}.");
 		}
 		catch (Exception ex)
@@ -285,8 +288,6 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
 
     private static void ValidateReportDefinition(ReportSqlDocumentUi document)
     {
-        if (document?.Definition == null) return;
-
         var errors = new List<string>();
         var definition = document.Definition;
         var defaultCulture = definition.DefaultCulture;
@@ -349,20 +350,6 @@ public sealed class ReportEditorViewModel : DataEditorVM<ReportFileItem, ReportE
 	}
 
 	private static string ToTitle(string s) => string.IsNullOrWhiteSpace(s) ? s : char.ToUpperInvariant(s[0]) + s[1..];
-
-    #endregion
-
-    #region IMessageReceiver implementation
-
-    private void OnGetCultureMessageReceived(GetCultureMessage message)
-    {
-		message.Culture = Current.Definition.DefaultCulture;
-    }
-
-    private void OnGetReportKeyMessageReceived(GetReportKeyMessage message)
-    {
-		message.ReportKey = Current.ReportKey;
-    }
 
     #endregion
 }

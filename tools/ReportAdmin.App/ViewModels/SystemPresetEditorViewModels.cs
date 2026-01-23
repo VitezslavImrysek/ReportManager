@@ -16,12 +16,8 @@ public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, o
 {
     public SystemPresetEditorViewModel()
     {
+        SortVM = new SortViewModel();
         PresetsTextsEditorVM = new TextsEditorViewModel() { Mode = TextsEditorMode.Preset };
-
-        AddSortCommand = new RelayCommand(AddSort);
-        RemoveSortCommand = new RelayCommand(RemoveSort, () => SelectedSort != null);
-        MoveSortUpCommand = new RelayCommand(() => MoveSort(-1), () => SelectedSort != null);
-        MoveSortDownCommand = new RelayCommand(() => MoveSort(1), () => SelectedSort != null);
 
         AddFilterCommand = new RelayCommand(AddFilter);
         RemoveFilterCommand = new RelayCommand(RemoveFilter, () => SelectedFilter != null);
@@ -45,24 +41,15 @@ public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, o
     public string? Name { get; set => SetValue(ref field, value); }
 
     public ObservableCollection<ColumnVisibilityRowVm> Columns { get; } = new();
-	public ObservableCollection<SortRuleVm> Sorting { get; } = new();
 	public ObservableCollection<FilterRuleVm> Filters { get; } = new();
 
 	public ObservableCollection<ReportColumnUi> FilterableColumns { get; } = new();
-	public ObservableCollection<ReportColumnUi> SortableColumns { get; } = new();
-
-	public ObservableCollection<SortDirection> SortDirectionValues { get; } = new(Enum.GetValues(typeof(SortDirection)).Cast<SortDirection>());
 	public ObservableCollection<FilterOperation> FilterOperationValues { get; } = new(Enum.GetValues(typeof(FilterOperation)).Cast<FilterOperation>());
 
-	public SortRuleVm? SelectedSort { get; set => SetValue(ref field, value); }
 	public FilterRuleVm? SelectedFilter { get; set => SetValue(ref field, value); }
 
+    public SortViewModel SortVM { get; set => SetValue(ref field, value); }
     public TextsEditorViewModel PresetsTextsEditorVM { get; set => SetValue(ref field, value); }
-
-    public RelayCommand AddSortCommand { get; }
-	public RelayCommand RemoveSortCommand { get; }
-	public RelayCommand MoveSortUpCommand { get; }
-	public RelayCommand MoveSortDownCommand { get; }
 
 	public RelayCommand AddFilterCommand { get; }
 	public RelayCommand RemoveFilterCommand { get; }
@@ -76,10 +63,8 @@ public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, o
     {
         // Should keep both Hidden and Selected columns? More like no
         Columns.Clear();
-        Sorting.Clear();
         Filters.Clear();
         FilterableColumns.Clear();
-        SortableColumns.Clear();
 
         if (data == null)
         {
@@ -114,11 +99,7 @@ public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, o
         foreach (var col in msg.Columns.Where(c => c.Filterable && c.Filter?.Hidden == false))
             FilterableColumns.Add(col);
 
-        foreach (var col in msg.Columns.Where(c => c.Sortable && c.Sort?.Hidden == false))
-            SortableColumns.Add(col);
-
-        foreach (var s in data.Content.Query.Sorting)
-            Sorting.Add(new SortRuleVm { ColumnKey = s.ColumnKey, Direction = s.Direction });
+        SortVM.SetData(data.Content.Query.Sorting);
 
         foreach (var f in data.Content.Query.Filters)
         {
@@ -146,11 +127,8 @@ public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, o
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToObservable();
 
-        var sorting = new ObservableCollection<Core.Models.Preset.SortSpecUi>(
-            Sorting
-                .Where(s => !string.IsNullOrWhiteSpace(s.ColumnKey))
-                .Select(s => new Core.Models.Preset.SortSpecUi { ColumnKey = s.ColumnKey, Direction = s.Direction })
-        );
+        var sorting = new ObservableCollection<Core.Models.SortSpecUi>();
+        SortVM.GetData(sorting);
 
         var filters = new ObservableCollection<Core.Models.Preset.FilterSpecUi>();
         foreach (var f in Filters)
@@ -201,32 +179,6 @@ public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, o
         data.Content.Texts = new Dictionary<string, Dictionary<string, string>>();
         PresetsTextsEditorVM.GetData(data.Content.Texts);
     }
-
-	private void AddSort()
-	{
-		var first = SortableColumns.FirstOrDefault();
-		Sorting.Add(new SortRuleVm { ColumnKey = first?.Key ?? "", Direction = SortDirection.Asc });
-		SelectedSort = Sorting.LastOrDefault();
-		RaiseCanExec();
-	}
-
-	private void RemoveSort()
-	{
-		if (SelectedSort == null) return;
-		Sorting.Remove(SelectedSort);
-		SelectedSort = Sorting.LastOrDefault();
-		RaiseCanExec();
-	}
-
-	private void MoveSort(int delta)
-	{
-		if (SelectedSort == null) return;
-		var idx = Sorting.IndexOf(SelectedSort);
-		var nidx = idx + delta;
-		if (nidx < 0 || nidx >= Sorting.Count) return;
-		Sorting.Move(idx, nidx);
-		RaiseCanExec();
-	}
 
 	private void AddFilter()
 	{
@@ -281,10 +233,6 @@ public sealed class SystemPresetEditorViewModel : DataEditorVM<SystemPresetUi, o
 
 	private void RaiseCanExec()
 	{
-		AddSortCommand.RaiseCanExecuteChanged();
-		RemoveSortCommand.RaiseCanExecuteChanged();
-		MoveSortUpCommand.RaiseCanExecuteChanged();
-		MoveSortDownCommand.RaiseCanExecuteChanged();
 		AddFilterCommand.RaiseCanExecuteChanged();
 		RemoveFilterCommand.RaiseCanExecuteChanged();
 		ShowAllColumnsCommand.RaiseCanExecuteChanged();

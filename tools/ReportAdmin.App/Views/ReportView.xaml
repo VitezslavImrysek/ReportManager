@@ -31,6 +31,10 @@
                 <local:ReportColumnsView Margin="10" DataContext="{Binding ReportColumnsEditorVM}" />
             </TabItem>
 
+            <TabItem Header="Default Sort">
+                <local:SortView Margin="10" DataContext="{Binding DefaultSortVM}" />
+            </TabItem>
+
             <TabItem Header="Texts">
                 <local:TextsEditorView Margin="10" DataContext="{Binding ReportTextsEditorVM}" />
             </TabItem>

@@ -1,5 +1,5 @@
 /* REPORT: Contracts */
-/* GENERATED: 2026-01-04T16:54:23Z */
+/* GENERATED: 2026-01-23T17:37:27Z */
 /* DO NOT EDIT BY HAND */
 
 BEGIN TRY
@@ -119,8 +119,8 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
   ],
   "defaultSort": [
     {
-      "column": "cislo_smlouvy",
-      "dir": "asc"
+      "columnKey": "cislo_smlouvy",
+      "direction": "asc"
     }
   ]
 }';

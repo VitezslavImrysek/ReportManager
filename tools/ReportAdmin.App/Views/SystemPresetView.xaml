@@ -41,48 +41,16 @@
                               AutoGenerateColumns="False"
                               CanUserAddRows="False">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="260" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Caption" Binding="{Binding Caption}" Width="*" IsReadOnly="True"/>
-                            <DataGridCheckBoxColumn Header="Visible" Binding="{Binding IsVisible}" Width="90"/>
+                            <DataGridTextColumn Header="Key" Binding="{Binding Key}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Caption" Binding="{Binding Caption}" IsReadOnly="True"/>
+                            <DataGridCheckBoxColumn Header="Visible" Binding="{Binding IsVisible}" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
             </TabItem>
 
             <TabItem Header="Sorting">
-                <TabItem.Resources>
-                    <CollectionViewSource x:Key="SortableColumns" Source="{Binding SortableColumns}" />
-                    <CollectionViewSource x:Key="SortDirectionValues" Source="{Binding SortDirectionValues}" />
-                </TabItem.Resources>
-
-                <DockPanel Margin="10">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                        <Button Padding="10,4" Content="+ Add sort" Command="{Binding AddSortCommand}"/>
-                        <Button Margin="8,0,0,0" Padding="10,4" Content="- Remove" Command="{Binding RemoveSortCommand}"/>
-                        <Button Margin="16,0,0,0" Padding="10,4" Content="Up" Command="{Binding MoveSortUpCommand}"/>
-                        <Button Margin="8,0,0,0" Padding="10,4" Content="Down" Command="{Binding MoveSortDownCommand}"/>
-                    </StackPanel>
-
-                    <DataGrid Margin="0,10,0,0"
-                      ItemsSource="{Binding Sorting}"
-                      SelectedItem="{Binding SelectedSort}"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False">
-                        <DataGrid.Columns>
-                            <DataGridComboBoxColumn Header="Column" Width="320"
-                                            SelectedValueBinding="{Binding ColumnKey, UpdateSourceTrigger=PropertyChanged}"
-                                            SelectedValuePath="Key"
-                                            DisplayMemberPath="Key"
-                                            ItemsSource="{Binding Source={StaticResource SortableColumns}}"/>
-                            <DataGridComboBoxColumn Header="Direction" Width="140"
-                                            SelectedItemBinding="{Binding Direction, UpdateSourceTrigger=PropertyChanged}"
-                                            ItemsSource="{Binding Source={StaticResource SortDirectionValues}}"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-
-                    <TextBlock Margin="0,10,0,0" Foreground="#666" TextWrapping="Wrap"
-                       Text="Only columns with Sort.Enabled=true are selectable."/>
-                </DockPanel>
+                <local:SortView Margin="10" DataContext="{Binding SortVM}" />
             </TabItem>
 
             <TabItem Header="Filters">
@@ -105,21 +73,21 @@
                       AutoGenerateColumns="False"
                       CanUserAddRows="False">
                         <DataGrid.Columns>
-                            <DataGridComboBoxColumn Header="Column" Width="320"
-                                            SelectedValueBinding="{Binding ColumnKey, UpdateSourceTrigger=PropertyChanged}"
-                                            SelectedValuePath="Key"
-                                            DisplayMemberPath="Key"
-                                            ItemsSource="{Binding Source={StaticResource FilterableColumns}}"/>
-                            <DataGridComboBoxColumn Header="Op" Width="170"
-                                            SelectedItemBinding="{Binding Operation, UpdateSourceTrigger=PropertyChanged}"
-                                            ItemsSource="{Binding Source={StaticResource FilterOperationValues}}"/>
+                            <DataGridComboBoxColumn Header="Column" 
+                                                    SelectedValueBinding="{Binding ColumnKey, UpdateSourceTrigger=PropertyChanged}"
+                                                    SelectedValuePath="Key"
+                                                    DisplayMemberPath="Key"
+                                                    ItemsSource="{Binding Source={StaticResource FilterableColumns}}"/>
+                            <DataGridComboBoxColumn Header="Op"
+                                                    SelectedItemBinding="{Binding Operation, UpdateSourceTrigger=PropertyChanged}"
+                                                    ItemsSource="{Binding Source={StaticResource FilterOperationValues}}"/>
                             <DataGridTemplateColumn Header="Values" Width="*">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBox AcceptsReturn="True"
-                                         MinHeight="60"
-                                         VerticalScrollBarVisibility="Auto"
-                                         Text="{Binding ValuesText, UpdateSourceTrigger=PropertyChanged}"/>
+                                                 MinHeight="60"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 Text="{Binding ValuesText, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

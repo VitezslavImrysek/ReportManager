@@ -40,6 +40,12 @@ namespace ReportAdmin.App.ViewModels
         {
             foreach (var item in SystemPresets) 
             {
+                if (string.IsNullOrWhiteSpace(item.PresetKey))
+                {
+                    throw new InvalidOperationException("PresetKey cannot be empty.");
+                }
+                item.PresetId = GuidUtil.FromPresetKey(item.PresetKey);
+
                 data.Add(item);
             }
         }

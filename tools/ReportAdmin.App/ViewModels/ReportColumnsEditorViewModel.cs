@@ -12,6 +12,8 @@ namespace ReportAdmin.App.ViewModels
     {
         public ReportColumnsEditorViewModel()
         {
+            Columns = [];
+
             AddColumnCommand = new RelayCommand(AddColumn);
             RemoveSelectedColumnCommand = new RelayCommand(RemoveSelectedColumn);
 

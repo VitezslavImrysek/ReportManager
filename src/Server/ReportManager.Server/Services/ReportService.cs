@@ -100,8 +100,8 @@ namespace ReportManager.Server.Services
 				{
 					manifest.DefaultSort.Add(new SortSpecDto
 					{
-						ColumnKey = s.Column,
-						Direction = s.Dir
+						ColumnKey = s.ColumnKey,
+						Direction = s.Direction
 					});
 				}
 			}

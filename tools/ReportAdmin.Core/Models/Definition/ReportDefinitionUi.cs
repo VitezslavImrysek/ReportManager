@@ -1,3 +1,4 @@
+using ReportManager.DefinitionModel.Models;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.Shared;
 using System.Collections.ObjectModel;

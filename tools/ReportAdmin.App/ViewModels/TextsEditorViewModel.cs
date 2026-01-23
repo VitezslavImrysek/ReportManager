@@ -13,7 +13,7 @@ namespace ReportAdmin.App.ViewModels
 
     public class TextsEditorViewModel : DataEditorVM<Dictionary<string, Dictionary<string, string>>, TextsEditorContext>
     {
-        private Dictionary<string, Dictionary<string, string>>? _texts;
+        private Dictionary<string, Dictionary<string, string>> _texts = [];
 
         public TextsEditorViewModel()
         {
@@ -264,22 +264,21 @@ namespace ReportAdmin.App.ViewModels
             if (Mode != TextsEditorMode.Report)
                 return;
 
+            var oldColumnKey = message.OldName != null ? KnownTextKeys.GetColumnHeaderKey(message.OldName) : null;
+            var newColumnKey = message.NewName != null ? KnownTextKeys.GetColumnHeaderKey(message.NewName) : null;
+
             foreach (var culture in _texts!.Values)
             {
-                var oldColumnKey = message.OldName != null ? KnownTextKeys.GetColumnHeaderKey(message.OldName) : null;
-                var newColumnKey = message.NewName != null ? KnownTextKeys.GetColumnHeaderKey(message.NewName) : null;
-
-                if (oldColumnKey != null && culture.ContainsKey(oldColumnKey))
+                if (oldColumnKey != null && culture.TryGetValue(oldColumnKey, out var value))
                 {
                     // if old name exists, rename it but keep the value
-                    var value = culture[oldColumnKey];
                     culture.Remove(oldColumnKey);
                     if (newColumnKey != null)
                         culture[newColumnKey] = value;
                 }
                 else if (newColumnKey != null && !culture.ContainsKey(newColumnKey))
                 {
-                    culture[newColumnKey] = Humanize(message.NewName);
+                    culture[newColumnKey] = Humanize(message.NewName!);
                 }
             }
         }
