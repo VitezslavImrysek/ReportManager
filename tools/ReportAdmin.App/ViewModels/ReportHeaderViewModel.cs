@@ -12,8 +12,8 @@ namespace ReportAdmin.App.ViewModels
 
         public ReportHeaderViewModel()
         {
-            Messenger.Instance.Register<GetCultureMessage>(OnGetCultureMessageReceived);
-            Messenger.Instance.Register<GetReportKeyMessage>(OnGetReportKeyMessageReceived);
+            RegisterMessage<GetCultureMessage>(OnGetCultureMessageReceived);
+            RegisterMessage<GetReportKeyMessage>(OnGetReportKeyMessageReceived);
         }
 
         #endregion

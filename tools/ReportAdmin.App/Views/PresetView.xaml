@@ -10,47 +10,14 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="8"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
+        <local:PresetHeaderView Grid.Row="0" DataContext="{Binding HeaderVM}" />
 
-        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="PresetKey:"/>
-        <TextBox Grid.Row="0" Grid.Column="1" Margin="8,0,0,0" Text="{Binding PresetKey, UpdateSourceTrigger=PropertyChanged}"/>
-        <TextBlock Grid.Row="0" Grid.Column="2" Margin="16,0,0,0" VerticalAlignment="Center" Text="IsDefault:"/>
-        <CheckBox Grid.Row="0" Grid.Column="3" Margin="8,0,0,0" IsChecked="{Binding IsDefault}"/>
-
-        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="Name:"/>
-        <TextBox Grid.Row="2" Grid.Column="1" Margin="8,0,0,0" Text="{Binding Name}" IsReadOnly="True"/>
-
-        <TabControl Grid.Row="3" Grid.ColumnSpan="4" Margin="0,10,0,0">
+        <TabControl Grid.Row="1" Margin="0,10,0,0">
             <TabItem Header="Columns">
-                <DockPanel Margin="10">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                        <Button Padding="10,4" Content="Show all" Command="{Binding ShowAllColumnsCommand}"/>
-                        <Button Margin="8,0,0,0" Padding="10,4" Content="Hide all" Command="{Binding HideAllColumnsCommand}"/>
-                        <TextBlock Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#666"
-                           Text="Toggles only columns that are normally visible (not Hidden / AlwaysSelect)."/>
-                    </StackPanel>
-
-                    <DataGrid Margin="0,10,0,0" 
-                              ItemsSource="{Binding Columns}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Key" Binding="{Binding Key}" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Caption" Binding="{Binding Caption}" IsReadOnly="True"/>
-                            <DataGridCheckBoxColumn Header="Visible" Binding="{Binding IsVisible}" />
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
+                <local:ColumnsVisibilityView Margin="10" DataContext="{Binding ColumnsVM}" />
             </TabItem>
 
             <TabItem Header="Sorting">
@@ -62,7 +29,7 @@
             </TabItem>
 
             <TabItem Header="Texts">
-                <local:TextsView DataContext="{Binding PresetsTextsVM}" />
+                <local:TextsView DataContext="{Binding TextsVM}" />
             </TabItem>
         </TabControl>
     </Grid>

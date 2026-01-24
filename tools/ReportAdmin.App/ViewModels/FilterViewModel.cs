@@ -93,6 +93,8 @@ namespace ReportAdmin.App.ViewModels
                 vm.PropertyChanged += FilterVm_PropertyChanged;
                 Filters.Add(vm);
             }
+
+            RaiseCanExec();
         }
 
         #endregion

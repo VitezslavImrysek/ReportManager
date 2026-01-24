@@ -65,6 +65,8 @@ namespace ReportAdmin.App.ViewModels
 
             foreach (var s in data)
                 Sorting.Add(new SortRuleVm { Column = msg.Columns.Find(x => x.Key == s.ColumnKey), Direction = s.Direction });
+
+            RaiseCanExec();
         }
 
         #endregion

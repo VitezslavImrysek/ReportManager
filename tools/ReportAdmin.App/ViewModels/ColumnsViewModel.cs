@@ -8,22 +8,24 @@ using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ColumnsViewModel : DataEditorVM<ObservableCollection<ReportColumnUi>, object>
+    public class ColumnsViewModel : DataEditorVM<ObservableCollection<ReportColumnUi>>
     {
+        #region Ctor
+
         public ColumnsViewModel()
         {
-            Columns = [];
-
             AddColumnCommand = new RelayCommand(AddColumn);
             RemoveSelectedColumnCommand = new RelayCommand(RemoveSelectedColumn);
 
-            Messenger.Instance.Register<GetColumnsMessage>(OnGetColumnsMessageReceived);
+            RegisterMessage<GetColumnsMessage>(OnGetColumnsMessageReceived);
         }
+
+        #endregion
 
         #region Properties
 
         public ObservableCollection<ReportColumnType> ColumnTypeValues { get; } = new(Enum.GetValues(typeof(ReportColumnType)).Cast<ReportColumnType>());
-        public ObservableCollection<ColumnViewModel> Columns { get; set => SetValue(ref field, value); }
+        public ObservableCollection<ColumnViewModel> Columns { get; set => SetValue(ref field, value); } = [];
         public ColumnViewModel? SelectedColumn { get; set => SetValue(ref field, value); }
 
         #endregion

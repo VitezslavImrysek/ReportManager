@@ -3,9 +3,6 @@ using ReportManager.DefinitionModel.Utils;
 using ReportManager.Shared;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
-using System.Windows.Media.Animation;
-using static LinqToDB.Internal.SqlQuery.SqlPredicate;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ReportAdmin.App.ViewModels
 {

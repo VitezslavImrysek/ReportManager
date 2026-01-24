@@ -5,14 +5,16 @@ using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ColumnViewModel : DataEditorVM<ReportColumnUi, object>, IColumn
+    public class ColumnViewModel : DataEditorVM<ReportColumnUi>, IColumn
     {
+        #region Properties
+
         public string Key { get; set => SetValue(ref field, value, OnKeyChanged); } = string.Empty;
         public ReportColumnType Type { get; set => SetValue(ref field, value); }
 
         // flags expanded
         public bool AlwaysSelect { get; set => SetValue(ref field, value); }
-        public bool Hidden { get; set => SetValue(ref field, value); }
+        public bool Hidden { get; set => SetValue(ref field, value, OnHiddenChanged); }
         public bool PrimaryKey { get; set => SetValue(ref field, value); }
         public bool Virtual { get; set => SetValue(ref field, value); }
         public bool Filterable { get; set => SetValue(ref field, value, OnFilterableChanged); }
@@ -24,10 +26,9 @@ namespace ReportAdmin.App.ViewModels
         public ObservableCollection<ReportColumnType> ColumnTypeValues { get; set => SetValue(ref field, value); } = new();
         public bool HasLookup { get; set => SetValue(ref field, value, OnHasLookupChanged); }
 
-        protected override void OnNew(object context)
-        {
+        #endregion
 
-        }
+        #region Override Methods
 
         protected override void OnSetData(ReportColumnUi data)
         {
@@ -59,6 +60,18 @@ namespace ReportAdmin.App.ViewModels
             data.Virtual = Virtual;
             data.Filter = Filter;
             data.Sort = Sort;
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private void OnHiddenChanged(bool hidden)
+        {
+            if (IsInitialized)
+            {
+                SendMessage(new ColumnChangedMessage(this, new ColumnPropertyValue(ColumnProperty.Hidden, !hidden, hidden)));
+            }
         }
 
         private void OnFilterableChanged(bool filterable)
@@ -104,5 +117,7 @@ namespace ReportAdmin.App.ViewModels
                 SendMessage(new ColumnChangedMessage(this, new ColumnPropertyValue(ColumnProperty.Key, oldKey, newKey)));
             }
         }
+
+        #endregion
     }
 }
