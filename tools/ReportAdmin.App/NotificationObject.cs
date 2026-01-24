@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace ReportAdmin.Core;
+namespace ReportAdmin.App;
 
 public abstract class NotificationObject : INotifyPropertyChanged
 {

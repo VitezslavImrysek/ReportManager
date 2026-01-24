@@ -1,5 +1,5 @@
 ﻿using ReportAdmin.App.Messages;
-using ReportAdmin.Core.Models.Definition;
+using ReportAdmin.App.Models.Definition;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;

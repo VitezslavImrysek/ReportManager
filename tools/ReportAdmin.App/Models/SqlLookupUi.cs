@@ -1,6 +1,6 @@
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 
-namespace ReportAdmin.Core.Models.Definition;
+namespace ReportAdmin.App.Models.Definition;
 
 public sealed class SqlLookupUi : NotificationObject
 {

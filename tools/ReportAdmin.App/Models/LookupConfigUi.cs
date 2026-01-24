@@ -2,7 +2,7 @@ using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 
-namespace ReportAdmin.Core.Models.Definition;
+namespace ReportAdmin.App.Models.Definition;
 
 public sealed class LookupConfigUi : NotificationObject
 {

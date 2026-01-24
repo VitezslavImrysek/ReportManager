@@ -1,7 +1,6 @@
 ﻿using ReportAdmin.App.Extensions;
 using ReportAdmin.App.Messages;
 using ReportAdmin.Core.Db;
-using ReportAdmin.Core.Models.Definition;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;

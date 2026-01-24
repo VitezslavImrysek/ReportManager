@@ -1,4 +1,4 @@
-﻿using ReportAdmin.Core.Models.Definition;
+﻿using ReportAdmin.App.Models.Definition;
 using System.ComponentModel;
 
 namespace ReportAdmin.App.ViewModels
