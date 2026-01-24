@@ -1,13 +1,14 @@
 ﻿using ReportAdmin.App.Extensions;
 using ReportAdmin.App.Messages;
 using ReportAdmin.Core.Models.Preset;
+using ReportManager.DefinitionModel.Models.ReportPreset;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class FilterViewModel : DataEditorVM<ObservableCollection<FilterSpecUi>>
+    public class FilterViewModel : DataEditorVM<List<FilterSpecJson>>
     {
         #region Ctor
 
@@ -41,7 +42,7 @@ namespace ReportAdmin.App.ViewModels
 
         #region Overrides
 
-        protected override void OnGetData(ObservableCollection<FilterSpecUi> data)
+        protected override void OnGetData(List<FilterSpecJson> data)
         {
             foreach (var f in Filters)
             {
@@ -60,16 +61,16 @@ namespace ReportAdmin.App.ViewModels
                 if (RequiresValues(f.Operation) && values.Count == 0)
                     continue;
 
-                data.Add(new FilterSpecUi
+                data.Add(new FilterSpecJson
                 {
                     ColumnKey = f.Column.Key,
                     Operation = f.Operation,
-                    Values = values.ToObservable()
+                    Values = values.ToList()
                 });
             }
         }
 
-        protected override void OnSetData(ObservableCollection<FilterSpecUi> data)
+        protected override void OnSetData(List<FilterSpecJson> data)
         {
             Filters.Clear();
             FilterableColumns.Clear();

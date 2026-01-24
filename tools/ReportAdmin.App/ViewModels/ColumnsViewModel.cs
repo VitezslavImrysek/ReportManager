@@ -2,13 +2,14 @@
 using ReportAdmin.App.Messages;
 using ReportAdmin.Core.Db;
 using ReportAdmin.Core.Models.Definition;
+using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ColumnsViewModel : DataEditorVM<ObservableCollection<ReportColumnUi>>
+    public class ColumnsViewModel : DataEditorVM<List<ReportColumnJson>>
     {
         #region Ctor
 
@@ -75,7 +76,7 @@ namespace ReportAdmin.App.ViewModels
                     var type = DbIntrospector.MapSqlType(col.SqlType);
                     var textKey = KnownTextKeys.GetColumnHeaderKey(col.Name);
 
-                    var ui = new ReportColumnUi
+                    var ui = new ReportColumnJson
                     {
                         Key = col.Name,
                         Type = type,
@@ -100,17 +101,17 @@ namespace ReportAdmin.App.ViewModels
 
         #region Protected Overrides
 
-        protected override void OnGetData(ObservableCollection<ReportColumnUi> data)
+        protected override void OnGetData(List<ReportColumnJson> data)
         {
             foreach (var columnVM in Columns) 
             {
-                var ui = new ReportColumnUi();
+                var ui = new ReportColumnJson();
                 columnVM.GetData(ui);
                 data.Add(ui);
             }
         }
 
-        protected override void OnSetData(ObservableCollection<ReportColumnUi> data)
+        protected override void OnSetData(List<ReportColumnJson> data)
         {
             // map selected column to UI model
             Columns = data.Select(x => {
@@ -130,7 +131,7 @@ namespace ReportAdmin.App.ViewModels
 
         private void AddColumn()
         {
-            var ui = new ReportColumnUi
+            var ui = new ReportColumnJson
             {
                 Key = "new_column",
                 Type = ReportColumnType.String,

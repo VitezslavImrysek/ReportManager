@@ -1,6 +1,7 @@
 ﻿using ReportAdmin.App.Messages;
 using ReportAdmin.Core.Models.Preset;
 using ReportAdmin.Core.Utils;
+using ReportManager.DefinitionModel.Models.ReportPreset;
 using ReportManager.Shared;
 using System.Collections.ObjectModel;
 
@@ -60,7 +61,7 @@ namespace ReportAdmin.App.ViewModels
                 Name = name,
                 IsDefault = SystemPresets.Count == 0,
                 PresetId = GuidUtil.FromPresetKey(key),
-                Content = new PresetContentUi()
+                Content = new PresetContentJson()
             };
             p.Content.Texts[Constants.DefaultLanguage] = new Dictionary<string, string>
             {

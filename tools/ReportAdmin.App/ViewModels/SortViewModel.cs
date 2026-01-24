@@ -1,11 +1,11 @@
 ﻿using ReportAdmin.App.Messages;
-using ReportAdmin.Core.Models;
+using ReportManager.DefinitionModel.Models;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class SortViewModel : DataEditorVM<ObservableCollection<SortSpecUi>>
+    public class SortViewModel : DataEditorVM<List<SortSpecJson>>
     {
         #region Ctor
 
@@ -41,7 +41,7 @@ namespace ReportAdmin.App.ViewModels
 
         #region Overrides
 
-        protected override void OnGetData(ObservableCollection<SortSpecUi> data)
+        protected override void OnGetData(List<SortSpecJson> data)
         {
             foreach (var s in Sorting)
             {
@@ -50,11 +50,11 @@ namespace ReportAdmin.App.ViewModels
                     continue;
                 }
 
-                data.Add(new SortSpecUi() { ColumnKey = s.Column.Key, Direction = s.Direction });
+                data.Add(new SortSpecJson() { ColumnKey = s.Column.Key, Direction = s.Direction });
             }
         }
 
-        protected override void OnSetData(ObservableCollection<SortSpecUi> data)
+        protected override void OnSetData(List<SortSpecJson> data)
         {
             SortableColumns.Clear();
             Sorting.Clear();

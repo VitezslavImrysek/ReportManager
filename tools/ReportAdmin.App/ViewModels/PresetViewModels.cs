@@ -1,5 +1,6 @@
 ﻿using ReportAdmin.App.Messages;
 using ReportAdmin.Core.Models.Preset;
+using ReportManager.DefinitionModel.Models.ReportPreset;
 
 namespace ReportAdmin.App.ViewModels;
 
@@ -34,14 +35,14 @@ public sealed class PresetViewModel : DataEditorVM<SystemPresetUi>
         HeaderVM.GetData(data);
         data.Name = TextsVM.Title;
 
-        data.Content = new PresetContentUi
+        data.Content = new PresetContentJson
         {
-            Grid = new GridStateUi
+            Grid = new GridStateJson
             {
                 HiddenColumns = [],
                 Order = []
             },
-            Query = new QuerySpecUi
+            Query = new QuerySpecJson
             {
                 Filters = [],
                 Sorting = [],

@@ -51,7 +51,7 @@ public static class ReportSqlParser
 		};
 
 		var defJson = GetStr("@DefinitionJson");
-        model.Definition = (ReportDefinitionUi)JsonUtil.Deserialize<ReportDefinitionJson>(defJson);
+        model.Definition = JsonUtil.Deserialize<ReportDefinitionJson>(defJson);
 
 		// Presets: indexed variables
 		var idxs = declares.Keys
@@ -79,7 +79,7 @@ public static class ReportSqlParser
                 PresetKey = key,
 				PresetId = Guid.TryParse(idStr, out var g) ? g : Guid.Empty,
 				IsDefault = isDefStr.Equals("1") || isDefStr.Equals("true", StringComparison.OrdinalIgnoreCase),
-				Content = (PresetContentUi)content
+				Content = content
 			});
 		}
 

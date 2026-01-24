@@ -4,6 +4,7 @@ using ReportAdmin.Core.Db;
 using ReportAdmin.Core.Models;
 using ReportAdmin.Core.Models.Definition;
 using ReportAdmin.Core.Sql;
+using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.DefinitionModel.Utils;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
@@ -104,7 +105,7 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
             ReportKey = "NewReport",
             ViewSchema = "dbo",
             ViewName = "v_YourView",
-            Definition = new ReportDefinitionUi
+            Definition = new ReportDefinitionJson
             {
                 DefaultCulture = Constants.DefaultLanguage,
                 Columns = [],
@@ -151,7 +152,7 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
 
         var report = new ReportSqlDocumentUi()
         {
-            Definition = new ReportDefinitionUi()
+            Definition = new ReportDefinitionJson()
         };
 
         ReportHeaderVM.GetData(report);

@@ -8,17 +8,17 @@ public sealed class SystemPresetUi : NotificationObject
     public string Name { get; set => SetValue(ref field, value); } = string.Empty;
     public Guid PresetId { get; set => SetValue(ref field, value); }
     public bool IsDefault { get; set => SetValue(ref field, value); }
-    public PresetContentUi Content { get; set => SetValue(ref field, value); } = new PresetContentUi();
+    public PresetContentJson Content { get; set => SetValue(ref field, value); } = new PresetContentJson();
 
     public static explicit operator SystemPreset(SystemPresetUi ui)
     {
         if (ui == null) return null!;
-        return new SystemPreset { Content = (PresetContentJson)ui.Content, IsDefault = ui.IsDefault, PresetId = ui.PresetId, PresetKey = ui.PresetKey };
+        return new SystemPreset { Content = ui.Content, IsDefault = ui.IsDefault, PresetId = ui.PresetId, PresetKey = ui.PresetKey };
     }
 
     public static explicit operator SystemPresetUi(SystemPreset src)
     {
         if (src == null) return null!;
-        return new SystemPresetUi { Content = (PresetContentUi)src.Content, IsDefault = src.IsDefault, PresetId = src.PresetId, PresetKey = src.PresetKey };
+        return new SystemPresetUi { Content = src.Content, IsDefault = src.IsDefault, PresetId = src.PresetId, PresetKey = src.PresetKey };
     }
 }

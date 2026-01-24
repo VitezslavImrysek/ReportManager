@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ColumnsVisibilityViewModel : DataEditorVM<ObservableCollection<string>>
+    public class ColumnsVisibilityViewModel : DataEditorVM<List<string>>
     {
         #region Ctor
 
@@ -41,7 +41,7 @@ namespace ReportAdmin.App.ViewModels
 
         #region Override Methods
 
-        protected override void OnGetData(ObservableCollection<string> data)
+        protected override void OnGetData(List<string> data)
         {
             foreach (var column in Columns)
             {
@@ -52,7 +52,7 @@ namespace ReportAdmin.App.ViewModels
             }
         }
 
-        protected override void OnSetData(ObservableCollection<string> data)
+        protected override void OnSetData(List<string> data)
         {
             Columns.Clear();
 

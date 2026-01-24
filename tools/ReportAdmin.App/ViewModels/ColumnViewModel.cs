@@ -1,11 +1,12 @@
 ﻿using ReportAdmin.App.Messages;
 using ReportAdmin.Core.Models.Definition;
+using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ColumnViewModel : DataEditorVM<ReportColumnUi>, IColumn
+    public class ColumnViewModel : DataEditorVM<ReportColumnJson>, IColumn
     {
         #region Properties
 
@@ -30,36 +31,38 @@ namespace ReportAdmin.App.ViewModels
 
         #region Override Methods
 
-        protected override void OnSetData(ReportColumnUi data)
+        protected override void OnSetData(ReportColumnJson data)
         {
             Key = data.Key;
             Type = data.Type;
 
-            Filter = data.Filter;
-            Sort = data.Sort;
+            Filter = (FilterConfigUi)data.Filter;
+            Sort = (SortConfigUi)data.Sort;
 
-            AlwaysSelect = data.AlwaysSelect;
-            Hidden = data.Hidden;
-            PrimaryKey = data.PrimaryKey;
-            Filterable = data.Filterable;
-            Sortable = data.Sortable;
-            Virtual = data.Virtual;
+            AlwaysSelect = data.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect);
+            Hidden = data.Flags.HasFlag(ReportColumnFlagsJson.Hidden);
+            PrimaryKey = data.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey);
+            Filterable = data.Flags.HasFlag(ReportColumnFlagsJson.Filterable);
+            Sortable = data.Flags.HasFlag(ReportColumnFlagsJson.Sortable);
+            Virtual = data.Flags.HasFlag(ReportColumnFlagsJson.Virtual);
 
             HasLookup = data.Filter?.Lookup != null;
         }
 
-        protected override void OnGetData(ReportColumnUi data)
+        protected override void OnGetData(ReportColumnJson data)
         {
             data.Key = Key;
             data.Type = Type;
-            data.AlwaysSelect = AlwaysSelect;
-            data.Hidden = Hidden;
-            data.PrimaryKey = PrimaryKey;
-            data.Filterable = Filterable;
-            data.Sortable = Sortable;
-            data.Virtual = Virtual;
-            data.Filter = Filter;
-            data.Sort = Sort;
+            data.Flags = ReportColumnFlagsJson.None;
+            if (AlwaysSelect) data.Flags |= ReportColumnFlagsJson.AlwaysSelect;
+            if (Hidden) data.Flags |= ReportColumnFlagsJson.Hidden;
+            if (PrimaryKey) data.Flags |= ReportColumnFlagsJson.PrimaryKey;
+            if (Filterable) data.Flags |= ReportColumnFlagsJson.Filterable;
+            if (Sortable) data.Flags |= ReportColumnFlagsJson.Sortable;
+            if (Virtual) data.Flags |= ReportColumnFlagsJson.Virtual;
+
+            data.Filter = (FilterConfigJson)Filter;
+            data.Sort = (SortConfigJson)Sort;
         }
 
         #endregion
