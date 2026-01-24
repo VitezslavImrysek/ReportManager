@@ -36,8 +36,8 @@ public static class ReportSqlParser
 		string GetStr(string name, string fallback = "") =>
 			declares.TryGetValue(name, out var v) ? Convert.ToString(v, CultureInfo.InvariantCulture) ?? fallback : fallback;
 
-		int GetInt(string name, int fallback = 1) =>
-			declares.TryGetValue(name, out var v) && int.TryParse(Convert.ToString(v, CultureInfo.InvariantCulture), out var i) ? i : fallback;
+		//int GetInt(string name, int fallback = 1) =>
+		//	declares.TryGetValue(name, out var v) && int.TryParse(Convert.ToString(v, CultureInfo.InvariantCulture), out var i) ? i : fallback;
 
 		var model = new ReportSqlDocumentUi
         {
@@ -47,11 +47,7 @@ public static class ReportSqlParser
 		};
 
 		var defJson = GetStr("@DefinitionJson");
-        model.Definition = JsonUtil.Deserialize<ReportDefinitionJson>(defJson);
-		if (model.Definition == null)
-		{
-			throw new Exception("Failed to deserialize report definition JSON");
-        }
+        model.Definition = JsonUtil.Deserialize<ReportDefinitionJson>(defJson) ?? throw new Exception("Failed to deserialize report definition JSON");
 
         // Presets: indexed variables
         var idxs = declares.Keys

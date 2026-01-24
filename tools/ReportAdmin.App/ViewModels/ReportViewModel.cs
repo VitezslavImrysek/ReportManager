@@ -91,7 +91,7 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
 
     protected override void OnGetData(ReportFileItem data)
     {
-		data.FilePath = _filePath;
+		data.FilePath = _filePath!;
         SaveGenerate();
     }
 

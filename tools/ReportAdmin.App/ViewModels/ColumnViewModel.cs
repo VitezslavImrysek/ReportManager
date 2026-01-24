@@ -36,8 +36,8 @@ namespace ReportAdmin.App.ViewModels
             Key = data.Key;
             Type = data.Type;
 
-            Filter = (FilterConfigUi)data.Filter;
-            Sort = (SortConfigUi)data.Sort;
+            Filter = data.Filter == null ? null : (FilterConfigUi)data.Filter;
+            Sort = data.Sort == null ? null : (SortConfigUi)data.Sort;
 
             AlwaysSelect = data.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect);
             Hidden = data.Flags.HasFlag(ReportColumnFlagsJson.Hidden);
@@ -61,8 +61,8 @@ namespace ReportAdmin.App.ViewModels
             if (Sortable) data.Flags |= ReportColumnFlagsJson.Sortable;
             if (Virtual) data.Flags |= ReportColumnFlagsJson.Virtual;
 
-            data.Filter = (FilterConfigJson)Filter;
-            data.Sort = (SortConfigJson)Sort;
+            data.Filter = Filter == null ? null : (FilterConfigJson)Filter;
+            data.Sort = Sort == null ? null : (SortConfigJson)Sort;
         }
 
         #endregion
