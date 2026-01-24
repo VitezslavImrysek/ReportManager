@@ -50,12 +50,10 @@ WHEN MATCHED THEN
   UPDATE SET
 	t.ViewSchema = @ViewSchema,
 	t.ViewName = @ViewName,
-	t.DefinitionJson = @DefinitionJson,
-	t.IsActive = 1,
-	t.UpdatedUtc = SYSUTCDATETIME()
+	t.DefinitionJson = @DefinitionJson
 WHEN NOT MATCHED THEN
-  INSERT ([Key],ViewSchema,ViewName,DefinitionJson,IsActive)
-  VALUES (@ReportKey,@ViewSchema,@ViewName,@DefinitionJson,1);");
+  INSERT ([Key],ViewSchema,ViewName,DefinitionJson)
+  VALUES (@ReportKey,@ViewSchema,@ViewName,@DefinitionJson);");
 		sb.AppendLine();
 		sb.AppendLine("-- System presets (OwnerUserId IS NULL)");
 		sb.AppendLine("/* === SystemPresets BEGIN === */");
@@ -81,11 +79,10 @@ WHEN MATCHED THEN
 	pv.ReportKey = @ReportKey,
 	pv.OwnerUserId = NULL,
 	pv.PresetJson = @PresetJson_" + idx + @",
-	pv.IsDefault = @IsDefault_" + idx + @",
-	pv.UpdatedUtc = SYSUTCDATETIME()
+	pv.IsDefault = @IsDefault_" + idx + @"
 WHEN NOT MATCHED THEN
-  INSERT (PresetId, ReportKey, OwnerUserId, PresetJson, IsDefault, CreatedUtc, UpdatedUtc)
-  VALUES (@PresetId_" + idx + @", @ReportKey, NULL, @PresetJson_" + idx + @", @IsDefault_" + idx + @", SYSUTCDATETIME(), SYSUTCDATETIME());");
+  INSERT (PresetId, ReportKey, OwnerUserId, PresetJson, IsDefault)
+  VALUES (@PresetId_" + idx + @", @ReportKey, NULL, @PresetJson_" + idx + @", @IsDefault_" + idx + @");");
 			sb.AppendLine();
 			i++;
 		}

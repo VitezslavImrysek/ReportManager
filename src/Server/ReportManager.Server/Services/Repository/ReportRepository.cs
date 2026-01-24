@@ -141,8 +141,6 @@ namespace ReportManager.Server.Services.Repository
                         OwnerUserId = userId,
                         PresetJson = json,
                         IsDefault = false,
-                        CreatedUtc = DateTimeOffset.UtcNow,
-                        UpdatedUtc = DateTimeOffset.UtcNow
                     };
 					dataConnection.Insert(rvp);
 					return rvp.PresetId;
@@ -153,7 +151,6 @@ namespace ReportManager.Server.Services.Repository
                     dataConnection.GetTable<ReportViewPresetDb>()
 						.Where(x => x.PresetId == preset.PresetId && x.OwnerUserId == userId)
 						.Set(x => x.PresetJson, json)
-						.Set(x => x.UpdatedUtc, DateTimeOffset.UtcNow)
 						.Update();
                     return preset.PresetId;
                 }

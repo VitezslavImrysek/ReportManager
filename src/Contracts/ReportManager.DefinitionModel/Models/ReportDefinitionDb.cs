@@ -15,9 +15,5 @@ namespace ReportManager.DefinitionModel.Models
         public string ViewName { get; set; } = string.Empty;
         [Column, NotNull]
         public string DefinitionJson { get; set; } = string.Empty;
-        [Column, NotNull]
-        public bool IsActive { get; set; } = true;
-        [Column, NotNull]
-        public DateTimeOffset UpdatedUtc { get; set; }
     }
 }

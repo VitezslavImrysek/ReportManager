@@ -1,5 +1,5 @@
 /* REPORT: Contracts */
-/* GENERATED: 2026-01-23T17:37:27Z */
+/* GENERATED: 2026-01-24T15:16:32Z */
 /* DO NOT EDIT BY HAND */
 
 BEGIN TRY
@@ -134,12 +134,10 @@ WHEN MATCHED THEN
   UPDATE SET
 	t.ViewSchema = @ViewSchema,
 	t.ViewName = @ViewName,
-	t.DefinitionJson = @DefinitionJson,
-	t.IsActive = 1,
-	t.UpdatedUtc = SYSUTCDATETIME()
+	t.DefinitionJson = @DefinitionJson
 WHEN NOT MATCHED THEN
-  INSERT ([Key],ViewSchema,ViewName,DefinitionJson,IsActive)
-  VALUES (@ReportKey,@ViewSchema,@ViewName,@DefinitionJson,1);
+  INSERT ([Key],ViewSchema,ViewName,DefinitionJson)
+  VALUES (@ReportKey,@ViewSchema,@ViewName,@DefinitionJson);
 
 -- System presets (OwnerUserId IS NULL)
 /* === SystemPresets BEGIN === */
@@ -184,11 +182,10 @@ WHEN MATCHED THEN
 	pv.ReportKey = @ReportKey,
 	pv.OwnerUserId = NULL,
 	pv.PresetJson = @PresetJson_1,
-	pv.IsDefault = @IsDefault_1,
-	pv.UpdatedUtc = SYSUTCDATETIME()
+	pv.IsDefault = @IsDefault_1
 WHEN NOT MATCHED THEN
-  INSERT (PresetId, ReportKey, OwnerUserId, PresetJson, IsDefault, CreatedUtc, UpdatedUtc)
-  VALUES (@PresetId_1, @ReportKey, NULL, @PresetJson_1, @IsDefault_1, SYSUTCDATETIME(), SYSUTCDATETIME());
+  INSERT (PresetId, ReportKey, OwnerUserId, PresetJson, IsDefault)
+  VALUES (@PresetId_1, @ReportKey, NULL, @PresetJson_1, @IsDefault_1);
 
 -- enforce single default (system)
 UPDATE dbo.ReportViewPreset

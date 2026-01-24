@@ -15,9 +15,5 @@ namespace ReportManager.DefinitionModel.Models
         public string PresetJson { get; set; } = string.Empty;
         [Column, NotNull]
         public bool IsDefault { get; set; }
-        [Column, NotNull]
-        public DateTimeOffset CreatedUtc { get; set; }
-        [Column, NotNull]
-        public DateTimeOffset UpdatedUtc { get; set; }
     }
 }
