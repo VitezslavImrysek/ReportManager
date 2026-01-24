@@ -1,5 +1,4 @@
 ﻿using ReportAdmin.App.Messages;
-using ReportAdmin.Core.Models.Preset;
 using ReportAdmin.Core.Utils;
 using ReportManager.DefinitionModel.Models.ReportPreset;
 using ReportManager.Shared;
@@ -7,7 +6,7 @@ using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class PresetsViewModel : DataEditorVM<ObservableCollection<SystemPresetUi>, object>
+    public class PresetsViewModel : DataEditorVM<List<SystemPreset>>
     {
         public PresetsViewModel()
         {
@@ -17,10 +16,8 @@ namespace ReportAdmin.App.ViewModels
 
         #region Properties
 
-        public ObservableCollection<SystemPresetUi> SystemPresets { get; set => SetValue(ref field, value); } = [];
-        public SystemPresetUi? SelectedPreset { get; set => SetValue(ref field, value, OnSelectedPresetChanged); }
-
-        public PresetViewModel PresetVM { get; } = new();
+        public ObservableCollection<PresetViewModel> SystemPresets { get; } = [];
+        public PresetViewModel? SelectedPreset { get; set => SetValue(ref field, value); }
 
         #endregion
 
@@ -31,23 +28,34 @@ namespace ReportAdmin.App.ViewModels
 
         #endregion
 
-        protected override void OnSetData(ObservableCollection<SystemPresetUi> data)
+        protected override void OnSetData(List<SystemPreset> data)
         {
-            SystemPresets = data;
-            SelectedPreset = data.FirstOrDefault();
+            SystemPresets.Clear();
+            SelectedPreset = null;
+
+            foreach (var preset in data)
+            {
+                var vm = new PresetViewModel();
+                vm.SetData(preset);
+                SystemPresets.Add(vm);
+            }
+
+            SelectedPreset = SystemPresets.FirstOrDefault();
         }
 
-        protected override void OnGetData(ObservableCollection<SystemPresetUi> data)
+        protected override void OnGetData(List<SystemPreset> data)
         {
-            foreach (var item in SystemPresets) 
+            foreach (var vm in SystemPresets) 
             {
-                if (string.IsNullOrWhiteSpace(item.PresetKey))
-                {
-                    throw new InvalidOperationException("PresetKey cannot be empty.");
-                }
-                item.PresetId = GuidUtil.FromPresetKey(item.PresetKey);
+                var preset = new SystemPreset();
+                vm.GetData(preset);
+                data.Add(preset);
 
-                data.Add(item);
+                //if (string.IsNullOrWhiteSpace(item.PresetKey))
+                //{
+                //    throw new InvalidOperationException("PresetKey cannot be empty.");
+                //}
+                //item.PresetId = GuidUtil.FromPresetKey(item.PresetKey);
             }
         }
         private void AddPreset()
@@ -55,10 +63,9 @@ namespace ReportAdmin.App.ViewModels
             var reportKey = SendMessage<GetReportKeyMessage>().ReportKey;
             var key = $"{reportKey}_{Guid.NewGuid():N}";
             var name = "New preset";
-            var p = new SystemPresetUi
+            var p = new SystemPreset
             {
                 PresetKey = key,
-                Name = name,
                 IsDefault = SystemPresets.Count == 0,
                 PresetId = GuidUtil.FromPresetKey(key),
                 Content = new PresetContentJson()
@@ -67,8 +74,12 @@ namespace ReportAdmin.App.ViewModels
             {
                 [KnownTextKeys.PresetTitle] = name
             };
-            SystemPresets.Add(p);
-            SelectedPreset = p;
+
+            var vm = new PresetViewModel();
+            vm.SetData(p);
+
+            SystemPresets.Add(vm);
+            SelectedPreset = vm;
             NotifyStatus("Preset added.");
         }
 
@@ -78,19 +89,6 @@ namespace ReportAdmin.App.ViewModels
             SystemPresets.Remove(SelectedPreset);
             SelectedPreset = SystemPresets.FirstOrDefault();
             NotifyStatus("Preset removed.");
-        }
-
-        private void OnSelectedPresetChanged(SystemPresetUi? oldPreset, SystemPresetUi? newPreset)
-        {
-            if (oldPreset != null)
-            {
-                PresetVM.GetData(oldPreset);
-            }
-
-            if (newPreset != null)
-            {
-                PresetVM.SetData(newPreset);
-            }
         }
     }
 }

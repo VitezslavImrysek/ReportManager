@@ -22,9 +22,9 @@
             <ListBox Margin="0,10,0,0" 
                      ItemsSource="{Binding SystemPresets}"
                      SelectedItem="{Binding SelectedPreset}"
-                     DisplayMemberPath="Name"/>
+                     DisplayMemberPath="HeaderVM.Name"/>
         </StackPanel>
 
-        <local:PresetView Grid.Column="1" Margin="12,0,0,0" DataContext="{Binding PresetVM}" />
+        <local:PresetView Grid.Column="1" Margin="12,0,0,0" DataContext="{Binding SelectedPreset}" />
     </Grid>
 </UserControl>

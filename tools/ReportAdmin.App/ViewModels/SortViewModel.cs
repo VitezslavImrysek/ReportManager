@@ -134,6 +134,10 @@ namespace ReportAdmin.App.ViewModels
                         }
                         else
                         {
+                            foreach (var sort in Sorting.Where(x => x.Column == message.Column).ToList())
+                            {
+                                Sorting.Remove(sort);
+                            }
                             SortableColumns.Remove(message.Column);
                         }
                     }

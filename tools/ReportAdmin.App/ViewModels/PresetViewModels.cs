@@ -1,5 +1,4 @@
 ﻿using ReportAdmin.App.Messages;
-using ReportAdmin.Core.Models.Preset;
 using ReportManager.DefinitionModel.Models.ReportPreset;
 
 namespace ReportAdmin.App.ViewModels;
@@ -7,7 +6,7 @@ namespace ReportAdmin.App.ViewModels;
 /// <summary>
 /// UI editor for PresetContentJson.
 /// </summary>
-public sealed class PresetViewModel : DataEditorVM<SystemPresetUi>
+public sealed class PresetViewModel : DataEditorVM<SystemPreset>
 {
     #region View Models
 
@@ -19,22 +18,20 @@ public sealed class PresetViewModel : DataEditorVM<SystemPresetUi>
 
     #endregion
 
-    protected override void OnSetData(SystemPresetUi data)
+    protected override void OnSetData(SystemPreset data)
     {
         HeaderVM.SetData(data);
         ColumnsVM.SetData(data.Content.Grid.HiddenColumns);
         FilterVM.SetData(data.Content.Query.Filters);
         SortVM.SetData(data.Content.Query.Sorting);
-
         TextsVM.DefaultCulture = SendMessage<GetCultureMessage>().Culture;
         TextsVM.SetData(data.Content.Texts);
+
+        HeaderVM.Name = TextsVM.Title;
     }
 
-    protected override void OnGetData(SystemPresetUi data)
+    protected override void OnGetData(SystemPreset data)
     {
-        HeaderVM.GetData(data);
-        data.Name = TextsVM.Title;
-
         data.Content = new PresetContentJson
         {
             Grid = new GridStateJson
@@ -52,6 +49,7 @@ public sealed class PresetViewModel : DataEditorVM<SystemPresetUi>
             Texts = []
         };
 
+        HeaderVM.GetData(data);
         ColumnsVM.GetData(data.Content.Grid.HiddenColumns);
         SortVM.GetData(data.Content.Query.Sorting);
         FilterVM.GetData(data.Content.Query.Filters);

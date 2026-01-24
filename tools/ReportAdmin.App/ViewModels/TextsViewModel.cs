@@ -192,7 +192,7 @@ namespace ReportAdmin.App.ViewModels
             }
         }
 
-        private string ResolveText(string culture, string textKey)
+        private string ResolveText(string textKey, string culture)
         {
             var textsDict = new Dictionary<string, Dictionary<string, string>>();
             GetData(textsDict);
@@ -289,7 +289,7 @@ namespace ReportAdmin.App.ViewModels
                 return;
             }
 
-            message.Value = ResolveText(message.Culture, message.Key);
+            message.Value = ResolveText(message.Key, message.Culture);
         }
     }
 

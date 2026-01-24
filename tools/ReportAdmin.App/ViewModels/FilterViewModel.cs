@@ -1,6 +1,4 @@
-﻿using ReportAdmin.App.Extensions;
-using ReportAdmin.App.Messages;
-using ReportAdmin.Core.Models.Preset;
+﻿using ReportAdmin.App.Messages;
 using ReportManager.DefinitionModel.Models.ReportPreset;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
@@ -24,9 +22,9 @@ namespace ReportAdmin.App.ViewModels
 
         #region Properties
 
-        public ObservableCollection<FilterRuleVm> Filters { get; } = new();
+        public ObservableCollection<FilterRuleVm> Filters { get; } = [];
 
-        public ObservableCollection<IColumn> FilterableColumns { get; } = new();
+        public ObservableCollection<IColumn> FilterableColumns { get; } = [];
         public ObservableCollection<FilterOperation> FilterOperationValues { get; } = new(Enum.GetValues(typeof(FilterOperation)).Cast<FilterOperation>());
 
         public FilterRuleVm? SelectedFilter { get; set => SetValue(ref field, value); }
@@ -148,6 +146,10 @@ namespace ReportAdmin.App.ViewModels
                         }
                         else
                         {
+                            foreach (var filter in Filters.Where(x => x.Column == message.Column).ToList())
+                            {
+                                Filters.Remove(filter);
+                            }
                             FilterableColumns.Remove(message.Column);
                         }
                     }

@@ -1,12 +1,8 @@
 ﻿using Microsoft.SqlServer.TransactSql.ScriptDom;
 using ReportAdmin.Core.Models;
-using ReportAdmin.Core.Models.Definition;
-using ReportAdmin.Core.Models.Preset;
 using ReportManager.DefinitionModel.Json;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.DefinitionModel.Models.ReportPreset;
-using ReportManager.DefinitionModel.Utils;
-using ReportManager.Shared;
 using System.Globalization;
 using System.Text;
 
@@ -52,9 +48,13 @@ public static class ReportSqlParser
 
 		var defJson = GetStr("@DefinitionJson");
         model.Definition = JsonUtil.Deserialize<ReportDefinitionJson>(defJson);
+		if (model.Definition == null)
+		{
+			throw new Exception("Failed to deserialize report definition JSON");
+        }
 
-		// Presets: indexed variables
-		var idxs = declares.Keys
+        // Presets: indexed variables
+        var idxs = declares.Keys
 			.Where(k => k.StartsWith("@PresetKey_", StringComparison.OrdinalIgnoreCase))
 			.Select(k => k.Split('_').Last())
 			.Distinct(StringComparer.OrdinalIgnoreCase)
@@ -72,10 +72,13 @@ public static class ReportSqlParser
 			var json = GetStr("@PresetJson_" + idx, "{}");
 
 			var content = JsonUtil.Deserialize<PresetContentJson>(json);
-
-			model.SystemPresets.Add(new SystemPresetUi
+			if (content == null)
 			{
-				Name = TextsResolver.ResolveText(content.Texts, KnownTextKeys.PresetTitle, model.Definition.DefaultCulture, model.Definition.DefaultCulture),
+				throw new Exception($"Failed to deserialize preset content JSON for preset '{key}'");
+            }
+
+			model.SystemPresets.Add(new SystemPreset
+			{
                 PresetKey = key,
 				PresetId = Guid.TryParse(idStr, out var g) ? g : Guid.Empty,
 				IsDefault = isDefStr.Equals("1") || isDefStr.Equals("true", StringComparison.OrdinalIgnoreCase),

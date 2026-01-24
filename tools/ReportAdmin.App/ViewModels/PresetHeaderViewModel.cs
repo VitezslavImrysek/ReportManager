@@ -1,10 +1,10 @@
-﻿using ReportAdmin.Core.Models.Preset;
+﻿using ReportManager.DefinitionModel.Models.ReportPreset;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class PresetHeaderViewModel : DataEditorVM<SystemPresetUi>
+    public class PresetHeaderViewModel : DataEditorVM<SystemPreset>
     {
         #region Properties
 
@@ -23,19 +23,18 @@ namespace ReportAdmin.App.ViewModels
 
         #region Override Methods
 
-        protected override void OnGetData(SystemPresetUi data)
+        protected override void OnGetData(SystemPreset data)
         {
             data.IsDefault = IsDefault;
             data.PresetId = PresetId;
             data.PresetKey = PresetKey!;
         }
 
-        protected override void OnSetData(SystemPresetUi data)
+        protected override void OnSetData(SystemPreset data)
         {
             IsDefault = data.IsDefault;
             PresetId = data.PresetId;
             PresetKey = data.PresetKey;
-            Name = data.Name;
         }
 
         #endregion
