@@ -8,7 +8,7 @@ namespace ReportManager.DefinitionModel.Models
         [PrimaryKey]
         public Guid PresetId { get; set; }
         [Column, NotNull]
-        public string ReportKey { get; set; } = string.Empty;
+        public int ReportDefinitionId { get; set; }
         [Column, Nullable]
         public Guid? OwnerUserId { get; set; }
         [Column, NotNull]

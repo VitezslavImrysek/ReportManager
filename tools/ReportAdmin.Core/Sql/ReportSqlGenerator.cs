@@ -36,9 +36,10 @@ public static class ReportSqlGenerator
 		sb.AppendLine($"DECLARE @ReportKey nvarchar(100) = N'{Esc(doc.ReportKey)}';");
 		sb.AppendLine($"DECLARE @ViewSchema nvarchar(128) = N'{Esc(doc.ViewSchema)}';");
 		sb.AppendLine($"DECLARE @ViewName   nvarchar(128) = N'{Esc(doc.ViewName)}';");
+		sb.AppendLine("DECLARE @ReportDefinitionId int;");
 		sb.AppendLine();
 		sb.AppendLine("/* === ReportDefinitionJson BEGIN === */");
-		var defJson = JsonUtil.Serialize((ReportDefinitionJson)doc.Definition);
+		var defJson = JsonUtil.Serialize<ReportDefinitionJson>(doc.Definition);
 		sb.AppendLine($"DECLARE @DefinitionJson nvarchar(max) = N'{Esc(defJson)}';");
 		sb.AppendLine("/* === ReportDefinitionJson END === */");
 		sb.AppendLine();
@@ -53,7 +54,9 @@ WHEN MATCHED THEN
 	t.DefinitionJson = @DefinitionJson
 WHEN NOT MATCHED THEN
   INSERT ([Key],ViewSchema,ViewName,DefinitionJson)
-  VALUES (@ReportKey,@ViewSchema,@ViewName,@DefinitionJson);");
+  VALUES (@ReportKey,@ViewSchema,@ViewName,@DefinitionJson);
+
+SELECT @ReportDefinitionId = ReportDefinitionId FROM dbo.ReportDefinition WHERE [Key] = @ReportKey;");
 		sb.AppendLine();
 		sb.AppendLine("-- System presets (OwnerUserId IS NULL)");
 		sb.AppendLine("/* === SystemPresets BEGIN === */");
@@ -68,7 +71,7 @@ WHEN NOT MATCHED THEN
 			sb.AppendLine($"DECLARE @PresetId_{idx} uniqueidentifier = '{p.PresetId}';");
 			sb.AppendLine($"DECLARE @IsDefault_{idx} bit = {(p.IsDefault ? 1 : 0)};");
 			sb.AppendLine();
-			var pJson = JsonUtil.Serialize((PresetContentJson)p.Content);
+			var pJson = JsonUtil.Serialize<PresetContentJson>(p.Content);
 			sb.AppendLine($"DECLARE @PresetJson_{idx} nvarchar(max) = N'{Esc(pJson)}';");
 			sb.AppendLine();
 			sb.AppendLine(@"MERGE dbo.ReportViewPreset AS pv
@@ -76,13 +79,13 @@ USING (SELECT @PresetId_" + idx + @" AS PresetId) AS s
 ON pv.PresetId = s.PresetId
 WHEN MATCHED THEN
   UPDATE SET
-	pv.ReportKey = @ReportKey,
+	pv.ReportDefinitionId = @ReportDefinitionId,
 	pv.OwnerUserId = NULL,
 	pv.PresetJson = @PresetJson_" + idx + @",
 	pv.IsDefault = @IsDefault_" + idx + @"
 WHEN NOT MATCHED THEN
-  INSERT (PresetId, ReportKey, OwnerUserId, PresetJson, IsDefault)
-  VALUES (@PresetId_" + idx + @", @ReportKey, NULL, @PresetJson_" + idx + @", @IsDefault_" + idx + @");");
+  INSERT (PresetId, ReportDefinitionId, OwnerUserId, PresetJson, IsDefault)
+  VALUES (@PresetId_" + idx + @", @ReportDefinitionId, NULL, @PresetJson_" + idx + @", @IsDefault_" + idx + @");");
 			sb.AppendLine();
 			i++;
 		}
@@ -92,7 +95,7 @@ WHEN NOT MATCHED THEN
 			sb.AppendLine("-- enforce single default (system)");
 			sb.AppendLine("UPDATE dbo.ReportViewPreset");
 			sb.AppendLine($"SET IsDefault = CASE WHEN PresetId = '{defaultPreset!.PresetId}' THEN 1 ELSE 0 END");
-			sb.AppendLine("WHERE ReportKey = @ReportKey AND OwnerUserId IS NULL;");
+			sb.AppendLine("WHERE ReportDefinitionId = @ReportDefinitionId AND OwnerUserId IS NULL;");
 			sb.AppendLine();
 		}
 

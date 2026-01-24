@@ -15,20 +15,30 @@ namespace ReportManager.Server.Services.Repository
 {
 	public sealed class ReportRepository
 	{
-		private readonly string _connectionString;
+        #region Private Fields
 
-		public ReportRepository(string connectionString)
+        private readonly string _connectionString;
+
+        #endregion
+
+        #region Ctor
+
+        public ReportRepository(string connectionString)
 		{
 			_connectionString = connectionString;
 		}
 
-		public (string ViewSchema, string ViewName, string DefinitionJson) GetReportDefinitionByKey(string reportKey)
+        #endregion
+
+        #region Public Methods
+
+        public (string ViewSchema, string ViewName, string DefinitionJson) GetReportDefinitionByKey(string reportKey)
 		{
             using var con = new SqlConnection(_connectionString);
             using var dataConnection = GetDataConnection(con);
 
             var rd = dataConnection.GetTable<ReportDefinitionDb>()
-                .Where(x => x.Key == reportKey && x.IsActive)
+                .Where(x => x.Key == reportKey)
                 .FirstOrDefault();
 
             if (rd == null)
@@ -46,10 +56,13 @@ namespace ReportManager.Server.Services.Repository
 
             var defaultCulture = GetReportDefaultCulture(dataConnection, reportKey);
 
-			var presets = dataConnection.GetTable<ReportViewPresetDb>()
-                .Where(x => x.ReportKey == reportKey && (x.OwnerUserId == null || x.OwnerUserId == userId))
-                .OrderBy(x => x.OwnerUserId == null ? 0 : 1)
-                .ToList();
+            var presetsQuery = from rd in dataConnection.GetTable<ReportDefinitionDb>()
+                               join rvp in dataConnection.GetTable<ReportViewPresetDb>() on rd.ReportDefinitionId equals rvp.ReportDefinitionId
+                               where rd.Key == reportKey && (rvp.OwnerUserId == null || rvp.OwnerUserId == userId)
+                               orderby rvp.OwnerUserId == null ? 0 : 1
+                               select rvp;
+
+            var presets = presetsQuery.ToList();
 
             var result = new List<PresetInfoDto>(presets.Count);
 
@@ -69,45 +82,32 @@ namespace ReportManager.Server.Services.Repository
             return result;
         }
 
-        private string GetReportDefaultCulture(DataConnection dataConnection, string reportKey)
-        {
-            var reportDefinitionJson = dataConnection.GetTable<ReportDefinitionDb>()
-                .Where(x => x.Key == reportKey)
-                .Select(x => x.DefinitionJson)
-                .FirstOrDefault();
-
-            var defaultCulture = Constants.DefaultLanguage;
-
-            if (reportDefinitionJson != null)
-            {
-                var reportDefinition = JsonUtil.Deserialize<ReportDefinitionJson>(reportDefinitionJson);
-                defaultCulture = reportDefinition?.DefaultCulture ?? Constants.DefaultLanguage;
-            }
-
-            return defaultCulture;
-        }
-
-		public PresetDto GetPreset(Guid presetId, Guid userId)
+        public PresetDto GetPreset(Guid presetId, Guid userId)
 		{
             using var con = new SqlConnection(_connectionString);
             using var dataConnection = GetDataConnection(con);
-            
-			var preset = dataConnection.GetTable<ReportViewPresetDb>()
-				.Where(x => x.PresetId == presetId && (x.OwnerUserId == null || x.OwnerUserId == userId))
-				.FirstOrDefault();
 
-			if (preset == null)
-			{
-				throw new InvalidOperationException("Preset not found or access denied.");
-			}
+            var query = from rvp in dataConnection.GetTable<ReportViewPresetDb>()
+                        join rd in dataConnection.GetTable<ReportDefinitionDb>() on rvp.ReportDefinitionId equals rd.ReportDefinitionId
+                        where rvp.PresetId == presetId && (rvp.OwnerUserId == null || rvp.OwnerUserId == userId)
+                        select new { ReportViewPreset = rvp, ReportKey = rd.Key, rd.DefinitionJson };
+
+            var data = query.FirstOrDefault();
+            if (data == null)
+            {
+                throw new InvalidOperationException("Preset not found or access denied.");
+            }
+
+            var preset = data.ReportViewPreset;
+            var definitionJson = data.DefinitionJson;
 
             var presetJson = JsonUtil.Deserialize<PresetContentJson>(preset.PresetJson);
-            var defaultCulture = GetReportDefaultCulture(dataConnection, preset.ReportKey);
+            var defaultCulture = GetReportDefaultCulture(definitionJson);
 
             return new PresetDto
             {
                 PresetId = preset.PresetId,
-                ReportKey = preset.ReportKey,
+                ReportKey = data.ReportKey,
                 Name = TextsResolver.ResolveText(presetJson.Texts, KnownTextKeys.PresetTitle, CultureInfo.CurrentUICulture.Name, defaultCulture),
                 IsSystem = preset.OwnerUserId == null,
                 IsDefault = preset.IsDefault,
@@ -121,7 +121,15 @@ namespace ReportManager.Server.Services.Repository
 			using (var con = new SqlConnection(_connectionString))
             using (var dataConnection = GetDataConnection(con))
 			{
-                var defaultCulture = GetReportDefaultCulture(dataConnection, preset.ReportKey);
+                var reportDefinition = dataConnection.GetTable<ReportDefinitionDb>()
+                    .Where(x => x.Key == preset.ReportKey)
+                    .FirstOrDefault();
+                if (reportDefinition == null)
+                {
+                    throw new InvalidOperationException("Report definition not found: " + preset.ReportKey);
+                }
+
+                var defaultCulture = GetReportDefaultCulture(reportDefinition.DefinitionJson);
 
                 // TODO: Maybe load existing preset and merge texts?
                 // This title setting is okay, since user presets are not localized anyway.
@@ -137,7 +145,7 @@ namespace ReportManager.Server.Services.Repository
                     var rvp = new ReportViewPresetDb
                     {
                         PresetId = Guid.NewGuid(),
-                        ReportKey = preset.ReportKey,
+                        ReportDefinitionId = reportDefinition.ReportDefinitionId,
                         OwnerUserId = userId,
                         PresetJson = json,
                         IsDefault = false,
@@ -173,15 +181,19 @@ namespace ReportManager.Server.Services.Repository
 			using (var con = new SqlConnection(_connectionString))
             using (var dataConnection = GetDataConnection(con))
 			{
-				var reportViewPresets = dataConnection.GetTable<ReportViewPresetDb>();
+                var reportDefinition = dataConnection.GetTable<ReportDefinitionDb>()
+                    .Where(x => x.Key == reportKey)
+                    .FirstOrDefault();
+                if (reportDefinition == null)
+                {
+                    throw new InvalidOperationException("Report definition not found: " + reportKey);
+                }
 
-				reportViewPresets.Where(x => x.ReportKey == reportKey && x.OwnerUserId == userId)
-					.Set(x => x.IsDefault, false)
+                var reportViewPresets = dataConnection.GetTable<ReportViewPresetDb>();
+
+				reportViewPresets.Where(x => x.ReportDefinitionId == reportDefinition.ReportDefinitionId && x.OwnerUserId == userId)
+					.Set(x => x.IsDefault, x => x.PresetId == presetId)
 					.Update();
-
-                reportViewPresets.Where(x => x.ReportKey == reportKey && x.PresetId == presetId && x.OwnerUserId == userId)
-                    .Set(x => x.IsDefault, true)
-                    .Update();
 			}
 		}
 
@@ -241,7 +253,35 @@ namespace ReportManager.Server.Services.Repository
 			return result;
 		}
 
-		private DataConnection GetDataConnection(SqlConnection connection)
+        #endregion
+
+        #region Private Methods
+
+        private string GetReportDefaultCulture(DataConnection dataConnection, string reportKey)
+        {
+            var reportDefinitionJson = dataConnection.GetTable<ReportDefinitionDb>()
+                .Where(x => x.Key == reportKey)
+                .Select(x => x.DefinitionJson)
+                .FirstOrDefault();
+
+            return GetReportDefaultCulture(reportDefinitionJson);
+        }
+
+
+        private string GetReportDefaultCulture(string? reportDefinitionJson)
+        {
+            var defaultCulture = Constants.DefaultLanguage;
+
+            if (reportDefinitionJson != null)
+            {
+                var reportDefinition = JsonUtil.Deserialize<ReportDefinitionJson>(reportDefinitionJson);
+                defaultCulture = reportDefinition?.DefaultCulture ?? Constants.DefaultLanguage;
+            }
+
+            return defaultCulture;
+        }
+
+        private DataConnection GetDataConnection(SqlConnection connection)
 		{
             if (connection.State != ConnectionState.Open)
             {
@@ -253,6 +293,8 @@ namespace ReportManager.Server.Services.Repository
                 .UseConnection(connection);
 
 			return new DataConnection(dataOptions);
-		}
-	}
+        }
+
+        #endregion
+    }
 }

@@ -1,5 +1,5 @@
 /* REPORT: Contracts */
-/* GENERATED: 2026-01-24T15:16:32Z */
+/* GENERATED: 2026-01-24T16:04:53Z */
 /* DO NOT EDIT BY HAND */
 
 BEGIN TRY
@@ -8,6 +8,7 @@ BEGIN TRAN;
 DECLARE @ReportKey nvarchar(100) = N'Contracts';
 DECLARE @ViewSchema nvarchar(128) = N'dbo';
 DECLARE @ViewName   nvarchar(128) = N'v_ContractsReport';
+DECLARE @ReportDefinitionId int;
 
 /* === ReportDefinitionJson BEGIN === */
 DECLARE @DefinitionJson nvarchar(max) = N'{
@@ -139,6 +140,8 @@ WHEN NOT MATCHED THEN
   INSERT ([Key],ViewSchema,ViewName,DefinitionJson)
   VALUES (@ReportKey,@ViewSchema,@ViewName,@DefinitionJson);
 
+SELECT @ReportDefinitionId = ReportDefinitionId FROM dbo.ReportDefinition WHERE [Key] = @ReportKey;
+
 -- System presets (OwnerUserId IS NULL)
 /* === SystemPresets BEGIN === */
 
@@ -179,18 +182,18 @@ USING (SELECT @PresetId_1 AS PresetId) AS s
 ON pv.PresetId = s.PresetId
 WHEN MATCHED THEN
   UPDATE SET
-	pv.ReportKey = @ReportKey,
+	pv.ReportDefinitionId = @ReportDefinitionId,
 	pv.OwnerUserId = NULL,
 	pv.PresetJson = @PresetJson_1,
 	pv.IsDefault = @IsDefault_1
 WHEN NOT MATCHED THEN
-  INSERT (PresetId, ReportKey, OwnerUserId, PresetJson, IsDefault)
-  VALUES (@PresetId_1, @ReportKey, NULL, @PresetJson_1, @IsDefault_1);
+  INSERT (PresetId, ReportDefinitionId, OwnerUserId, PresetJson, IsDefault)
+  VALUES (@PresetId_1, @ReportDefinitionId, NULL, @PresetJson_1, @IsDefault_1);
 
 -- enforce single default (system)
 UPDATE dbo.ReportViewPreset
 SET IsDefault = CASE WHEN PresetId = '1619bed5-aadc-5813-a1f0-5cf6ba692a7b' THEN 1 ELSE 0 END
-WHERE ReportKey = @ReportKey AND OwnerUserId IS NULL;
+WHERE ReportDefinitionId = @ReportDefinitionId AND OwnerUserId IS NULL;
 
 /* === SystemPresets END === */
 
