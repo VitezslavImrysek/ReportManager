@@ -3,23 +3,19 @@ using ReportManager.DefinitionModel.Utils;
 using ReportManager.Shared;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
+using System.Windows.Media.Animation;
+using static LinqToDB.Internal.SqlQuery.SqlPredicate;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class TextsEditorContext
+    public class TextsViewModel : DataEditorVM<Dictionary<string, Dictionary<string, string>>>
     {
-
-    }
-
-    public class TextsViewModel : DataEditorVM<Dictionary<string, Dictionary<string, string>>, TextsEditorContext>
-    {
-        private Dictionary<string, Dictionary<string, string>> _texts = [];
-
         public TextsViewModel()
         {
-            Messenger.Instance.Register<ReportColumnKeyChangedMessage>(OnReportColumnKeyChangedMessageReceived);
-            Messenger.Instance.Register<CultureChangedMessage>(OnCultureChangedMessageReceived);
-            Messenger.Instance.Register<ResolveTextKeyMessage>(OnResolveTextKeyMessageReceived);
+            RegisterMessage<ColumnChangedMessage>(OnColumnChangedMessageReceived);
+            RegisterMessage<CultureChangedMessage>(OnCultureChangedMessageReceived);
+            RegisterMessage<ResolveTextKeyMessage>(OnResolveTextKeyMessageReceived);
 
             AddCultureCommand = new RelayCommand(AddCulture);
             RemoveCultureCommand = new RelayCommand(RemoveCulture);
@@ -36,123 +32,93 @@ namespace ReportAdmin.App.ViewModels
         {
             get 
             {
-                CommitCultureEntries();
                 var textKey = Mode == TextsEditorMode.Report ? KnownTextKeys.ReportTitle : KnownTextKeys.PresetTitle;
-                return TextsResolver.ResolveText(_texts, textKey, DefaultCulture, DefaultCulture);
+                return ResolveText(textKey, DefaultCulture);
             }
         }
 
-        private void OnDefaultCultureChanged(string defaultCulture)
-        {
-            RegenerateTexts(defaultCulture);
-        }
+        public ObservableCollection<TextsCultureViewModel> CultureTexts { get; } = [];
+        public TextsCultureViewModel? SelectedCultureText { get; set => SetValue(ref field, value); }
 
-        public ObservableCollection<string> CultureKeys { get; } = new();
+        public string SelectedCultureTitle => SelectedCultureText == null ? "No culture selected" : $"Culture: {SelectedCultureText.CultureName}";
 
-        public string? SelectedCultureKey
-        {
-            get;
-            set
-            {
-                if (SetValue(ref field, value))
-                    LoadCultureEntries();
-            }
-        }
-
-        public ObservableCollection<TextEntryViewModel> CultureEntries { get; } = [];
-        public string SelectedCultureTitle => SelectedCultureKey == null ? "No culture selected" : $"Culture: {SelectedCultureKey}";
-
-        protected override void OnNew(TextsEditorContext context)
+        protected override void OnNew(object? context)
         {
             
         }
 
         protected override void OnSetData(Dictionary<string, Dictionary<string, string>> data)
         {
-            _texts = data;
+            CultureTexts.Clear();
+            foreach (var cultureTexts in data)
+            {
+                var vm = new TextsCultureViewModel()
+                {
+                    CultureName = cultureTexts.Key
+                };
+                vm.SetData(cultureTexts.Value);
+                CultureTexts.Add(vm);
+            }
 
-            CultureKeys.Clear();
-            foreach (var c in data.Keys.OrderBy(x => x))
-                CultureKeys.Add(c);
-
-            SelectedCultureKey = CultureKeys.FirstOrDefault();
+            SelectedCultureText = CultureTexts.FirstOrDefault();
         }
 
         protected override void OnGetData(Dictionary<string, Dictionary<string, string>> data)
         {
-            CommitCultureEntries();
-
-            foreach (var kv in _texts!)
+            foreach (var cultureTextsVM in CultureTexts)
             {
-                data[kv.Key] = kv.Value;
+                var dict = new Dictionary<string, string>();
+                cultureTextsVM.GetData(dict);
+                data[cultureTextsVM.CultureName] = dict;
             }
         }
 
-        private void LoadCultureEntries()
+        private TextsCultureViewModel EnsureCulture(string key)
         {
-            if (_texts == null) return;
-            CultureEntries.Clear();
-            if (SelectedCultureKey == null) return;
-
-            var cultureTexts = EnsureCulture(SelectedCultureKey);
-
-            foreach (var kv in cultureTexts.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase))
-                CultureEntries.Add(new TextEntryViewModel { Key = kv.Key, Value = kv.Value });
-
-            OnPropertyChanged(nameof(SelectedCultureTitle));
-        }
-
-        private Dictionary<string, string> EnsureCulture(string key)
-        {
-            if (_texts == null) return [];
-
-            if (!_texts.TryGetValue(key, out var cultureTexts))
+            var vm = CultureTexts.FirstOrDefault(x => x.CultureName.Equals(key, StringComparison.OrdinalIgnoreCase));
+            if (vm == null)
             {
-                cultureTexts = _texts[key] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                vm = new TextsCultureViewModel()
+                {
+                    CultureName = key
+                };
+                vm.SetData([]);
+                CultureTexts.Add(vm);
             }
 
-            return cultureTexts;
-        }
-
-        private void CommitCultureEntries()
-        {
-            if (_texts == null) return;
-            if (SelectedCultureKey == null) return;
-
-            var cultureTexts = EnsureCulture(SelectedCultureKey);
-            cultureTexts.Clear();
-
-            foreach (var row in CultureEntries)
-            {
-                var k = (row.Key ?? string.Empty).Trim();
-                if (k.Length == 0) continue;
-                cultureTexts[k] = row.Value ?? string.Empty;
-            }
+            return vm;
         }
 
         private void AddCulture()
         {
             var key = Microsoft.VisualBasic.Interaction.InputBox("Culture key (e.g. cs, en, pl):", "Add culture", "en").Trim();
             if (key.Length == 0) return;
+            
             EnsureCulture(key);
-            if (!CultureKeys.Contains(key)) CultureKeys.Add(key);
-            SelectedCultureKey = key;
-            NotifyStatus("Culture added."); ;
+
+            if (CultureTexts.Any(x => x.CultureName.Equals(key, StringComparison.OrdinalIgnoreCase))) return;
+
+            var vm = new TextsCultureViewModel()
+            {
+                CultureName = key
+            };
+            vm.New(null);
+            CultureTexts.Add(vm);
+            SelectedCultureText = vm;
+            NotifyStatus("Culture added."); 
         }
 
         private void RemoveCulture()
         {
-            if (_texts == null) return;
-            if (SelectedCultureKey == null) return;
-            if (SelectedCultureKey.Equals(DefaultCulture, StringComparison.OrdinalIgnoreCase))
+            if (SelectedCultureText == null) return;
+            if (SelectedCultureText.CultureName.Equals(DefaultCulture, StringComparison.OrdinalIgnoreCase))
             {
                 NotifyStatus("Can't remove DefaultCulture."); 
                 return;
             }
 
-            _texts.Remove(SelectedCultureKey);
-            CultureKeys.Remove(SelectedCultureKey);
-            SelectedCultureKey = CultureKeys.FirstOrDefault();
+            CultureTexts.Remove(SelectedCultureText);
+            SelectedCultureText = CultureTexts.FirstOrDefault();
             NotifyStatus("Culture removed.");
         }
 
@@ -161,9 +127,6 @@ namespace ReportAdmin.App.ViewModels
 
         private void RegenerateTexts(string? culture)
         {
-            if (_texts == null) return;
-            CommitCultureEntries();
-
             var regenerateAll = culture == null;
             EnsureCulture(culture ?? DefaultCulture);
 
@@ -171,15 +134,14 @@ namespace ReportAdmin.App.ViewModels
             var expectedTextKeys = GetExpectedTexts();
 
             // For each culture, ensure all expected text keys exist and remove any unknown keys
-            foreach (var cultureKey in _texts.Keys)
+            foreach (var vm in CultureTexts)
             {
-                if (regenerateAll || cultureKey.Equals(culture, StringComparison.OrdinalIgnoreCase))
+                if (regenerateAll || vm.CultureName.Equals(culture, StringComparison.OrdinalIgnoreCase))
                 {
-                    RegenerateTexts(expectedTextKeys, cultureKey);
+                    RegenerateTexts(expectedTextKeys, vm.CultureName);
                 }
             }
 
-            LoadCultureEntries();
             NotifyStatus("Regenerated missing text entries for columns.");
         }
 
@@ -213,37 +175,32 @@ namespace ReportAdmin.App.ViewModels
         private void RegenerateTexts(Dictionary<string, string> expectedTexts, string culture)
         {
             // Remove unknown keys
-            var cultureTexts = EnsureCulture(culture);
-            foreach (var textKey in cultureTexts.Keys.ToList())
+            var vm = EnsureCulture(culture);
+            foreach (var textKey in vm.Texts.ToList())
             {
-                if (!expectedTexts.ContainsKey(textKey))
+                if (string.IsNullOrEmpty(textKey.Key) || !expectedTexts.ContainsKey(textKey.Key!))
                 {
-                    cultureTexts.Remove(textKey);
+                    vm.Texts.Remove(textKey);
                 }
             }
 
             // Add missing keys
             foreach (var kv in expectedTexts)
             {
-                if (!cultureTexts.ContainsKey(kv.Key))
+                var textVM = vm.Texts.FirstOrDefault(x => x.Key?.Equals(kv.Key, StringComparison.OrdinalIgnoreCase) == true);
+                if (textVM == null)
                 {
-                    cultureTexts[kv.Key] = kv.Value;
+                    vm.Texts.Add(new TextEntryViewModel() { Key = kv.Key, Value = kv.Value });
                 }
             }
         }
 
-        private string? ResolveText(string culture, string textKey)
+        private string ResolveText(string culture, string textKey)
         {
-            if (_texts.TryGetValue(culture, out var dict) &&
-                dict.TryGetValue(textKey, out var s) &&
-                !string.IsNullOrWhiteSpace(s))
-                return s;
+            var textsDict = new Dictionary<string, Dictionary<string, string>>();
+            GetData(textsDict);
 
-            foreach (var d in _texts.Values)
-                if (d.TryGetValue(textKey, out var s2) && !string.IsNullOrWhiteSpace(s2))
-                    return s2;
-
-            return null;
+            return TextsResolver.ResolveText(textsDict, textKey, culture, DefaultCulture);
         }
 
         private static string Humanize(string key)
@@ -259,26 +216,65 @@ namespace ReportAdmin.App.ViewModels
 
         private static string ToTitle(string s) => string.IsNullOrWhiteSpace(s) ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
-        private void OnReportColumnKeyChangedMessageReceived(ReportColumnKeyChangedMessage message)
+        private void OnDefaultCultureChanged(string defaultCulture)
+        {
+            RegenerateTexts(defaultCulture);
+        }
+
+        private void OnColumnChangedMessageReceived(ColumnChangedMessage message)
         {
             if (Mode != TextsEditorMode.Report)
                 return;
 
-            var oldColumnKey = message.OldName != null ? KnownTextKeys.GetColumnHeaderKey(message.OldName) : null;
-            var newColumnKey = message.NewName != null ? KnownTextKeys.GetColumnHeaderKey(message.NewName) : null;
+            string? oldKey = null;
+            string? newKey = null;
 
-            foreach (var culture in _texts!.Values)
+            switch (message.ChangeKind)
             {
-                if (oldColumnKey != null && culture.TryGetValue(oldColumnKey, out var value))
+                case ColumnChangeKind.Added:
+                    newKey = message.Column.Key;
+                    break;
+                case ColumnChangeKind.Deleted:
+                    oldKey = message.Column.Key;
+                    break;
+                case ColumnChangeKind.Changed:
+                    oldKey = message.PropertyValue!.OldValue as string;
+                    newKey = message.PropertyValue!.NewValue as string;
+                    break;
+                default:
+                    break;
+            }
+
+            var oldColumnKey = oldKey != null ? KnownTextKeys.GetColumnHeaderKey(oldKey) : null;
+            var newColumnKey = newKey != null ? KnownTextKeys.GetColumnHeaderKey(newKey) : null;
+
+            foreach (var vm in CultureTexts)
+            {
+                var textVM = oldColumnKey == null ? null : vm.Texts.FirstOrDefault(x => x.Key?.Equals(oldColumnKey, StringComparison.OrdinalIgnoreCase) == true);
+                if (textVM != null)
                 {
-                    // if old name exists, rename it but keep the value
-                    culture.Remove(oldColumnKey);
-                    if (newColumnKey != null)
-                        culture[newColumnKey] = value;
+                    if (newColumnKey == null)
+                    {
+                        vm.Texts.Remove(textVM);
+                    }
+                    else
+                    {
+                        // if old name exists, rename it but keep the value
+                        textVM.Key = newColumnKey;
+                    }
                 }
-                else if (newColumnKey != null && !culture.ContainsKey(newColumnKey))
+                else if (newColumnKey != null)
                 {
-                    culture[newColumnKey] = Humanize(message.NewName!);
+                    var existingNewKeyTextVM = vm.Texts.FirstOrDefault(x => x.Key?.Equals(newColumnKey, StringComparison.OrdinalIgnoreCase) == true);
+                    if (existingNewKeyTextVM == null)
+                    {
+                        textVM = new TextEntryViewModel()
+                        {
+                            Key = newColumnKey,
+                            Value = Humanize(newKey!)
+                        };
+                        vm.Texts.Add(textVM);
+                    }
                 }
             }
         }

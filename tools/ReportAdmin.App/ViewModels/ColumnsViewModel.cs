@@ -53,7 +53,7 @@ namespace ReportAdmin.App.ViewModels
                 {
                     Columns.RemoveAt(i);
                     i--;
-                    Messenger.Instance.Send(new ReportColumnKeyChangedMessage() { OldName = col.Key });
+                    SendMessage(new ColumnChangedMessage(col, ColumnChangeKind.Deleted));
                 }
             }
 
@@ -87,7 +87,7 @@ namespace ReportAdmin.App.ViewModels
 
                     Columns.Add(vm);
 
-                    Messenger.Instance.Send(new ReportColumnKeyChangedMessage() { NewName = col.Name });
+                    SendMessage(new ColumnChangedMessage(vm, ColumnChangeKind.Added));
                 }
             }
 
@@ -140,14 +140,17 @@ namespace ReportAdmin.App.ViewModels
             };
             vm.SetData(ui);
             Columns.Add(vm);
+            SendMessage(new ColumnChangedMessage(vm, ColumnChangeKind.Added));
             SelectedColumn = vm;
         }
 
         private void RemoveSelectedColumn()
         {
-            if (SelectedColumn == null) return;
+            var vm = SelectedColumn;
+            if (vm == null) return;
             // remove underlying json column by key
-            Columns.Remove(SelectedColumn);
+            Columns.Remove(vm);
+            SendMessage(new ColumnChangedMessage(vm, ColumnChangeKind.Deleted));
             SelectedColumn = Columns.FirstOrDefault();
             NotifyStatus("Column removed.");
         }
@@ -156,10 +159,7 @@ namespace ReportAdmin.App.ViewModels
         {
             foreach (var columnVM in Columns)
             {
-                var column = new ReportColumnUi();
-                columnVM.GetData(column);
-
-                message.Columns.Add(column);
+                message.Columns.Add(columnVM);
             }
         }
 

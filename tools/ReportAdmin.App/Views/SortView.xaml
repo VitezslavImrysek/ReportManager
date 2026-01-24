@@ -27,13 +27,12 @@
               CanUserAddRows="False">
             <DataGrid.Columns>
                 <DataGridComboBoxColumn Header="Column" 
-                                    SelectedValueBinding="{Binding ColumnKey, UpdateSourceTrigger=PropertyChanged}"
-                                    SelectedValuePath="Key"
-                                    DisplayMemberPath="Key"
-                                    ItemsSource="{Binding Source={StaticResource SortableColumns}}"/>
+                                        DisplayMemberPath="Key"
+                                        SelectedItemBinding="{Binding Column}"
+                                        ItemsSource="{Binding Source={StaticResource SortableColumns}}"/>
                 <DataGridComboBoxColumn Header="Direction"
-                                    SelectedItemBinding="{Binding Direction, UpdateSourceTrigger=PropertyChanged}"
-                                    ItemsSource="{Binding Source={StaticResource SortDirectionValues}}"/>
+                                        SelectedItemBinding="{Binding Direction, UpdateSourceTrigger=PropertyChanged}"
+                                        ItemsSource="{Binding Source={StaticResource SortDirectionValues}}"/>
             </DataGrid.Columns>
         </DataGrid>
     </DockPanel>

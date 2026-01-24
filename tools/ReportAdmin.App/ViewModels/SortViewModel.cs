@@ -1,6 +1,5 @@
 ﻿using ReportAdmin.App.Messages;
 using ReportAdmin.Core.Models;
-using ReportAdmin.Core.Models.Definition;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 
@@ -8,34 +7,50 @@ namespace ReportAdmin.App.ViewModels
 {
     public class SortViewModel : DataEditorVM<ObservableCollection<SortSpecUi>>
     {
+        #region Ctor
+
         public SortViewModel()
         {
             AddSortCommand = new RelayCommand(AddSort);
             RemoveSortCommand = new RelayCommand(RemoveSort, () => SelectedSort != null);
             MoveSortUpCommand = new RelayCommand(() => MoveSort(-1), () => SelectedSort != null);
             MoveSortDownCommand = new RelayCommand(() => MoveSort(1), () => SelectedSort != null);
+
+            RegisterMessage<ColumnChangedMessage>(OnColumnChanged);
         }
 
+        #endregion
+
+        #region Properties
+
         public ObservableCollection<SortDirection> SortDirectionValues { get; } = new(Enum.GetValues(typeof(SortDirection)).Cast<SortDirection>());
-        public ObservableCollection<ReportColumnUi> SortableColumns { get; } = new();
+        public ObservableCollection<IColumn> SortableColumns { get; } = [];
         public ObservableCollection<SortRuleVm> Sorting { get; } = [];
         public SortRuleVm? SelectedSort { get; set => SetValue(ref field, value); }
+
+        #endregion
+
+        #region Commands
 
         public RelayCommand AddSortCommand { get; }
         public RelayCommand RemoveSortCommand { get; }
         public RelayCommand MoveSortUpCommand { get; }
         public RelayCommand MoveSortDownCommand { get; }
 
+        #endregion
+
+        #region Overrides
+
         protected override void OnGetData(ObservableCollection<SortSpecUi> data)
         {
             foreach (var s in Sorting)
             {
-                if (string.IsNullOrWhiteSpace(s.ColumnKey))
+                if (s.Column == null || string.IsNullOrWhiteSpace(s.Column.Key))
                 {
                     continue;
                 }
 
-                data.Add(new SortSpecUi() { ColumnKey = s.ColumnKey, Direction = s.Direction });
+                data.Add(new SortSpecUi() { ColumnKey = s.Column.Key, Direction = s.Direction });
             }
         }
 
@@ -49,13 +64,17 @@ namespace ReportAdmin.App.ViewModels
                 SortableColumns.Add(col);
 
             foreach (var s in data)
-                Sorting.Add(new SortRuleVm { ColumnKey = s.ColumnKey, Direction = s.Direction });
+                Sorting.Add(new SortRuleVm { Column = msg.Columns.Find(x => x.Key == s.ColumnKey), Direction = s.Direction });
         }
+
+        #endregion
+
+        #region Private Methods
 
         private void AddSort()
         {
             var first = SortableColumns.FirstOrDefault();
-            Sorting.Add(new SortRuleVm { ColumnKey = first?.Key ?? "", Direction = SortDirection.Asc });
+            Sorting.Add(new SortRuleVm { Column = first, Direction = SortDirection.Asc });
             SelectedSort = Sorting.LastOrDefault();
             RaiseCanExec();
         }
@@ -85,5 +104,43 @@ namespace ReportAdmin.App.ViewModels
             MoveSortUpCommand.RaiseCanExecuteChanged();
             MoveSortDownCommand.RaiseCanExecuteChanged();
         }
+
+        private void OnColumnChanged(ColumnChangedMessage message)
+        {
+            switch (message.ChangeKind)
+            {
+                case ColumnChangeKind.Added:
+                    if (message.Column.Sortable) SortableColumns.Add(message.Column);
+                    break;
+                case ColumnChangeKind.Deleted:
+                    if (message.Column.Sortable)
+                    {
+                        foreach (var sort in Sorting.Where(x => x.Column == message.Column).ToList())
+                        {
+                            Sorting.Remove(sort);
+                        }
+                        SortableColumns.Remove(message.Column);
+                    }
+                    break;
+                case ColumnChangeKind.Changed:
+                    var pv = message.PropertyValue;
+                    if (pv?.Property == ColumnProperty.Sortable)
+                    {
+                        if (message.Column.Sortable)
+                        {
+                            SortableColumns.Add(message.Column);
+                        }
+                        else
+                        {
+                            SortableColumns.Remove(message.Column);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        #endregion
     }
 }

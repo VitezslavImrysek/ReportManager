@@ -4,6 +4,6 @@ namespace ReportAdmin.App.ViewModels;
 
 public sealed class TextEntryViewModel : NotificationObject
 {
-	public required string Key { get; set => SetValue(ref field, value); }
-	public required string Value { get; set => SetValue(ref field, value); }
+	public string? Key { get; set => SetValue(ref field, value); }
+	public string? Value { get; set => SetValue(ref field, value); }
 }

@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ColumnViewModel : DataEditorVM<ReportColumnUi, object>
+    public class ColumnViewModel : DataEditorVM<ReportColumnUi, object>, IColumn
     {
         public string Key { get; set => SetValue(ref field, value, OnKeyChanged); } = string.Empty;
         public ReportColumnType Type { get; set => SetValue(ref field, value); }
@@ -66,6 +66,7 @@ namespace ReportAdmin.App.ViewModels
             if (IsInitialized)
             {
                 Filter = filterable ? (Filter ?? new FilterConfigUi()) : null;
+                SendMessage(new ColumnChangedMessage(this, new ColumnPropertyValue(ColumnProperty.Filterable, !filterable, filterable)));
             }
         }
 
@@ -74,6 +75,7 @@ namespace ReportAdmin.App.ViewModels
             if (IsInitialized)
             {
                 Sort = sortable ? (Sort ?? new SortConfigUi()) : null;
+                SendMessage(new ColumnChangedMessage(this, new ColumnPropertyValue(ColumnProperty.Sortable, !sortable, sortable)));
             }
         }
 
@@ -94,12 +96,12 @@ namespace ReportAdmin.App.ViewModels
             }
         }
 
-        private void OnKeyChanged(string oldKey, string newkey)
+        private void OnKeyChanged(string oldKey, string newKey)
         {
             if (IsInitialized)
             {
                 // notify key changed
-                Messenger.Instance.Send(new Messages.ReportColumnKeyChangedMessage() { OldName = oldKey, NewName = newkey });
+                SendMessage(new ColumnChangedMessage(this, new ColumnPropertyValue(ColumnProperty.Key, oldKey, newKey)));
             }
         }
     }

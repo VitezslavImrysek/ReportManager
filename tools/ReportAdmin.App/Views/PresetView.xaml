@@ -10,23 +10,27 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal">
-            <TextBlock VerticalAlignment="Center" Text="PresetKey:"/>
-            <TextBox Margin="8,0,0,0" Width="520" Text="{Binding PresetKey, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Margin="16,0,0,0" VerticalAlignment="Center" Text="IsDefault:"/>
-            <CheckBox Margin="8,0,0,0" IsChecked="{Binding IsDefault}"/>
-        </StackPanel>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
-            <TextBlock VerticalAlignment="Center" Text="Name:"/>
-            <TextBox Margin="8,0,0,0" Width="600" Text="{Binding Name}" IsReadOnly="True"/>
-        </StackPanel>
+        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="PresetKey:"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Margin="8,0,0,0" Text="{Binding PresetKey, UpdateSourceTrigger=PropertyChanged}"/>
+        <TextBlock Grid.Row="0" Grid.Column="2" Margin="16,0,0,0" VerticalAlignment="Center" Text="IsDefault:"/>
+        <CheckBox Grid.Row="0" Grid.Column="3" Margin="8,0,0,0" IsChecked="{Binding IsDefault}"/>
 
-        <TabControl Grid.Row="2" Margin="0,10,0,0">
+        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="Name:"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="8,0,0,0" Text="{Binding Name}" IsReadOnly="True"/>
+
+        <TabControl Grid.Row="3" Grid.ColumnSpan="4" Margin="0,10,0,0">
             <TabItem Header="Columns">
                 <DockPanel Margin="10">
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
@@ -54,46 +58,7 @@
             </TabItem>
 
             <TabItem Header="Filters">
-                <TabItem.Resources>
-                    <CollectionViewSource x:Key="FilterableColumns" Source="{Binding FilterableColumns}" />
-                    <CollectionViewSource x:Key="FilterOperationValues" Source="{Binding FilterOperationValues}" />
-                </TabItem.Resources>
-
-                <DockPanel Margin="10">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                        <Button Padding="10,4" Content="+ Add filter" Command="{Binding AddFilterCommand}"/>
-                        <Button Margin="8,0,0,0" Padding="10,4" Content="- Remove" Command="{Binding RemoveFilterCommand}"/>
-                        <TextBlock Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#666"
-                           Text="Values: one per line. BETWEEN requires 2 lines. IS NULL ignores values."/>
-                    </StackPanel>
-
-                    <DataGrid Margin="0,10,0,0"
-                      ItemsSource="{Binding Filters}"
-                      SelectedItem="{Binding SelectedFilter}"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False">
-                        <DataGrid.Columns>
-                            <DataGridComboBoxColumn Header="Column" 
-                                                    SelectedValueBinding="{Binding ColumnKey, UpdateSourceTrigger=PropertyChanged}"
-                                                    SelectedValuePath="Key"
-                                                    DisplayMemberPath="Key"
-                                                    ItemsSource="{Binding Source={StaticResource FilterableColumns}}"/>
-                            <DataGridComboBoxColumn Header="Op"
-                                                    SelectedItemBinding="{Binding Operation, UpdateSourceTrigger=PropertyChanged}"
-                                                    ItemsSource="{Binding Source={StaticResource FilterOperationValues}}"/>
-                            <DataGridTemplateColumn Header="Values" Width="*">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBox AcceptsReturn="True"
-                                                 MinHeight="60"
-                                                 VerticalScrollBarVisibility="Auto"
-                                                 Text="{Binding ValuesText, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
+                <local:FilterView Margin="10" DataContext="{Binding FilterVM}" />
             </TabItem>
 
             <TabItem Header="Texts">

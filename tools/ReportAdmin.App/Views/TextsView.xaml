@@ -15,8 +15,7 @@
 
         <StackPanel Grid.Column="0">
             <TextBlock FontWeight="SemiBold" Text="Culture"/>
-            <ListBox ItemsSource="{Binding CultureKeys}"
-                 SelectedItem="{Binding SelectedCultureKey}" />
+            <ListBox ItemsSource="{Binding CultureTexts}" SelectedItem="{Binding SelectedCultureText}" DisplayMemberPath="CultureName" />
             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                 <Button Padding="10,4" Content="+ Culture" Command="{Binding AddCultureCommand}"/>
                 <Button Margin="8,0,0,0" Padding="10,4" Content="- Culture" Command="{Binding RemoveCultureCommand}"/>
@@ -27,12 +26,12 @@
         <DockPanel Grid.Column="1" Margin="12,0,0,0">
             <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" Text="{Binding SelectedCultureTitle}"/>
             <DataGrid Margin="0,10,0,0"
-                  ItemsSource="{Binding CultureEntries}"
+                  ItemsSource="{Binding SelectedCultureText.Texts}"
                   AutoGenerateColumns="False"
                   CanUserAddRows="True"
                   IsReadOnly="False">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Key" Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}" Width="280" />
+                    <DataGridTextColumn Header="Key" Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}" />
                     <DataGridTextColumn Header="Text" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>

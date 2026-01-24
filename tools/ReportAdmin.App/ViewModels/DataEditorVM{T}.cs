@@ -8,13 +8,13 @@ using System.Windows;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public abstract class DataEditorVM<TData> : DataEditorVM<TData, object>
+    public abstract class DataEditorVM<TData> : DataEditorVM<TData, object?>
         where TData : class, new()
     { }
 
     public abstract class DataEditorVM<TData, TContext> : NotificationObject, IDataValidation
         where TData : class, new()
-        where TContext : class
+        where TContext : class?
     {
         public bool IsInitialized { get; private set => SetValue(ref field, value); } = false;
 
@@ -59,7 +59,7 @@ namespace ReportAdmin.App.ViewModels
             return msg;
         }
 
-        protected void RegisterMesssage<TMessage>(Action<TMessage> handler) 
+        protected void RegisterMessage<TMessage>(Action<TMessage> handler) 
             where TMessage : class
         {
             Messenger.Instance.Register<TMessage>(handler);
