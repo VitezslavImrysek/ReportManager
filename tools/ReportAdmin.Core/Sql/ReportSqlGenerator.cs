@@ -9,7 +9,7 @@ namespace ReportAdmin.Core.Sql;
 
 public static class ReportSqlGenerator
 {
-	public static string GenerateSql(ReportSqlDocumentUi doc)
+	public static string GenerateSql(ReportSqlDocument doc)
 	{
 		foreach (var p in doc.SystemPresets)
 			p.PresetId = GuidUtil.FromPresetKey(p.PresetKey);

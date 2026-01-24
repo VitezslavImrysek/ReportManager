@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ReportHeaderViewModel : DataEditorVM<ReportSqlDocumentUi, object>
+    public class ReportHeaderViewModel : DataEditorVM<ReportSqlDocument, object>
     {
         #region Ctor
 
@@ -46,7 +46,7 @@ namespace ReportAdmin.App.ViewModels
 
         #region Protected Override Methods
 
-        protected override void OnGetData(ReportSqlDocumentUi data)
+        protected override void OnGetData(ReportSqlDocument data)
         {
             data.ReportKey = Key!;
             data.ViewSchema = ViewSchema!;
@@ -59,7 +59,7 @@ namespace ReportAdmin.App.ViewModels
 
         }
 
-        protected override void OnSetData(ReportSqlDocumentUi data)
+        protected override void OnSetData(ReportSqlDocument data)
         {
             Key = data.ReportKey;
             ViewSchema = data.ViewSchema;

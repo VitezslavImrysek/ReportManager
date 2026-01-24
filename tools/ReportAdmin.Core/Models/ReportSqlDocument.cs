@@ -3,7 +3,7 @@ using ReportManager.DefinitionModel.Models.ReportPreset;
 
 namespace ReportAdmin.Core.Models;
 
-public sealed class ReportSqlDocumentUi
+public sealed class ReportSqlDocument
 {
 	public string? FilePath { get; set; }
     public string ReportKey { get; set; } = string.Empty;

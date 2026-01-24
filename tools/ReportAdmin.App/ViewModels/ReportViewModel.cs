@@ -99,7 +99,7 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
     {
         RepoPath = context.ReportFolder;
 
-        var report = new ReportSqlDocumentUi
+        var report = new ReportSqlDocument
         {
             ReportKey = "NewReport",
             ViewSchema = "dbo",
@@ -127,7 +127,7 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
 
     #region Private Methods
 
-    private void SetData(ReportSqlDocumentUi report)
+    private void SetData(ReportSqlDocument report)
     {
         ReportHeaderVM.SetData(report);
 
@@ -141,7 +141,7 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
         GeneratedSql = ReportSqlGenerator.GenerateSql(report);
     }
 
-    private ReportSqlDocumentUi? GetData()
+    private ReportSqlDocument? GetData()
     {
         var isOK = Validate();
         if (!isOK)
@@ -149,7 +149,7 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
             return null;
         }
 
-        var report = new ReportSqlDocumentUi()
+        var report = new ReportSqlDocument()
         {
             Definition = new ReportDefinitionJson()
         };
@@ -266,7 +266,7 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
 		}
 	}
 
-	private static void ValidateLookupSqls(ReportSqlDocumentUi document)
+	private static void ValidateLookupSqls(ReportSqlDocument document)
 	{
 		if (document?.Definition == null) return;
 
@@ -285,7 +285,7 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
 			throw new InvalidOperationException("Lookup SQL validation failed:\n" + string.Join(Environment.NewLine, errors));
 	}
 
-    private static void ValidateReportDefinition(ReportSqlDocumentUi document)
+    private static void ValidateReportDefinition(ReportSqlDocument document)
     {
         var errors = new List<string>();
         var definition = document.Definition;

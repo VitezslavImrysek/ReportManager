@@ -10,7 +10,7 @@ namespace ReportAdmin.Core.Sql;
 
 public static class ReportSqlParser
 {
-	public static ReportSqlDocumentUi LoadFromFile(string path)
+	public static ReportSqlDocument LoadFromFile(string path)
 	{
 		var sql = File.ReadAllText(path, Encoding.UTF8);
 		var doc = Parse(sql);
@@ -18,7 +18,7 @@ public static class ReportSqlParser
 		return doc;
 	}
 
-	public static ReportSqlDocumentUi Parse(string sql)
+	public static ReportSqlDocument Parse(string sql)
 	{
 		var parser = new TSql160Parser(initialQuotedIdentifiers: true);
 		IList<ParseError> errors;
@@ -39,7 +39,7 @@ public static class ReportSqlParser
 		//int GetInt(string name, int fallback = 1) =>
 		//	declares.TryGetValue(name, out var v) && int.TryParse(Convert.ToString(v, CultureInfo.InvariantCulture), out var i) ? i : fallback;
 
-		var model = new ReportSqlDocumentUi
+		var model = new ReportSqlDocument
         {
 			ReportKey = GetStr("@ReportKey"),
 			ViewSchema = GetStr("@ViewSchema", "dbo"),
