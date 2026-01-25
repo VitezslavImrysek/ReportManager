@@ -63,5 +63,65 @@ namespace ReportManager.Server.Services
 					throw new NotImplementedException();
 			}
 		}
+
+		public async Task<Stream> DownloadPrimaryKeyList(ReportDownloadRequestDto request)
+		{
+			var reportQuery = request.ReportQuery ?? throw new ArgumentNullException(nameof(request.ReportQuery));
+
+			// Get manifest to identify primary key column
+			var manifest = new ReportService().GetReportManifest(reportQuery.ReportKey);
+			var primaryKeyColumn = manifest.Columns.FirstOrDefault(c => c.PrimaryKey);
+
+			if (primaryKeyColumn == null)
+			{
+				throw new InvalidOperationException($"Report '{reportQuery.ReportKey}' does not have a primary key column defined.");
+			}
+
+			// Query data without page size limitations
+			var data = new ReportService().QueryReportInternal(reportQuery);
+			var table = data.Rows;
+
+			// Extract primary key values
+			if (!table.Columns.Contains(primaryKeyColumn.Key))
+			{
+				throw new InvalidOperationException($"Primary key column '{primaryKeyColumn.Key}' was not found in the query results.");
+			}
+
+			var primaryKeys = new List<int>();
+			foreach (DataRow row in table.Rows)
+			{
+				var value = row[primaryKeyColumn.Key];
+				if (value != DBNull.Value)
+				{
+					primaryKeys.Add(Convert.ToInt32(value));
+				}
+			}
+
+			// Serialize to JSON and return as stream
+			return await SerializeToJsonStreamAsync(primaryKeys.ToArray());
+		}
+
+		private async Task<Stream> SerializeToJsonStreamAsync(int[] primaryKeys)
+		{
+			var stream = new MemoryStream();
+			var writer = new StreamWriter(stream, System.Text.Encoding.UTF8, 1024, leaveOpen: true);
+
+			try
+			{
+				// Serialize using Newtonsoft.Json for consistency with existing exporters
+				var json = Newtonsoft.Json.JsonConvert.SerializeObject(primaryKeys);
+				await writer.WriteAsync(json);
+				await writer.FlushAsync();
+
+				stream.Position = 0;
+				return stream;
+			}
+			catch
+			{
+				writer.Dispose();
+				stream.Dispose();
+				throw;
+			}
+		}
 	}
 }

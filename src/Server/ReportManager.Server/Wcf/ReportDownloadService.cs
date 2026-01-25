@@ -8,5 +8,10 @@ namespace ReportManager.Server.Wcf
         {
             return new Services.ReportDownloadService().DownloadReport(request);
         }
+
+        public async Task<Stream> DownloadPrimaryKeyList(ReportDownloadRequestDto request)
+        {
+            return await new Services.ReportDownloadService().DownloadPrimaryKeyList(request);
+        }
     }
 }
