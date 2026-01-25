@@ -16,6 +16,8 @@ namespace ReportAdmin.App.ViewModels
         {
             AddColumnCommand = new RelayCommand(AddColumn);
             RemoveSelectedColumnCommand = new RelayCommand(RemoveSelectedColumn);
+            MoveUpCommand = new RelayCommand(MoveUp, CanMoveUp);
+            MoveDownCommand = new RelayCommand(MoveDown, CanMoveDown);
 
             RegisterMessage<GetColumnsMessage>(OnGetColumnsMessageReceived);
         }
@@ -26,7 +28,7 @@ namespace ReportAdmin.App.ViewModels
 
         public ObservableCollection<ReportColumnType> ColumnTypeValues { get; } = new(Enum.GetValues(typeof(ReportColumnType)).Cast<ReportColumnType>());
         public ObservableCollection<ColumnViewModel> Columns { get; set => SetValue(ref field, value); } = [];
-        public ColumnViewModel? SelectedColumn { get; set => SetValue(ref field, value); }
+        public ColumnViewModel? SelectedColumn { get; set => SetValue(ref field, value, OnSelectedColumnChanged); }
 
         #endregion
 
@@ -34,6 +36,8 @@ namespace ReportAdmin.App.ViewModels
 
         public RelayCommand AddColumnCommand { get; }
         public RelayCommand RemoveSelectedColumnCommand { get; }
+        public RelayCommand MoveUpCommand { get; }
+        public RelayCommand MoveDownCommand { get; }
 
         #endregion
 
@@ -157,12 +161,60 @@ namespace ReportAdmin.App.ViewModels
             NotifyStatus("Column removed.");
         }
 
+        private bool CanMoveUp()
+        {
+            if (SelectedColumn == null) return false;
+            var index = Columns.IndexOf(SelectedColumn);
+            return index > 0;
+        }
+
+        private void MoveUp()
+        {
+            if (SelectedColumn == null) return;
+            var index = Columns.IndexOf(SelectedColumn);
+            if (index > 0)
+            {
+                Columns.Move(index, index - 1);
+                RaiseCanExec();
+            }
+        }
+
+        private bool CanMoveDown()
+        {
+            if (SelectedColumn == null) return false;
+            var index = Columns.IndexOf(SelectedColumn);
+            return index >= 0 && index < Columns.Count - 1;
+        }
+
+        private void MoveDown()
+        {
+            if (SelectedColumn == null) return;
+            var index = Columns.IndexOf(SelectedColumn);
+            if (index >= 0 && index < Columns.Count - 1)
+            {
+                Columns.Move(index, index + 1);
+                RaiseCanExec();
+            }
+        }
+
+        private void OnSelectedColumnChanged(ColumnViewModel? model)
+        {
+            RaiseCanExec();
+        }
+
         private void OnGetColumnsMessageReceived(GetColumnsMessage message)
         {
             foreach (var columnVM in Columns)
             {
                 message.Columns.Add(columnVM);
             }
+        }
+
+        private void RaiseCanExec()
+        {
+
+            MoveUpCommand?.RaiseCanExecuteChanged();
+            MoveDownCommand?.RaiseCanExecuteChanged();
         }
 
         #endregion
