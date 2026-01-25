@@ -21,7 +21,7 @@ public sealed class PresetViewModel : DataEditorVM<SystemPreset>
     protected override void OnSetData(SystemPreset data)
     {
         HeaderVM.SetData(data);
-        ColumnsVM.SetData(data.Content.Grid.HiddenColumns);
+        ColumnsVM.SetData(data.Content.Grid);
         FilterVM.SetData(data.Content.Query.Filters);
         SortVM.SetData(data.Content.Query.Sorting);
         TextsVM.DefaultCulture = SendMessage<GetCultureMessage>().Culture;
@@ -50,7 +50,7 @@ public sealed class PresetViewModel : DataEditorVM<SystemPreset>
         };
 
         HeaderVM.GetData(data);
-        ColumnsVM.GetData(data.Content.Grid.HiddenColumns);
+        ColumnsVM.GetData(data.Content.Grid);
         SortVM.GetData(data.Content.Query.Sorting);
         FilterVM.GetData(data.Content.Query.Filters);
         TextsVM.GetData(data.Content.Texts);
