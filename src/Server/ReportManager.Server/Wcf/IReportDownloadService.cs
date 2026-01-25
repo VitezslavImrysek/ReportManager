@@ -19,5 +19,8 @@ namespace ReportManager.Proxy.Services
 	{
 		[OperationContract]
 		Stream DownloadReport(ReportDownloadRequestDto request);
+
+		[OperationContract]
+		Stream DownloadPrimaryKeyList(ReportQueryRequestDto request);
 	}
 }

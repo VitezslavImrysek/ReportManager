@@ -1,8 +1,12 @@
-﻿using PdfSharp.Fonts;
+﻿using Newtonsoft.Json;
+using PdfSharp.Fonts;
 using ReportManager.Server.Services.ReportExporters;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Text;
 
 namespace ReportManager.Server.Services
 {
@@ -62,6 +66,43 @@ namespace ReportManager.Server.Services
 				default:
 					throw new NotImplementedException();
 			}
+		}
+
+		public Stream DownloadPrimaryKeyList(ReportQueryRequestDto request)
+		{
+			if (request == null) throw new ArgumentNullException(nameof(request));
+
+			var reportService = new ReportService();
+			var manifest = reportService.GetReportManifest(request.ReportKey);
+			var primaryKeyColumn = manifest.Columns.FirstOrDefault(c => c.PrimaryKey);
+
+			if (primaryKeyColumn == null)
+				throw new InvalidOperationException($"Report '{request.ReportKey}' does not define a primary key column.");
+
+			var query = request.Query ?? new QuerySpecDto();
+			var pkQuery = new ReportQueryRequestDto
+			{
+				ReportKey = request.ReportKey,
+				Query = new QuerySpecDto
+				{
+					Filters = query.Filters != null ? new List<FilterSpecDto>(query.Filters) : [],
+					Sorting = query.Sorting != null ? new List<SortSpecDto>(query.Sorting) : [],
+					SelectedColumns = [primaryKeyColumn.Key]
+				},
+				PageIndex = 0,
+				PageSize = null
+			};
+
+			var data = reportService.QueryReportInternal(pkQuery);
+			var values = data.Rows.Rows
+				.Cast<DataRow>()
+				.Select(row => row[primaryKeyColumn.Key] == DBNull.Value ? null : row[primaryKeyColumn.Key])
+				.ToList();
+
+			var json = JsonConvert.SerializeObject(values, Formatting.Indented);
+			var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+			stream.Position = 0;
+			return stream;
 		}
 	}
 }
