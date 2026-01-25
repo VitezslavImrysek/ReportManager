@@ -1,6 +1,5 @@
 ﻿using ReportManager.Shared.Dto;
 
-
 #if Server && NET
 using CoreWCF;
 #else
@@ -19,5 +18,8 @@ namespace ReportManager.Proxy.Services
 	{
 		[OperationContract]
 		Stream DownloadReport(ReportDownloadRequestDto request);
+
+		[OperationContract]
+		Stream DownloadPrimaryKeyList(ReportQueryRequestDto request);
 	}
 }

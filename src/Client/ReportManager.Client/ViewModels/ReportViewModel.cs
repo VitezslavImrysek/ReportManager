@@ -1,8 +1,9 @@
-﻿using ReportManager.Shared;
-using ReportManager.Shared.Dto;
+﻿using ReportManager.Client.Extensions;
 using ReportManager.Proxy.Services;
-using ReportManager.Client.Extensions;
+using ReportManager.Shared;
+using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.ServiceModel;
 using System.Windows.Input;
@@ -11,7 +12,10 @@ namespace ReportManager.Client.ViewModels
 {
 	public sealed class ReportViewModel : NotificationObject
 	{
-		private readonly ChannelFactory<IReportService> _factory;
+        private static readonly bool IsInDesignMode =
+            DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject());
+
+        private readonly ChannelFactory<IReportService> _factory;
 		private readonly ChannelFactory<IReportDownloadService> _reportDownloadFactory;
 		private readonly IReportService _svc;
 		private readonly IReportDownloadService _downloadSvc;
@@ -54,13 +58,19 @@ namespace ReportManager.Client.ViewModels
 		public ICommand DownloadReportXlsxCommand { get; }
 		public ICommand DownloadReportPdfCommand { get; }
 		public ICommand DownloadReportJsonCommand { get; }
+		public ICommand DownloadPrimaryKeysCommand { get; }
 
-		public ReportViewModel()
+
+        public ReportViewModel()
 		{
-			_factory = ServicesConfiguration.CreateChannelFactory<IReportService>();
-			_reportDownloadFactory = ServicesConfiguration.CreateChannelFactory<IReportDownloadService>();
-			_svc = _factory.CreateChannel();
-			_downloadSvc = _reportDownloadFactory.CreateChannel();
+            // Skip when in WPF design mode
+			if (!IsInDesignMode)
+			{
+                _factory = ServicesConfiguration.CreateChannelFactory<IReportService>();
+                _reportDownloadFactory = ServicesConfiguration.CreateChannelFactory<IReportDownloadService>();
+                _svc = _factory.CreateChannel();
+                _downloadSvc = _reportDownloadFactory.CreateChannel();
+            }
 
 			LoadManifestCommand = new RelayCommand(LoadManifest);
 			QueryCommand = new RelayCommand(Query);
@@ -75,13 +85,14 @@ namespace ReportManager.Client.ViewModels
 			DownloadReportXlsxCommand = new RelayCommand(() => DownloadReport(FileFormat.Xlsx));
 			DownloadReportPdfCommand = new RelayCommand(() => DownloadReport(FileFormat.Pdf));
 			DownloadReportJsonCommand = new RelayCommand(() => DownloadReport(FileFormat.Json));
+            DownloadPrimaryKeysCommand = new RelayCommand(() => DownloadPrimaryKeys());
 
-			// initial load
-			LoadManifest();
+            // initial load
+            LoadManifest();
 			Query();
 		}
 
-		private void DownloadReport(FileFormat format)
+        private void DownloadReport(FileFormat format)
 		{
 			if (Manifest == null) return;
 
@@ -117,7 +128,38 @@ namespace ReportManager.Client.ViewModels
 			}
 		}
 
-		private string GetReportDialogFilter(FileFormat format)
+        private void DownloadPrimaryKeys()
+        {
+            if (Manifest == null) return;
+
+            var query = BuildQuerySpec(Manifest);
+            if (query == null) return;
+            var req = new ReportQueryRequestDto()
+            {
+                ReportKey = ReportKey,
+                Query = query,
+                PageSize = null,
+            };
+            using var stream = _downloadSvc.DownloadPrimaryKeyList(req);
+
+            // save to file
+            var filter = GetReportDialogFilter(FileFormat.Json);
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                FileName = $"{ReportKey}-primary-keys.json",
+                Filter = filter
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                using (var fileStream = System.IO.File.Create(dlg.FileName))
+                {
+                    stream.CopyTo(fileStream);
+                }
+                StatusText = "Primary keys exported to: " + dlg.FileName;
+            }
+        }
+
+        private string GetReportDialogFilter(FileFormat format)
 		{
 			return format switch
 			{

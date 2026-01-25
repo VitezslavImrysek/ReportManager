@@ -43,6 +43,35 @@ namespace ReportManager.Server.Controllers
 
             return File(stream, contentType, $"{fileName}.{ext}");
         }
+
+        [HttpPost("download-primary-keys")]
+        public async Task<IActionResult> DownloadPrimaryKeys([FromBody] ReportQueryRequestDto request)
+        {
+            if (request == null) return BadRequest();
+
+            try
+            {
+                var stream = _service.DownloadPrimaryKeyList(request);
+                if (stream == null) return NotFound();
+
+                // Try to reset stream position if seekable
+                if (stream.CanSeek)
+                {
+                    stream.Position = 0;
+                }
+
+                var fileName = request.ReportKey ?? "report";
+                return File(stream, "application/json", $"{fileName}-keys.json");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { error = "An error occurred while processing the request." });
+            }
+        }
     }
 }
 #endif

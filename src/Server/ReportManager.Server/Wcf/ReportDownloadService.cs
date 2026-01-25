@@ -8,5 +8,10 @@ namespace ReportManager.Server.Wcf
         {
             return new Services.ReportDownloadService().DownloadReport(request);
         }
+
+        public Stream DownloadPrimaryKeyList(ReportQueryRequestDto request)
+        {
+            return new Services.ReportDownloadService().DownloadPrimaryKeyList(request);
+        }
     }
 }

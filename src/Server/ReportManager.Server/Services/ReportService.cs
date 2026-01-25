@@ -12,15 +12,25 @@ namespace ReportManager.Server.Services
 {
 	public sealed class ReportService
 	{
-		private readonly ReportRepository _repo;
+        #region Private Fields
 
-		public ReportService()
+        private readonly ReportRepository _repo;
+
+        #endregion
+
+        #region Ctor
+
+        public ReportService()
 		{
 			var cs = ConfigurationManager.ConnectionStrings["ReportDb"].ConnectionString;
 			_repo = new ReportRepository(cs);
 		}
 
-		public ReportManifestDto GetReportManifest(string reportKey)
+        #endregion
+
+        #region Public Methods
+
+        public ReportManifestDto GetReportManifest(string reportKey)
 		{
 			var culture = CultureInfo.CurrentUICulture.Name;
             var def = _repo.GetReportDefinitionByKey(reportKey);
@@ -102,83 +112,7 @@ namespace ReportManager.Server.Services
 			if (request == null) throw new ArgumentNullException(nameof(request));
 			if (request.PageSize == null) throw new ArgumentException("Page size must be specified", nameof(ReportQueryRequestDto.PageSize));
 
-			return QueryReportInternal(request);
-        }
-
-        /// <summary>
-        /// Internal query method allowing null PageSize (used for downloads).
-        /// </summary>
-        internal ReportPageDto QueryReportInternal(ReportQueryRequestDto request)
-        {
-            if (request == null) throw new ArgumentNullException(nameof(request));
-			if (request.PageSize != null)
-			{
-                if (request.PageSize <= 0) request.PageSize = 100;
-                if (request.PageSize > 500) request.PageSize = 500;
-                if (request.PageIndex < 0) request.PageIndex = 0;
-            }
-
-            var definition = _repo.GetReportDefinitionByKey(request.ReportKey);
-            var model = JsonUtil.Deserialize<ReportDefinitionJson>(definition.DefinitionJson) ?? throw new InvalidOperationException("Report definition JSON is invalid.");
-
-            // allowed columns
-            var allowed = model.Columns
-				.Where(c => !c.Flags.HasFlag(ReportColumnFlagsJson.Virtual))
-				.Select(c => new SqlQueryBuilder.ColumnInfo(
-                c.Key,
-                c.Type,
-                c.Flags.HasFlag(ReportColumnFlagsJson.Filterable),
-                c.Flags.HasFlag(ReportColumnFlagsJson.Sortable),
-				c.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey))
-            ).ToList();
-
-			// ensure query
-			var query = request.Query ?? new();
-
-            // select list: requested or all non-hidden + alwaysSelect
-            var selected = new List<string>();
-            if (query.SelectedColumns != null && query.SelectedColumns.Count > 0)
-                selected.AddRange(query.SelectedColumns);
-
-            if (selected.Count == 0)
-            {
-                foreach (var c in model.Columns)
-                    if (!c.Flags.HasFlag(ReportColumnFlagsJson.Hidden) || c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect))
-                        selected.Add(c.Key);
-            }
-
-            // ensure alwaysSelect
-            foreach (var c in model.Columns.Where(x => x.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect)))
-                if (!selected.Contains(c.Key, StringComparer.OrdinalIgnoreCase))
-                    selected.Add(c.Key);
-
-			// ensure sorting
-			query.Sorting ??= [];
-            if (query.Sorting.Count == 0)
-			{
-				var defaultSort = model.DefaultSort;
-                if (defaultSort != null && defaultSort.Count > 0)
-				{
-					query.Sorting = defaultSort.Select(x => (SortSpecDto)x).ToList();
-                }
-				else
-				{
-                    // stable order required by OFFSET/FETCH; use PK if available
-                    var pkCol = allowed.FirstOrDefault(c => c.PrimaryKey /*&& c.SortEnabled*/); // sort doesnt have to be enabled for PK
-                    if (pkCol != null)
-                        query.Sorting.Add(new SortSpecDto() { ColumnKey = pkCol.Key, Direction = SortDirection.Asc });
-                }
-			}
-
-            var (countSql, countParams) = SqlQueryBuilder.BuildCount(definition.ViewSchema, definition.ViewName, allowed, query);
-            int total = _repo.ExecuteScalarInt(countSql, countParams);
-
-            var (sql, prms) = SqlQueryBuilder.BuildPagedSelect(definition.ViewSchema, definition.ViewName, selected, allowed, query, request.PageIndex, request.PageSize);
-            var dt = _repo.ExecuteDataTable(sql, prms);
-            dt.TableName = "Rows";
-			FillColumnNames(model, dt, CultureInfo.CurrentUICulture.Name);
-
-            return new ReportPageDto { Rows = dt, TotalCount = total };
+			return QueryReportInternal(request, ReportQueryFlags.None);
         }
 
         public List<PresetInfoDto> GetPresets(string reportKey, Guid userId)
@@ -209,6 +143,117 @@ namespace ReportManager.Server.Services
 
 		public void SetDefaultPreset(Guid presetId, string reportKey, Guid userId)
 			=> _repo.SetDefaultPreset(presetId, reportKey, userId);
+
+        #endregion
+
+        #region Internal Methods
+
+        /// <summary>
+        /// Internal query method allowing null PageSize (used for downloads).
+        /// </summary>
+        internal ReportPageDto QueryReportInternal(ReportQueryRequestDto request, ReportQueryFlags queryFlags)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (request.PageSize != null)
+            {
+                if (request.PageSize <= 0) request.PageSize = 100;
+                if (request.PageSize > 500) request.PageSize = 500;
+                if (request.PageIndex < 0) request.PageIndex = 0;
+            }
+
+            var definition = _repo.GetReportDefinitionByKey(request.ReportKey);
+            var model = JsonUtil.Deserialize<ReportDefinitionJson>(definition.DefinitionJson) ?? throw new InvalidOperationException("Report definition JSON is invalid.");
+
+            // allowed columns
+            var allowed = model.Columns
+                .Where(c => !c.Flags.HasFlag(ReportColumnFlagsJson.Virtual))
+                .Select(c => new SqlQueryBuilder.ColumnInfo(
+                c.Key,
+                c.Type,
+                c.Flags.HasFlag(ReportColumnFlagsJson.Filterable),
+                c.Flags.HasFlag(ReportColumnFlagsJson.Sortable),
+                c.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey))
+            ).ToList();
+
+            // ensure query
+            var query = request.Query ?? new();
+
+            // select list: requested or all non-hidden + alwaysSelect
+            var selected = EnsureSelected(model, query, queryFlags);
+
+            // ensure sorting
+            EnsureSorting(model, allowed, query);
+
+            var (countSql, countParams) = SqlQueryBuilder.BuildCount(definition.ViewSchema, definition.ViewName, allowed, query);
+            int total = _repo.ExecuteScalarInt(countSql, countParams);
+
+            var (sql, prms) = SqlQueryBuilder.BuildPagedSelect(definition.ViewSchema, definition.ViewName, selected, allowed, query, request.PageIndex, request.PageSize);
+            var dt = _repo.ExecuteDataTable(sql, prms);
+            dt.TableName = "Rows";
+            FillColumnNames(model, dt, CultureInfo.CurrentUICulture.Name);
+
+            return new ReportPageDto { Rows = dt, TotalCount = total };
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private List<string> EnsureSelected(ReportDefinitionJson model, QuerySpecDto query, ReportQueryFlags queryFlags)
+        {
+            var selected = new List<string>();
+
+            // primaryKeyOnly mode
+			if (queryFlags.HasFlag(ReportQueryFlags.SelectPrimaryKeyOnly))
+			{
+                // Getting only the primary key column - skip all the other ones (like alwaysAdd columns)
+                var pkColumn = model.Columns.FirstOrDefault(c => c.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey));
+				if (pkColumn == null)
+				{
+					throw new InvalidOperationException("Report does not have a primary key column.");
+                }
+
+				selected.Add(pkColumn.Key);
+				return selected;
+            }
+
+            if (query.SelectedColumns != null && query.SelectedColumns.Count > 0)
+                selected.AddRange(query.SelectedColumns);
+
+            if (selected.Count == 0)
+            {
+                foreach (var c in model.Columns)
+                    if (!c.Flags.HasFlag(ReportColumnFlagsJson.Hidden) || c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect))
+                        selected.Add(c.Key);
+            }
+
+            // ensure alwaysSelect
+            foreach (var c in model.Columns.Where(x => x.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect)))
+                if (!selected.Contains(c.Key, StringComparer.OrdinalIgnoreCase))
+                    selected.Add(c.Key);
+
+            return selected;
+        }
+
+        private void EnsureSorting(ReportDefinitionJson model, List<SqlQueryBuilder.ColumnInfo> allowed, QuerySpecDto query)
+        {
+            query.Sorting ??= [];
+            if (query.Sorting.Count == 0)
+            {
+                var defaultSort = model.DefaultSort;
+                if (defaultSort != null && defaultSort.Count > 0)
+                {
+                    query.Sorting = defaultSort.Select(x => (SortSpecDto)x).ToList();
+                }
+                else
+                {
+                    // stable order required by OFFSET/FETCH; use PK if available
+                    var pkCol = allowed.FirstOrDefault(c => c.PrimaryKey /*&& c.SortEnabled*/); // sort doesnt have to be enabled for PK
+                    if (pkCol != null)
+                        query.Sorting.Add(new SortSpecDto() { ColumnKey = pkCol.Key, Direction = SortDirection.Asc });
+                }
+            }
+        }
 
         private void FillColumnNames(ReportDefinitionJson definition, DataTable table, string culture)
         {
@@ -379,6 +424,8 @@ namespace ReportManager.Server.Services
 			// 4) SelectedColumns: Not used in presets.
 			// Let the server decide based on hidden + alwaysSelect.
 			content.Query.SelectedColumns = new List<string>();
-		}
-	}
+        }
+
+        #endregion
+    }
 }

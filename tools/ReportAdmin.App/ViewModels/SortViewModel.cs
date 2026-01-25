@@ -13,8 +13,8 @@ namespace ReportAdmin.App.ViewModels
         {
             AddSortCommand = new RelayCommand(AddSort);
             RemoveSortCommand = new RelayCommand(RemoveSort, () => SelectedSort != null);
-            MoveSortUpCommand = new RelayCommand(() => MoveSort(-1), () => SelectedSort != null);
-            MoveSortDownCommand = new RelayCommand(() => MoveSort(1), () => SelectedSort != null);
+            MoveSortUpCommand = new RelayCommand(() => MoveSort(-1), () => CanMoveSort(-1));
+            MoveSortDownCommand = new RelayCommand(() => MoveSort(1), () => CanMoveSort(1));
 
             RegisterMessage<ColumnChangedMessage>(OnColumnChanged);
         }
@@ -26,7 +26,7 @@ namespace ReportAdmin.App.ViewModels
         public ObservableCollection<SortDirection> SortDirectionValues { get; } = new(Enum.GetValues(typeof(SortDirection)).Cast<SortDirection>());
         public ObservableCollection<IColumn> SortableColumns { get; } = [];
         public ObservableCollection<SortRuleVm> Sorting { get; } = [];
-        public SortRuleVm? SelectedSort { get; set => SetValue(ref field, value); }
+        public SortRuleVm? SelectedSort { get; set => SetValue(ref field, value, OnSelectedSortChanged); }
 
         #endregion
 
@@ -107,6 +107,17 @@ namespace ReportAdmin.App.ViewModels
             MoveSortDownCommand.RaiseCanExecuteChanged();
         }
 
+        private bool CanMoveSort(int delta)
+        {
+            if (SelectedSort == null) return false;
+
+            var currentIndex = Sorting.IndexOf(SelectedSort);
+            if (currentIndex == -1) return false;
+
+            var targetIndex = currentIndex + delta;
+            return targetIndex >= 0 && targetIndex < Sorting.Count;
+        }
+
         private void OnColumnChanged(ColumnChangedMessage message)
         {
             switch (message.ChangeKind)
@@ -145,6 +156,11 @@ namespace ReportAdmin.App.ViewModels
                 default:
                     break;
             }
+        }
+
+        private void OnSelectedSortChanged(SortRuleVm selectedSort)
+        {
+            RaiseCanExec();
         }
 
         #endregion

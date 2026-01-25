@@ -1,8 +1,9 @@
-﻿using PdfSharp.Fonts;
+﻿using Newtonsoft.Json;
+using PdfSharp.Fonts;
 using ReportManager.Server.Services.ReportExporters;
-using ReportManager.Shared;
 using ReportManager.Shared.Dto;
 using System.Data;
+using System.Text;
 
 namespace ReportManager.Server.Services
 {
@@ -20,7 +21,7 @@ namespace ReportManager.Server.Services
 			var reportQuery = request.ReportQuery ?? throw new ArgumentNullException(nameof(request.ReportQuery));
 
             var manifest = new ReportService().GetReportManifest(reportQuery.ReportKey);
-			var data = new ReportService().QueryReportInternal(reportQuery);
+			var data = new ReportService().QueryReportInternal(reportQuery, ReportQueryFlags.None);
 
 			var hiddenColumns = manifest.Columns.Where(c => c.Hidden).ToList();
 			var visibleColumns = manifest.Columns.Where(c => !c.Hidden).ToDictionary(x => x.Key);
@@ -63,5 +64,42 @@ namespace ReportManager.Server.Services
 					throw new NotImplementedException();
 			}
 		}
-	}
+
+        public Stream DownloadPrimaryKeyList(ReportQueryRequestDto request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+
+            var query = request.Query ?? new QuerySpecDto();
+            var pkQuery = new ReportQueryRequestDto
+            {
+                ReportKey = request.ReportKey,
+                Query = new QuerySpecDto
+                {
+                    Filters = query.Filters ?? [],
+                    Sorting = query.Sorting ?? [],
+                    SelectedColumns = []
+                },
+                PageIndex = 0,
+                PageSize = null
+            };
+
+            // QueryReportInternal with SelectPrimaryKeyOnly returns only the PK column at index 0
+			// (there are no other columns)
+            const int PrimaryKeyColumnIndex = 0; 
+
+            var reportService = new ReportService();
+            // Execute query but get only primary key column - skip all alwaysAdd columns
+            var data = reportService.QueryReportInternal(pkQuery, ReportQueryFlags.SelectPrimaryKeyOnly);
+            var values = data.Rows.Rows
+                .Cast<DataRow>()
+                .Select(row => row[PrimaryKeyColumnIndex] == DBNull.Value ? null : row[PrimaryKeyColumnIndex])
+                .ToList();
+
+            var json = JsonConvert.SerializeObject(values, Formatting.None);
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            stream.Position = 0;
+
+            return stream;
+        }
+    }
 }

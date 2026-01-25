@@ -167,6 +167,8 @@
                             <MenuItem Header="Xlsx" Command="{Binding DownloadReportXlsxCommand}"/>
                             <MenuItem Header="Pdf" Command="{Binding DownloadReportPdfCommand}"/>
                             <MenuItem Header="Json" Command="{Binding DownloadReportJsonCommand}"/>
+                            <Separator />
+                            <MenuItem Header="Primary keys" Command="{Binding DownloadPrimaryKeysCommand}"/>
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
