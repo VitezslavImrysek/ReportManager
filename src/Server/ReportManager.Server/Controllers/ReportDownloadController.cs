@@ -54,11 +54,11 @@ namespace ReportManager.Server.Controllers
                 var stream = await _service.DownloadPrimaryKeyList(request);
                 if (stream == null) return NotFound();
 
-                try
+                // Try to reset stream position if seekable
+                if (stream.CanSeek)
                 {
                     stream.Position = 0;
                 }
-                catch { }
 
                 var fileName = request.ReportQuery?.ReportKey ?? "report";
                 return File(stream, "application/json", $"{fileName}-keys.json");

@@ -89,32 +89,36 @@ namespace ReportManager.Server.Services
 				throw new InvalidOperationException($"Primary key column '{primaryKeyColumn.Key}' was not found in the query results.");
 			}
 
-			var primaryKeys = new List<int>();
+			// Serialize to JSON and return as stream
+			return await SerializeToJsonStreamAsync(ExtractPrimaryKeys(table, primaryKeyColumn.Key));
+		}
+
+		private IEnumerable<int> ExtractPrimaryKeys(DataTable table, string primaryKeyColumnName)
+		{
 			foreach (DataRow row in table.Rows)
 			{
-				var value = row[primaryKeyColumn.Key];
+				var value = row[primaryKeyColumnName];
 				if (value != DBNull.Value)
 				{
+					int keyValue;
 					try
 					{
-						primaryKeys.Add(Convert.ToInt32(value));
+						keyValue = Convert.ToInt32(value);
 					}
 					catch (FormatException)
 					{
-						throw new InvalidOperationException($"Primary key value '{value}' in column '{primaryKeyColumn.Key}' cannot be converted to an integer.");
+						throw new InvalidOperationException($"Primary key value '{value}' in column '{primaryKeyColumnName}' cannot be converted to an integer.");
 					}
 					catch (OverflowException)
 					{
-						throw new InvalidOperationException($"Primary key value '{value}' in column '{primaryKeyColumn.Key}' is too large to be converted to an integer.");
+						throw new InvalidOperationException($"Primary key value '{value}' in column '{primaryKeyColumnName}' is too large to be converted to an integer.");
 					}
+					yield return keyValue;
 				}
 			}
-
-			// Serialize to JSON and return as stream
-			return await SerializeToJsonStreamAsync(primaryKeys.ToArray());
 		}
 
-		private async Task<Stream> SerializeToJsonStreamAsync(int[] primaryKeys)
+		private async Task<Stream> SerializeToJsonStreamAsync(IEnumerable<int> primaryKeys)
 		{
 			var stream = new MemoryStream();
 
