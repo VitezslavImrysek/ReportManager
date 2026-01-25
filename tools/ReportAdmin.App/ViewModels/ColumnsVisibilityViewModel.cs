@@ -1,9 +1,11 @@
 ﻿using ReportAdmin.App.Messages;
+using ReportManager.DefinitionModel.Models.ReportPreset;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace ReportAdmin.App.ViewModels
 {
-    public class ColumnsVisibilityViewModel : DataEditorVM<List<string>>
+    public class ColumnsVisibilityViewModel : DataEditorVM<GridStateJson>
     {
         #region Ctor
 
@@ -21,6 +23,9 @@ namespace ReportAdmin.App.ViewModels
                     c.IsVisible = false;
             });
 
+            MoveColumnUpCommand = new RelayCommand(MoveSelectedColumnUp, CanMoveSelectedColumnUp);
+            MoveColumnDownCommand = new RelayCommand(MoveSelectedColumnDown, CanMoveSelectedColumnDown);
+
             RegisterMessage<ColumnChangedMessage>(OnColumnChanged);
         }
 
@@ -29,6 +34,7 @@ namespace ReportAdmin.App.ViewModels
         #region Properties
 
         public ObservableCollection<ColumnVisibilityViewModel> Columns { get; } = [];
+        public ColumnVisibilityViewModel? SelectedColumn { get; set => SetValue(ref field, value, _ => RaiseCanExec()); }
 
         #endregion
 
@@ -36,40 +42,51 @@ namespace ReportAdmin.App.ViewModels
 
         public RelayCommand ShowAllColumnsCommand { get; }
         public RelayCommand HideAllColumnsCommand { get; }
+        public RelayCommand MoveColumnUpCommand { get; }
+        public RelayCommand MoveColumnDownCommand { get; }
 
         #endregion
 
         #region Override Methods
 
-        protected override void OnGetData(List<string> data)
+        protected override void OnGetData(GridStateJson data)
         {
+            data.HiddenColumns.Clear();
+            data.Order.Clear();
+
             foreach (var column in Columns)
             {
+                data.Order.Add(column.Column.Key);
+
                 if (!column.IsVisible)
                 {
-                    data.Add(column.Column.Key);
+                    data.HiddenColumns.Add(column.Column.Key);
                 }
             }
         }
 
-        protected override void OnSetData(List<string> data)
+        protected override void OnSetData(GridStateJson data)
         {
             Columns.Clear();
 
-            var hidden = new HashSet<string>(data, StringComparer.OrdinalIgnoreCase);
+            var hidden = new HashSet<string>(data.HiddenColumns ?? [], StringComparer.OrdinalIgnoreCase);
+            var orderLookup = (data.Order ?? [])
+                .Select((key, index) => new { key, index })
+                .ToDictionary(x => x.key, x => x.index, StringComparer.OrdinalIgnoreCase);
 
             var msg = SendMessage<GetColumnsMessage>();
-            foreach (var column in msg.Columns)
-            {
-                if (column.Hidden)
-                {
-                    continue;
-                }
+            var columns = msg.Columns
+                .Select((column, index) => new { column, index })
+                .Where(x => !x.column.Hidden)
+                .OrderBy(x => orderLookup.TryGetValue(x.column.Key, out var orderIndex) ? orderIndex : int.MaxValue)
+                .ThenBy(x => x.index);
 
+            foreach (var entry in columns)
+            {
                 Columns.Add(new ColumnVisibilityViewModel
                 {
-                    Column = column,
-                    IsVisible = !hidden.Contains(column.Key)
+                    Column = entry.column,
+                    IsVisible = !hidden.Contains(entry.column.Key)
                 });
             }
 
@@ -84,6 +101,32 @@ namespace ReportAdmin.App.ViewModels
         {
             ShowAllColumnsCommand.RaiseCanExecuteChanged();
             HideAllColumnsCommand.RaiseCanExecuteChanged();
+            MoveColumnUpCommand.RaiseCanExecuteChanged();
+            MoveColumnDownCommand.RaiseCanExecuteChanged();
+        }
+
+        private bool CanMoveSelectedColumnUp()
+            => SelectedColumn != null && Columns.IndexOf(SelectedColumn) > 0;
+
+        private bool CanMoveSelectedColumnDown()
+            => SelectedColumn != null && Columns.IndexOf(SelectedColumn) >= 0 && Columns.IndexOf(SelectedColumn) < Columns.Count - 1;
+
+        private void MoveSelectedColumnUp()
+        {
+            if (SelectedColumn == null) return;
+            var index = Columns.IndexOf(SelectedColumn);
+            if (index <= 0) return;
+            Columns.Move(index, index - 1);
+            RaiseCanExec();
+        }
+
+        private void MoveSelectedColumnDown()
+        {
+            if (SelectedColumn == null) return;
+            var index = Columns.IndexOf(SelectedColumn);
+            if (index < 0 || index >= Columns.Count - 1) return;
+            Columns.Move(index, index + 1);
+            RaiseCanExec();
         }
 
         private void OnColumnChanged(ColumnChangedMessage message)
@@ -122,6 +165,8 @@ namespace ReportAdmin.App.ViewModels
                 default:
                     break;
             }
+
+            RaiseCanExec();
         }
         #endregion
     }

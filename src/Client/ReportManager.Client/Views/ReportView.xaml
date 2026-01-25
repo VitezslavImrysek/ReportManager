@@ -178,7 +178,8 @@
                   IsReadOnly="True"
                   CanUserSortColumns="True"
                   CanUserReorderColumns="True"
-                  CanUserResizeColumns="True"/>
+                  CanUserResizeColumns="True"
+                  ColumnReordered="ReportGrid_OnColumnReordered"/>
         </DockPanel>
     </Grid>
 </UserControl>

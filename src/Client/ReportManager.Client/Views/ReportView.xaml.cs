@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Linq;
 
 namespace ReportManager.Client.Views
 {
@@ -13,6 +14,7 @@ namespace ReportManager.Client.Views
     public partial class ReportView : UserControl
     {
         private readonly Dictionary<string, DataGridColumn> _gridColumnsByKey = new Dictionary<string, DataGridColumn>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<DataGridColumn, string> _gridColumnKeys = new Dictionary<DataGridColumn, string>();
 
         public ReportView()
         {
@@ -72,11 +74,17 @@ namespace ReportManager.Client.Views
                 if (vm.Manifest != null)
                     BuildColumns(vm.Manifest);
             }
+            else if (e.PropertyName == nameof(ReportViewModel.ColumnOrder))
+            {
+                var vm = (ReportViewModel)sender;
+                ApplyColumnOrder(vm);
+            }
         }
 
         private void BuildColumns(ReportManifestDto manifest)
         {
             _gridColumnsByKey.Clear();
+            _gridColumnKeys.Clear();
             ReportGrid.Columns.Clear();
 
             foreach (var reportColumn in manifest.Columns)
@@ -90,6 +98,21 @@ namespace ReportManager.Client.Views
 
                 ReportGrid.Columns.Add(gridColumn);
                 _gridColumnsByKey[reportColumn.Key] = gridColumn;
+                _gridColumnKeys[gridColumn] = reportColumn.Key;
+            }
+
+            if (DataContext is ReportViewModel vm)
+            {
+                if (vm.ColumnOrder.Count > 0)
+                {
+                    ApplyColumnOrder(vm);
+                }
+                else
+                {
+                    UpdateColumnOrderFromGrid(vm);
+                }
+
+                ApplyColumnVisibility(vm);
             }
         }
 
@@ -124,6 +147,61 @@ namespace ReportManager.Client.Views
             {
                 if (_gridColumnsByKey.TryGetValue(item.Key, out var col))
                     col.Visibility = item.IsVisible ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private void ApplyColumnOrder(ReportViewModel vm)
+        {
+            if (_gridColumnsByKey.Count == 0)
+            {
+                return;
+            }
+
+            if (vm.ColumnOrder.Count == 0)
+            {
+                return;
+            }
+
+            var orderedColumns = new List<DataGridColumn>();
+            foreach (var key in vm.ColumnOrder)
+            {
+                if (_gridColumnsByKey.TryGetValue(key, out var column))
+                {
+                    orderedColumns.Add(column);
+                }
+            }
+
+            var remaining = ReportGrid.Columns
+                .Except(orderedColumns)
+                .OrderBy(column => column.DisplayIndex);
+            orderedColumns.AddRange(remaining);
+
+            for (var i = 0; i < orderedColumns.Count; i++)
+            {
+                orderedColumns[i].DisplayIndex = i;
+            }
+        }
+
+        private void UpdateColumnOrderFromGrid(ReportViewModel vm)
+        {
+            var order = ReportGrid.Columns
+                .OrderBy(column => column.DisplayIndex)
+                .Select(column => _gridColumnKeys.TryGetValue(column, out var key) ? key : null)
+                .Where(key => !string.IsNullOrWhiteSpace(key))
+                .Select(key => key!)
+                .ToList();
+
+            if (order.Count > 0)
+            {
+                vm.ColumnOrder = order;
+            }
+        }
+
+        private void ReportGrid_OnColumnReordered(object sender, DataGridColumnEventArgs e)
+        {
+            if (DataContext is ReportViewModel vm)
+            {
+                UpdateColumnOrderFromGrid(vm);
             }
         }
 

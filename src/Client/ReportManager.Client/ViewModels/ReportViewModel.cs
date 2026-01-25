@@ -30,6 +30,7 @@ namespace ReportManager.Client.ViewModels
 
 		public ObservableCollection<ColumnOption> AvailableColumns { get; set; } = new ObservableCollection<ColumnOption>();
 		public ObservableCollection<ColumnVisibilityItem> ColumnVisibility { get; } = new ObservableCollection<ColumnVisibilityItem>();
+		public List<string> ColumnOrder { get; set => SetValue(ref field, value); } = new List<string>();
 
 		public ObservableCollection<QueryConditionViewModel> Conditions { get; } = new ObservableCollection<QueryConditionViewModel>();
 		public ObservableCollection<SortSpecViewModel> Sorts { get; } = new ObservableCollection<SortSpecViewModel>();
@@ -393,10 +394,29 @@ namespace ReportManager.Client.ViewModels
 					Sorts.Add(vm);
 				}
 
-                // 2) apply grid hidden columns
+                // 2) apply grid hidden columns + order
                 var hidden = new HashSet<string>(content.Grid?.HiddenColumns ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
                 foreach (var cv in ColumnVisibility)
                     cv.IsVisible = !hidden.Contains(cv.Key);
+
+                if (content.Grid?.Order is { Count: > 0 })
+                {
+					var orderLookup = content.Grid.Order
+						.Select((key, index) => new { key, index })
+						.ToDictionary(x => x.key, x => x.index, StringComparer.OrdinalIgnoreCase);
+					var ordered = ColumnVisibility
+						.Select((item, index) => new { item, index })
+						.OrderBy(x => orderLookup.TryGetValue(x.item.Key, out var orderIndex) ? orderIndex : int.MaxValue)
+						.ThenBy(x => x.index)
+						.Select(x => x.item)
+						.ToList();
+
+					ColumnVisibility.Clear();
+					foreach (var item in ordered)
+						ColumnVisibility.Add(item);
+
+					ColumnOrder = new List<string>(content.Grid.Order);
+                }
 
                 _pageIndex = 0;
 				Query();
@@ -420,6 +440,13 @@ namespace ReportManager.Client.ViewModels
 				{
 					Query = query
 				};
+				content.Grid.HiddenColumns = ColumnVisibility
+					.Where(c => !c.IsVisible)
+					.Select(c => c.Key)
+					.ToList();
+				content.Grid.Order = ColumnOrder.Count > 0
+					? new List<string>(ColumnOrder)
+					: ColumnVisibility.Select(c => c.Key).ToList();
 
 				var preset = new PresetDto
 				{
