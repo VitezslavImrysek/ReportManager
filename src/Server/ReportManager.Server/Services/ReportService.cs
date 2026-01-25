@@ -94,18 +94,6 @@ namespace ReportManager.Server.Services
 				manifest.Columns.Add(col);
 			}
 
-			if (model.DefaultSort != null)
-			{
-				foreach (var s in model.DefaultSort)
-				{
-					manifest.DefaultSort.Add(new SortSpecDto
-					{
-						ColumnKey = s.ColumnKey,
-						Direction = s.Direction
-					});
-				}
-			}
-
 			return manifest;
 		}
 
@@ -144,10 +132,13 @@ namespace ReportManager.Server.Services
 				c.Flags.HasFlag(ReportColumnFlagsJson.PrimaryKey))
             ).ToList();
 
+			// ensure query
+			var query = request.Query ?? new();
+
             // select list: requested or all non-hidden + alwaysSelect
             var selected = new List<string>();
-            if (request.Query != null && request.Query.SelectedColumns != null && request.Query.SelectedColumns.Count > 0)
-                selected.AddRange(request.Query.SelectedColumns);
+            if (query.SelectedColumns != null && query.SelectedColumns.Count > 0)
+                selected.AddRange(query.SelectedColumns);
 
             if (selected.Count == 0)
             {
@@ -161,10 +152,28 @@ namespace ReportManager.Server.Services
                 if (!selected.Contains(c.Key, StringComparer.OrdinalIgnoreCase))
                     selected.Add(c.Key);
 
-            var (countSql, countParams) = SqlQueryBuilder.BuildCount(definition.ViewSchema, definition.ViewName, allowed, request.Query ?? new QuerySpecDto());
+			// ensure sorting
+			query.Sorting ??= [];
+            if (query.Sorting.Count == 0)
+			{
+				var defaultSort = model.DefaultSort;
+                if (defaultSort != null && defaultSort.Count > 0)
+				{
+					query.Sorting = defaultSort.Select(x => (SortSpecDto)x).ToList();
+                }
+				else
+				{
+                    // stable order required by OFFSET/FETCH; use PK if available
+                    var pkCol = allowed.FirstOrDefault(c => c.PrimaryKey /*&& c.SortEnabled*/); // sort doesnt have to be enabled for PK
+                    if (pkCol != null)
+                        query.Sorting.Add(new SortSpecDto() { ColumnKey = pkCol.Key, Direction = SortDirection.Asc });
+                }
+			}
+
+            var (countSql, countParams) = SqlQueryBuilder.BuildCount(definition.ViewSchema, definition.ViewName, allowed, query);
             int total = _repo.ExecuteScalarInt(countSql, countParams);
 
-            var (sql, prms) = SqlQueryBuilder.BuildPagedSelect(definition.ViewSchema, definition.ViewName, selected, allowed, request.Query ?? new QuerySpecDto(), request.PageIndex, request.PageSize);
+            var (sql, prms) = SqlQueryBuilder.BuildPagedSelect(definition.ViewSchema, definition.ViewName, selected, allowed, query, request.PageIndex, request.PageSize);
             var dt = _repo.ExecuteDataTable(sql, prms);
             dt.TableName = "Rows";
 			FillColumnNames(model, dt, CultureInfo.CurrentUICulture.Name);

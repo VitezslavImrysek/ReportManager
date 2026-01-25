@@ -175,9 +175,6 @@ namespace ReportManager.Client.ViewModels
 				HiddenFilters.Clear();
 				HiddenSorts.Clear();
 
-				// seed default sort into UI
-				ApplyDefaultSorts();
-
 				// setup column visibility options
 				ColumnVisibility.Clear();
 				foreach (var c in Manifest.Columns)
@@ -280,9 +277,6 @@ namespace ReportManager.Client.ViewModels
 			Conditions.Clear();
 			Sorts.Clear();
 			_pageIndex = 0;
-
-			// add default sort again
-			ApplyDefaultSorts();
 
 			Query();
 		}
@@ -475,39 +469,6 @@ namespace ReportManager.Client.ViewModels
 			public required string Key { get; set => SetValue(ref field, value); }
 			public required string DisplayName { get; set => SetValue(ref field, value); }
 			public bool IsVisible { get; set => SetValue(ref field, value); }
-		}
-
-		private void ApplyDefaultSorts()
-		{
-			Sorts.Clear();
-			foreach (var s in Manifest?.DefaultSort ?? [])
-			{
-				var column = AvailableColumns.FirstOrDefault(x => x.Key.Equals(s.ColumnKey, StringComparison.OrdinalIgnoreCase));
-				if (column == null || !column.CanSort)
-				{
-					continue;
-				}
-
-				if (column.SortHidden)
-				{
-					var existing = HiddenSorts.FirstOrDefault(x => x.ColumnKey.Equals(s.ColumnKey, StringComparison.OrdinalIgnoreCase));
-					if (existing != null)
-					{
-						HiddenSorts.Remove(existing);
-					}
-					HiddenSorts.Add(new SortSpecDto { ColumnKey = s.ColumnKey, Direction = s.Direction });
-					continue;
-				}
-
-				var vm = new SortSpecViewModel
-				{
-					AvailableColumns = GetSortableColumns(),
-					SelectedColumn = column,
-					SelectedDirection = s.Direction
-				};
-				vm.RemoveCommand = new RelayCommand(() => Sorts.Remove(vm));
-				Sorts.Add(vm);
-			}
 		}
 
 		private bool AddVisibleFilters(QuerySpecDto q)
