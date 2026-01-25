@@ -68,8 +68,10 @@ namespace ReportManager.Server.Services
 		{
 			var reportQuery = request.ReportQuery ?? throw new ArgumentNullException(nameof(request.ReportQuery));
 
+			var reportService = new ReportService();
+
 			// Get manifest to identify primary key column
-			var manifest = new ReportService().GetReportManifest(reportQuery.ReportKey);
+			var manifest = reportService.GetReportManifest(reportQuery.ReportKey);
 			var primaryKeyColumn = manifest.Columns.FirstOrDefault(c => c.PrimaryKey);
 
 			if (primaryKeyColumn == null)
@@ -78,7 +80,7 @@ namespace ReportManager.Server.Services
 			}
 
 			// Query data without page size limitations
-			var data = new ReportService().QueryReportInternal(reportQuery);
+			var data = reportService.QueryReportInternal(reportQuery);
 			var table = data.Rows;
 
 			// Extract primary key values
@@ -93,7 +95,18 @@ namespace ReportManager.Server.Services
 				var value = row[primaryKeyColumn.Key];
 				if (value != DBNull.Value)
 				{
-					primaryKeys.Add(Convert.ToInt32(value));
+					try
+					{
+						primaryKeys.Add(Convert.ToInt32(value));
+					}
+					catch (FormatException)
+					{
+						throw new InvalidOperationException($"Primary key value '{value}' in column '{primaryKeyColumn.Key}' cannot be converted to an integer.");
+					}
+					catch (OverflowException)
+					{
+						throw new InvalidOperationException($"Primary key value '{value}' in column '{primaryKeyColumn.Key}' is too large to be converted to an integer.");
+					}
 				}
 			}
 
@@ -104,21 +117,29 @@ namespace ReportManager.Server.Services
 		private async Task<Stream> SerializeToJsonStreamAsync(int[] primaryKeys)
 		{
 			var stream = new MemoryStream();
-			var writer = new StreamWriter(stream, System.Text.Encoding.UTF8, 1024, leaveOpen: true);
 
 			try
 			{
-				// Serialize using Newtonsoft.Json for consistency with existing exporters
-				var json = Newtonsoft.Json.JsonConvert.SerializeObject(primaryKeys);
-				await writer.WriteAsync(json);
-				await writer.FlushAsync();
+				// Use JsonTextWriter for streaming serialization to handle large arrays efficiently
+				using (var writer = new StreamWriter(stream, System.Text.Encoding.UTF8, 1024, leaveOpen: true))
+				using (var jsonWriter = new Newtonsoft.Json.JsonTextWriter(writer))
+				{
+					jsonWriter.CloseOutput = false; // Don't close the underlying stream
+
+					await jsonWriter.WriteStartArrayAsync();
+					foreach (var key in primaryKeys)
+					{
+						await jsonWriter.WriteValueAsync(key);
+					}
+					await jsonWriter.WriteEndArrayAsync();
+					await jsonWriter.FlushAsync();
+				}
 
 				stream.Position = 0;
 				return stream;
 			}
 			catch
 			{
-				writer.Dispose();
 				stream.Dispose();
 				throw;
 			}
