@@ -156,10 +156,17 @@ namespace ReportManager.Server.Services.Repository
 				else
 				{
                     // Update
+
+                    // Get current preset and ensure its not a system preset and belongs to user.
+                    var currentPreset = dataConnection.GetTable<ReportViewPresetDb>()
+                        .Where(x => x.PresetId == preset.PresetId && x.OwnerUserId == userId)
+                        .FirstOrDefault() ?? throw new InvalidOperationException("Preset not found or access denied.");
+
                     dataConnection.GetTable<ReportViewPresetDb>()
 						.Where(x => x.PresetId == preset.PresetId && x.OwnerUserId == userId)
 						.Set(x => x.PresetJson, json)
 						.Update();
+
                     return preset.PresetId;
                 }
 			}

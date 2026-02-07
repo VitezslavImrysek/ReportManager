@@ -225,9 +225,7 @@ namespace ReportManager.Client.ViewModels
 				}).ToObservable();
 
 				// Load presets list
-				Presets.Clear();
-				foreach (var p in _svc.GetPresets(ReportKey, UserId))
-					Presets.Add(p);
+				RefreshPresets();
 
 				// reset conditions/sorts
 				Conditions.Clear();
@@ -494,45 +492,23 @@ namespace ReportManager.Client.ViewModels
 			if (Manifest == null) return;
 
 			try
-			{
-				var query = BuildQuerySpec(Manifest);
-				if (query == null) return;
+            {
+                var savedId = SavePreset(Manifest, Guid.Empty, string.IsNullOrWhiteSpace(NewPresetName) ? "Můj pohled" : NewPresetName);
+                if (savedId == null)
+                {
+                    return;
+                }
 
-				var content = new PresetContentDto
-				{
-					Query = query
-				};
-				content.Grid.HiddenColumns = ColumnVisibility
-					.Where(c => !c.IsVisible)
-					.Select(c => c.Key)
-					.ToList();
-				content.Grid.Order = ColumnOrder.Count > 0
-					? [.. ColumnOrder]
-                    : ColumnVisibility.Select(c => c.Key).ToList();
-
-				var preset = new PresetDto
-				{
-					PresetId = Guid.Empty,
-					ReportKey = ReportKey,
-					Name = string.IsNullOrWhiteSpace(NewPresetName) ? "Můj pohled" : NewPresetName,
-					IsSystem = false,
-					Content = content
-				};
-
-				var savedId = _svc.SavePreset(new SavePresetRequestDto { Preset = preset, UserId = UserId });
-				StatusText = "Preset uložen: " + savedId;
-
-				Presets.Clear();
-				foreach (var p in _svc.GetPresets(ReportKey, UserId))
-					Presets.Add(p);
-			}
-			catch (Exception ex)
+                StatusText = "Preset uložen: " + savedId;
+                RefreshPresets();
+            }
+            catch (Exception ex)
 			{
 				StatusText = "SavePreset error: " + ex.Message;
 			}
 		}
 
-		private void OverwritePreset()
+        private void OverwritePreset()
 		{
 			if (Manifest == null) return;
 			if (SelectedPreset == null)
@@ -548,42 +524,50 @@ namespace ReportManager.Client.ViewModels
 
 			try
 			{
-				var query = BuildQuerySpec(Manifest);
-				if (query == null) return;
-
-				var content = new PresetContentDto
+				var savedId = SavePreset(Manifest, SelectedPreset.PresetId, SelectedPreset.Name);
+				if (savedId == null)
 				{
-					Query = query
-				};
-				content.Grid.HiddenColumns = ColumnVisibility
-					.Where(c => !c.IsVisible)
-					.Select(c => c.Key)
-					.ToList();
-				content.Grid.Order = ColumnOrder.Count > 0
-					? [.. ColumnOrder]
-					: ColumnVisibility.Select(c => c.Key).ToList();
+					return;
+				}
 
-				var preset = new PresetDto
-				{
-					PresetId = SelectedPreset.PresetId,
-					ReportKey = ReportKey,
-					Name = SelectedPreset.Name,
-					IsSystem = false,
-					Content = content
-				};
-
-				var savedId = _svc.SavePreset(new SavePresetRequestDto { Preset = preset, UserId = UserId });
 				StatusText = "Preset přepsán: " + savedId;
-
-				Presets.Clear();
-				foreach (var p in _svc.GetPresets(ReportKey, UserId))
-					Presets.Add(p);
-			}
+                RefreshPresets();
+            }
 			catch (Exception ex)
 			{
 				StatusText = "OverwritePreset error: " + ex.Message;
 			}
 		}
+
+		private Guid? SavePreset(ReportManifestDto manifest, Guid presetId, string presetName)
+		{
+            var query = BuildQuerySpec(manifest);
+            if (query == null) return null;
+
+            var content = new PresetContentDto
+            {
+                Query = query
+            };
+            content.Grid.HiddenColumns = ColumnVisibility
+                .Where(c => !c.IsVisible)
+                .Select(c => c.Key)
+                .ToList();
+            content.Grid.Order = ColumnOrder.Count > 0
+                ? [.. ColumnOrder]
+                : ColumnVisibility.Select(c => c.Key).ToList();
+
+            var preset = new PresetDto
+            {
+                PresetId = presetId,
+                ReportKey = ReportKey,
+                Name = presetName,
+                IsSystem = false,
+                Content = content
+            };
+
+            var savedId = _svc.SavePreset(new SavePresetRequestDto { Preset = preset, UserId = UserId });
+			return savedId;
+        }
 
 		private bool AddVisibleFilters(QuerySpecDto q)
 		{
@@ -663,6 +647,13 @@ namespace ReportManager.Client.ViewModels
 					Direction = hidden.Direction
 				});
 			}
+        }
+
+        private void RefreshPresets()
+        {
+            Presets.Clear();
+            foreach (var p in _svc.GetPresets(ReportKey, UserId))
+                Presets.Add(p);
         }
 
         #endregion
