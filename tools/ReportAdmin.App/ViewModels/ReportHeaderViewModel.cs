@@ -1,5 +1,6 @@
 ﻿using ReportAdmin.App.Messages;
 using ReportAdmin.Core.Models;
+using ReportManager.Lib.Wpf;
 using ReportManager.Shared;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;

@@ -1,4 +1,5 @@
 ﻿using ReportManager.DefinitionModel.Models.ReportPreset;
+using ReportManager.Lib.Wpf;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 

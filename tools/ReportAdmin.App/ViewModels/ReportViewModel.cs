@@ -5,6 +5,7 @@ using ReportAdmin.Core.Models;
 using ReportAdmin.Core.Sql;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.DefinitionModel.Utils;
+using ReportManager.Lib.Wpf;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
 using System.IO;

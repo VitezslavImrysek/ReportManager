@@ -1,16 +1,18 @@
-﻿using System.ComponentModel;
+﻿#nullable enable
+
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace ReportAdmin.App;
+namespace ReportManager.Lib.Wpf;
 
 public abstract class NotificationObject : INotifyPropertyChanged
 {
-	public event PropertyChangedEventHandler? PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-	protected virtual void OnPropertyChanged([CallerMemberName] string? name = null)
-		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    protected virtual void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-	protected bool SetValue<T>(ref T field, T value, [CallerMemberName] string? name = null)
+    protected bool SetValue<T>(ref T field, T value, [CallerMemberName] string? name = null)
         => SetValue(ref field, value, (Action<T>?)null, name);
 
     protected bool SetValue<T>(ref T field, T value, Action<T>? onPropertyChanged, [CallerMemberName] string? name = null)
@@ -18,7 +20,7 @@ public abstract class NotificationObject : INotifyPropertyChanged
         if (EqualityComparer<T>.Default.Equals(field, value)) return false;
         field = value;
         OnPropertyChanged(name);
-		onPropertyChanged?.Invoke(value);
+        onPropertyChanged?.Invoke(value);
         return true;
     }
 

@@ -9,5 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Contracts\ReportManager.Proxy\ReportManager.Proxy.csproj" />
     <ProjectReference Include="..\..\Contracts\ReportManager.Shared\ReportManager.Shared.csproj" />
+    <ProjectReference Include="..\..\Lib\ReportManager.Lib.Wpf\ReportManager.Lib.Wpf.csproj" />
   </ItemGroup>
 </Project>

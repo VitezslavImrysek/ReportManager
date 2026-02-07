@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace ReportAdmin.App.Messages
+namespace ReportManager.Lib.Wpf
 {
     public sealed class Messenger
     {

@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace ReportManager.Client
+namespace ReportManager.Lib.Wpf
 {
     public sealed class RelayCommand : ICommand
     {

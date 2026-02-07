@@ -1,5 +1,6 @@
 ﻿using ReportAdmin.App.Messages;
 using ReportManager.DefinitionModel.Models.ReportPreset;
+using ReportManager.Lib.Wpf;
 
 namespace ReportAdmin.App.ViewModels;
 

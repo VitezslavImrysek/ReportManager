@@ -2,6 +2,9 @@
   <Folder Name="/Client/">
     <Project Path="src/Client/ReportManager.Client/ReportManager.Client.csproj" />
   </Folder>
+  <Folder Name="/Lib/">
+    <Project Path="src/Lib/ReportManager.Lib.Wpf/ReportManager.Lib.Wpf.csproj" Id="26b79a9b-6ae7-4b65-8c2b-90a682ec02b1" />
+  </Folder>
   <Folder Name="/Server/">
     <Project Path="src/Server/ReportManager.Host/ReportManager.Host.csproj" />
     <Project Path="src/Server/ReportManager.Server/ReportManager.Server.csproj" />

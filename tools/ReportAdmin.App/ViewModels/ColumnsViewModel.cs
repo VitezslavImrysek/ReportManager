@@ -2,6 +2,7 @@
 using ReportAdmin.App.Messages;
 using ReportAdmin.Core.Db;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
+using ReportManager.Lib.Wpf;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;

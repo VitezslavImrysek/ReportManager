@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkVersion)'">
+	<Reference Include="System.ComponentModel.DataAnnotations" />
+  </ItemGroup>
+</Project>

@@ -1,4 +1,5 @@
 ﻿using ReportAdmin.Core;
+using ReportManager.Lib.Wpf;
 
 namespace ReportAdmin.App.Dialogs
 {

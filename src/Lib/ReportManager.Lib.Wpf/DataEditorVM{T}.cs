@@ -1,12 +1,11 @@
-﻿using ReportAdmin.App.Messages;
-using ReportAdmin.Core;
+﻿using ReportManager.Lib.Wpf.Messages;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
 using System.Windows;
 
-namespace ReportAdmin.App.ViewModels
+namespace ReportManager.Lib.Wpf
 {
     public abstract class DataEditorVM<TData> : DataEditorVM<TData, object?>
         where TData : class, new()

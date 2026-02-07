@@ -1,4 +1,5 @@
 ﻿using ReportManager.Client.Extensions;
+using ReportManager.Lib.Wpf;
 using ReportManager.Proxy.Services;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;

@@ -1,4 +1,5 @@
 ﻿using ReportAdmin.Core;
+using ReportManager.Lib.Wpf;
 using ReportManager.Shared.Dto;
 
 namespace ReportAdmin.App.ViewModels;

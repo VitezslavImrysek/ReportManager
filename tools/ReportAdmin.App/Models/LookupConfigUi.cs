@@ -1,4 +1,5 @@
 using ReportManager.DefinitionModel.Models.ReportDefinition;
+using ReportManager.Lib.Wpf;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 

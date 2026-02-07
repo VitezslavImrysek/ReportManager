@@ -7,6 +7,7 @@
 	<Reference Include="Microsoft.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
+	<ProjectReference Include="..\..\src\Lib\ReportManager.Lib.Wpf\ReportManager.Lib.Wpf.csproj" />
 	<ProjectReference Include="..\ReportAdmin.Core\ReportAdmin.Core.csproj" />
 	<PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Win32;
 using ReportAdmin.App.Messages;
 using ReportAdmin.Core;
+using ReportManager.Lib.Wpf;
+using ReportManager.Lib.Wpf.Messages;
 using System.Collections.ObjectModel;
 using System.IO;
 

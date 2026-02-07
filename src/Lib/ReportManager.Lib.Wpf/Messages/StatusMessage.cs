@@ -1,4 +1,4 @@
-﻿namespace ReportAdmin.App.Messages
+﻿namespace ReportManager.Lib.Wpf.Messages
 {
     public sealed class StatusMessage
     {

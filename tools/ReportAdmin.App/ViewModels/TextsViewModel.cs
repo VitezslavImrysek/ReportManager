@@ -1,5 +1,6 @@
 ﻿using ReportAdmin.App.Messages;
 using ReportManager.DefinitionModel.Utils;
+using ReportManager.Lib.Wpf;
 using ReportManager.Shared;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;

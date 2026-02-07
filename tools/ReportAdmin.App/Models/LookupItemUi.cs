@@ -1,4 +1,5 @@
 ﻿using ReportManager.DefinitionModel.Models.ReportDefinition;
+using ReportManager.Lib.Wpf;
 
 namespace ReportAdmin.App.Models.Definition;
 

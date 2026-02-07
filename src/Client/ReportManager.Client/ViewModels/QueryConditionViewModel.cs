@@ -1,4 +1,5 @@
-﻿using ReportManager.Shared.Dto;
+﻿using ReportManager.Lib.Wpf;
+using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
