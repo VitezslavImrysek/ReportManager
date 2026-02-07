@@ -1,6 +1,5 @@
 ﻿using ReportManager.Client.Extensions;
 using ReportManager.Proxy.Services;
-using ReportManager.Shared;
 using ReportManager.Shared.Dto;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -12,6 +11,8 @@ namespace ReportManager.Client.ViewModels
 {
 	public sealed class ReportViewModel : NotificationObject
 	{
+        #region Private Fields
+
         private static readonly bool IsInDesignMode =
             DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject());
 
@@ -23,43 +24,9 @@ namespace ReportManager.Client.ViewModels
 		private int _pageIndex = 0;
 		private int _totalCount = 0;
 
-		public string ReportKey { get; set => SetValue(ref field, value); } = "Contracts";
-		public string UserIdText { get; set => SetValue(ref field, value); } = Guid.Parse("11111111-1111-1111-1111-111111111111").ToString();
-		public string PageSizeText { get; set => SetValue(ref field, value); } = "100";
-		public string StatusText { get; set => SetValue(ref field, value); } = "Ready";
+        #endregion
 
-		public DataView? RowsView { get; set => SetValue(ref field, value); }
-
-		public ReportManifestDto? Manifest { get; private set => SetValue(ref field, value); }
-
-		public ObservableCollection<ColumnOption> AvailableColumns { get; set; } = new ObservableCollection<ColumnOption>();
-		public ObservableCollection<ColumnVisibilityItem> ColumnVisibility { get; } = new ObservableCollection<ColumnVisibilityItem>();
-		public List<string> ColumnOrder { get; set => SetValue(ref field, value); } = new List<string>();
-
-		public ObservableCollection<QueryConditionViewModel> Conditions { get; } = new ObservableCollection<QueryConditionViewModel>();
-		public ObservableCollection<SortSpecViewModel> Sorts { get; } = new ObservableCollection<SortSpecViewModel>();
-		public ObservableCollection<FilterSpecDto> HiddenFilters { get; } = new ObservableCollection<FilterSpecDto>();
-		public ObservableCollection<SortSpecDto> HiddenSorts { get; } = new ObservableCollection<SortSpecDto>();
-
-		public ObservableCollection<PresetInfoDto> Presets { get; } = new ObservableCollection<PresetInfoDto>();
-		public PresetInfoDto? SelectedPreset { get; set => SetValue(ref field, value); }
-		public string NewPresetName { get; set; } = "Můj pohled";
-
-		public ICommand LoadManifestCommand { get; }
-		public ICommand QueryCommand { get; }
-		public ICommand ClearServerQueryCommand { get; }
-		public ICommand AddConditionCommand { get; }
-		public ICommand AddSortCommand { get; }
-		public ICommand PrevPageCommand { get; }
-		public ICommand NextPageCommand { get; }
-		public ICommand LoadPresetCommand { get; }
-		public ICommand SavePresetCommand { get; }
-		public ICommand DownloadReportCsvCommand { get; }
-		public ICommand DownloadReportXlsxCommand { get; }
-		public ICommand DownloadReportPdfCommand { get; }
-		public ICommand DownloadReportJsonCommand { get; }
-		public ICommand DownloadPrimaryKeysCommand { get; }
-
+        #region Ctor
 
         public ReportViewModel()
 		{
@@ -91,6 +58,58 @@ namespace ReportManager.Client.ViewModels
             LoadManifest();
 			Query();
 		}
+
+        #endregion
+
+        #region Properties
+
+        private Guid UserId => Guid.TryParse(UserIdText, out var g) ? g : Guid.Empty;
+        private int PageSize => int.TryParse(PageSizeText, out var x) ? Math.Max(1, Math.Min(500, x)) : 100;
+
+        public string ReportKey { get; set => SetValue(ref field, value); } = "Contracts";
+        public string UserIdText { get; set => SetValue(ref field, value); } = Guid.Parse("11111111-1111-1111-1111-111111111111").ToString();
+        public string PageSizeText { get; set => SetValue(ref field, value); } = "100";
+        public string StatusText { get; set => SetValue(ref field, value); } = "Ready";
+
+        public DataView? RowsView { get; set => SetValue(ref field, value); }
+
+        public ReportManifestDto? Manifest { get; private set => SetValue(ref field, value); }
+
+        public ObservableCollection<ColumnOption> AvailableColumns { get; set; } = [];
+        public ObservableCollection<ColumnVisibilityItem> ColumnVisibility { get; } = [];
+        public List<string> ColumnOrder { get; set => SetValue(ref field, value); } = [];
+
+        public ObservableCollection<QueryConditionViewModel> Conditions { get; } = [];
+        public ObservableCollection<SortSpecViewModel> Sorts { get; } = [];
+        public ObservableCollection<FilterSpecDto> HiddenFilters { get; } = [];
+        public ObservableCollection<SortSpecDto> HiddenSorts { get; } = [];
+
+        public ObservableCollection<PresetInfoDto> Presets { get; } = [];
+        public PresetInfoDto? SelectedPreset { get; set => SetValue(ref field, value); }
+        public string NewPresetName { get; set; } = "Můj pohled";
+
+        #endregion
+
+        #region Commands
+
+        public ICommand LoadManifestCommand { get; }
+        public ICommand QueryCommand { get; }
+        public ICommand ClearServerQueryCommand { get; }
+        public ICommand AddConditionCommand { get; }
+        public ICommand AddSortCommand { get; }
+        public ICommand PrevPageCommand { get; }
+        public ICommand NextPageCommand { get; }
+        public ICommand LoadPresetCommand { get; }
+        public ICommand SavePresetCommand { get; }
+        public ICommand DownloadReportCsvCommand { get; }
+        public ICommand DownloadReportXlsxCommand { get; }
+        public ICommand DownloadReportPdfCommand { get; }
+        public ICommand DownloadReportJsonCommand { get; }
+        public ICommand DownloadPrimaryKeysCommand { get; }
+
+        #endregion
+
+        #region Private Methods
 
         private void DownloadReport(FileFormat format)
 		{
@@ -182,9 +201,6 @@ namespace ReportManager.Client.ViewModels
 				_ => throw new NotImplementedException(),
 			};
 		}
-
-		private Guid UserId => Guid.TryParse(UserIdText, out var g) ? g : Guid.Empty;
-		private int PageSize => int.TryParse(PageSizeText, out var x) ? Math.Max(1, Math.Min(500, x)) : 100;
 
 		private void LoadManifest()
 		{
@@ -481,8 +497,8 @@ namespace ReportManager.Client.ViewModels
 					.Select(c => c.Key)
 					.ToList();
 				content.Grid.Order = ColumnOrder.Count > 0
-					? new List<string>(ColumnOrder)
-					: ColumnVisibility.Select(c => c.Key).ToList();
+					? [.. ColumnOrder]
+                    : ColumnVisibility.Select(c => c.Key).ToList();
 
 				var preset = new PresetDto
 				{
@@ -504,13 +520,6 @@ namespace ReportManager.Client.ViewModels
 			{
 				StatusText = "SavePreset error: " + ex.Message;
 			}
-		}
-
-		public sealed class ColumnVisibilityItem : NotificationObject
-		{
-			public required string Key { get; set => SetValue(ref field, value); }
-			public required string DisplayName { get; set => SetValue(ref field, value); }
-			public bool IsVisible { get; set => SetValue(ref field, value); }
 		}
 
 		private bool AddVisibleFilters(QuerySpecDto q)
@@ -591,6 +600,19 @@ namespace ReportManager.Client.ViewModels
 					Direction = hidden.Direction
 				});
 			}
-		}
-	}
+        }
+
+        #endregion
+
+        #region Classes
+
+        public sealed class ColumnVisibilityItem : NotificationObject
+        {
+            public required string Key { get; set => SetValue(ref field, value); }
+            public required string DisplayName { get; set => SetValue(ref field, value); }
+            public bool IsVisible { get; set => SetValue(ref field, value); }
+        }
+
+        #endregion
+    }
 }

@@ -33,33 +33,9 @@ namespace ReportManager.Client.ViewModels
 		public required ObservableCollection<ColumnOption> AvailableColumns { get; set => SetValue(ref field, value); }
 		public ObservableCollection<FilterOperation> AvailableOps { get; set => SetValue(ref field, value); } = [];
 
-		public ColumnOption? SelectedColumn
-		{
-			get;
-			set
-			{
-				SetValue(ref field, value);
+		public ColumnOption? SelectedColumn { get; set => SetValue(ref field, value, OnSelectedColumnChanged); }
 
-				AvailableOps = value?.Ops ?? [];
-
-				OnPropertyChanged(nameof(IsLookupColumn));
-				OnPropertyChanged(nameof(LookupSingleVisibility));
-				OnPropertyChanged(nameof(LookupMultiVisibility));
-				OnPropertyChanged(nameof(TextValue1Visibility));
-				OnPropertyChanged(nameof(BetweenValue2Visibility));
-
-				// vyber první op
-				if (AvailableOps.Count > 0)
-					SelectedOp = AvailableOps[0];
-
-				// reset hodnot při změně sloupce
-				Value1 = string.Empty;
-				Value2 = string.Empty;
-				SelectedLookupItem = null;
-			}
-		}
-
-		public FilterOperation SelectedOp
+        public FilterOperation SelectedOp
 		{
 			get;
 			set
@@ -203,7 +179,27 @@ namespace ReportManager.Client.ViewModels
 			return true;
 		}
 
-		private static bool IsValidValue(ReportColumnType type, string raw)
+        private void OnSelectedColumnChanged(ColumnOption? option)
+        {
+            AvailableOps = option?.Ops ?? [];
+
+            OnPropertyChanged(nameof(IsLookupColumn));
+            OnPropertyChanged(nameof(LookupSingleVisibility));
+            OnPropertyChanged(nameof(LookupMultiVisibility));
+            OnPropertyChanged(nameof(TextValue1Visibility));
+            OnPropertyChanged(nameof(BetweenValue2Visibility));
+
+            // vyber první op
+            if (AvailableOps.Count > 0)
+                SelectedOp = AvailableOps[0];
+
+            // reset hodnot při změně sloupce
+            Value1 = string.Empty;
+            Value2 = string.Empty;
+            SelectedLookupItem = null;
+        }
+
+        private static bool IsValidValue(ReportColumnType type, string raw)
 		{
 			if (raw == null) return false;
 			raw = raw.Trim();
