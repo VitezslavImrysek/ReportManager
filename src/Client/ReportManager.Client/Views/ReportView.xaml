@@ -135,6 +135,7 @@
                           DisplayMemberPath="Name"
                           SelectedItem="{Binding SelectedPreset}"/>
                     <Button Margin="8,0,0,0" Padding="8,3" Content="Načíst" Command="{Binding LoadPresetCommand}"/>
+                    <Button Margin="8,0,0,0" Padding="8,3" Content="Přepsat" Command="{Binding OverwritePresetCommand}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                     <TextBox Width="230" Text="{Binding NewPresetName, UpdateSourceTrigger=PropertyChanged}" />

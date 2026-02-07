@@ -48,6 +48,7 @@ namespace ReportManager.Client.ViewModels
 			NextPageCommand = new RelayCommand(() => { if ((_pageIndex + 1) * PageSize < _totalCount) { _pageIndex++; Query(); } });
 			LoadPresetCommand = new RelayCommand(LoadPreset);
 			SavePresetCommand = new RelayCommand(SavePreset);
+			OverwritePresetCommand = new RelayCommand(OverwritePreset);
 			DownloadReportCsvCommand = new RelayCommand(() => DownloadReport(FileFormat.Csv));
 			DownloadReportXlsxCommand = new RelayCommand(() => DownloadReport(FileFormat.Xlsx));
 			DownloadReportPdfCommand = new RelayCommand(() => DownloadReport(FileFormat.Pdf));
@@ -101,6 +102,7 @@ namespace ReportManager.Client.ViewModels
         public ICommand NextPageCommand { get; }
         public ICommand LoadPresetCommand { get; }
         public ICommand SavePresetCommand { get; }
+		public ICommand OverwritePresetCommand { get; }
         public ICommand DownloadReportCsvCommand { get; }
         public ICommand DownloadReportXlsxCommand { get; }
         public ICommand DownloadReportPdfCommand { get; }
@@ -527,6 +529,59 @@ namespace ReportManager.Client.ViewModels
 			catch (Exception ex)
 			{
 				StatusText = "SavePreset error: " + ex.Message;
+			}
+		}
+
+		private void OverwritePreset()
+		{
+			if (Manifest == null) return;
+			if (SelectedPreset == null)
+			{
+				StatusText = "OverwritePreset error: Není vybraný preset.";
+				return;
+			}
+			if (SelectedPreset.IsSystem)
+			{
+				StatusText = "OverwritePreset error: Systémový preset nelze přepsat.";
+				return;
+			}
+
+			try
+			{
+				var query = BuildQuerySpec(Manifest);
+				if (query == null) return;
+
+				var content = new PresetContentDto
+				{
+					Query = query
+				};
+				content.Grid.HiddenColumns = ColumnVisibility
+					.Where(c => !c.IsVisible)
+					.Select(c => c.Key)
+					.ToList();
+				content.Grid.Order = ColumnOrder.Count > 0
+					? [.. ColumnOrder]
+					: ColumnVisibility.Select(c => c.Key).ToList();
+
+				var preset = new PresetDto
+				{
+					PresetId = SelectedPreset.PresetId,
+					ReportKey = ReportKey,
+					Name = SelectedPreset.Name,
+					IsSystem = false,
+					Content = content
+				};
+
+				var savedId = _svc.SavePreset(new SavePresetRequestDto { Preset = preset, UserId = UserId });
+				StatusText = "Preset přepsán: " + savedId;
+
+				Presets.Clear();
+				foreach (var p in _svc.GetPresets(ReportKey, UserId))
+					Presets.Add(p);
+			}
+			catch (Exception ex)
+			{
+				StatusText = "OverwritePreset error: " + ex.Message;
 			}
 		}
 
