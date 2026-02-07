@@ -6,6 +6,9 @@ namespace ReportManager.Client.Behaviors
 {
     public class LookupMultiSelectBehavior : Freezable
     {
+        private bool _isSyncing;
+        private ListBox? _listBox;
+
         public static readonly DependencyProperty LookupMultiSelectorProperty =
             DependencyProperty.RegisterAttached(
                 "LookupMultiSelector",
@@ -18,7 +21,7 @@ namespace ReportManager.Client.Behaviors
                 "BoundText",
                 typeof(string),
                 typeof(LookupMultiSelectBehavior),
-                new PropertyMetadata(string.Empty));
+                new PropertyMetadata(string.Empty, OnBoundTextChanged));
 
         public string BoundText
         {
@@ -43,18 +46,30 @@ namespace ReportManager.Client.Behaviors
 
         private void Attach(ListBox lb)
         {
+            _listBox = lb;
             lb.SelectionChanged += Lb_SelectionChanged;
+            SyncSelectionFromText();
         }
 
         private void Detach(ListBox lb)
         {
             lb.SelectionChanged -= Lb_SelectionChanged;
+            if (_listBox == lb)
+            {
+                _listBox = null;
+            }
         }
 
         private static void Lb_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var lb = (ListBox)sender;
             if (!lb.IsVisible)
+            {
+                return;
+            }
+
+            var behavior = GetLookupMultiSelector(lb);
+            if (behavior._isSyncing)
             {
                 return;
             }
@@ -67,7 +82,6 @@ namespace ReportManager.Client.Behaviors
                 .ToList();
 
             // naplníme Value1 jako "A,B,C" -> GetValuesForDto už to umí rozparsovat
-            var behavior = GetLookupMultiSelector(lb);
             behavior.SetCurrentValue(BoundTextProperty, string.Join(",", keys));
         }
 
@@ -81,6 +95,50 @@ namespace ReportManager.Client.Behaviors
 
                 var newBehavior = (LookupMultiSelectBehavior)e.NewValue;
                 newBehavior?.Attach(lb);
+            }
+        }
+
+        private static void OnBoundTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var behavior = (LookupMultiSelectBehavior)d;
+            behavior.SyncSelectionFromText();
+        }
+
+        private void SyncSelectionFromText()
+        {
+            if (_listBox == null)
+            {
+                return;
+            }
+
+            var raw = BoundText ?? string.Empty;
+            var keys = raw
+                .Split([',', ';', '\n', '\r', '\t', ' '], StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => x.Length > 0)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            _isSyncing = true;
+            try
+            {
+                _listBox.UnselectAll();
+                if (keys.Count == 0)
+                {
+                    return;
+                }
+
+                foreach (var item in _listBox.Items.OfType<LookupItemDto>())
+                {
+                    if (item.Key != null && keys.Contains(item.Key))
+                    {
+                        _listBox.SelectedItems.Add(item);
+                    }
+                }
+            }
+            finally
+            {
+                _isSyncing = false;
             }
         }
     }

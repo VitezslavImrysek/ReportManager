@@ -422,6 +422,14 @@ namespace ReportManager.Client.ViewModels
 						vm.Value1 = f.Values[0];
 					}
 
+					if (col.HasLookup
+						&& (vm.SelectedOp == FilterOperation.Eq || vm.SelectedOp == FilterOperation.Ne)
+						&& !string.IsNullOrWhiteSpace(vm.Value1))
+					{
+						vm.SelectedLookupItem = col.LookupItems.FirstOrDefault(item =>
+							string.Equals(item.Key, vm.Value1, StringComparison.OrdinalIgnoreCase));
+					}
+
 					Conditions.Add(vm);
 				}
 
