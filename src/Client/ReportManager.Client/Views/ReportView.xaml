@@ -38,11 +38,11 @@
 
                 <Separator Margin="0,10,0,10"/>
 
-                <views:ReportConditionsView />
+                <views:ReportConditionsView DataContext="{Binding ConditionsVM}" />
 
                 <Separator Margin="0,10,0,10"/>
 
-                <views:ReportSortsView />
+                <views:ReportSortsView DataContext="{Binding SortSpecsVM}" />
 
                 <Separator Margin="0,10,0,10"/>
 

@@ -11,7 +11,7 @@ namespace ReportManager.Lib.Wpf
         where TData : class, new()
     { }
 
-    public abstract class DataEditorVM<TData, TContext> : NotificationObject, IDataValidation
+    public abstract class DataEditorVM<TData, TContext> : ViewModelBase, IDataValidation
         where TData : class, new()
         where TContext : class?
     {
