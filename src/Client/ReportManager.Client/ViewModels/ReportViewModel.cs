@@ -39,14 +39,14 @@ namespace ReportManager.Client.ViewModels
 			ConditionsVM = new QueryConditionsViewModel();
 			SortSpecsVM = new SortSpecsViewModel();
 
-            LoadManifestCommand = new RelayCommand(LoadManifest);
+            LoadManifestCommand = new RelayCommand(LoadManifest, CanLoadManifest);
 			QueryCommand = new RelayCommand(Query);
 			ClearServerQueryCommand = new RelayCommand(ClearServerQuery);
 			PrevPageCommand = new RelayCommand(() => { if (_pageIndex > 0) { _pageIndex--; Query(); } });
 			NextPageCommand = new RelayCommand(() => { if ((_pageIndex + 1) * PageSize < _totalCount) { _pageIndex++; Query(); } });
-			LoadPresetCommand = new RelayCommand(LoadPreset);
-			SavePresetCommand = new RelayCommand(SavePreset);
-			OverwritePresetCommand = new RelayCommand(OverwritePreset);
+            LoadPresetCommand = new RelayCommand(LoadPreset, CanLoadPreset);
+            SavePresetCommand = new RelayCommand(SavePreset, CanSavePreset);
+			OverwritePresetCommand = new RelayCommand(OverwritePreset, CanOverwritePreset);
 			DownloadReportCsvCommand = new RelayCommand(() => DownloadReport(FileFormat.Csv));
 			DownloadReportXlsxCommand = new RelayCommand(() => DownloadReport(FileFormat.Xlsx));
 			DownloadReportPdfCommand = new RelayCommand(() => DownloadReport(FileFormat.Pdf));
@@ -65,14 +65,15 @@ namespace ReportManager.Client.ViewModels
         private Guid UserId => Guid.TryParse(UserIdText, out var g) ? g : Guid.Empty;
         private int PageSize => int.TryParse(PageSizeText, out var x) ? Math.Max(1, Math.Min(500, x)) : 100;
 
-        public string ReportKey { get; set => SetValue(ref field, value); } = "Contracts";
+        public string ReportKey { get; set => SetValue(ref field, value, OnReportKeyChanged); } = "Contracts";
+
         public string UserIdText { get; set => SetValue(ref field, value); } = Guid.Parse("11111111-1111-1111-1111-111111111111").ToString();
         public string PageSizeText { get; set => SetValue(ref field, value); } = "100";
         public string StatusText { get; set => SetValue(ref field, value); } = "Ready";
 
         public DataView? RowsView { get; set => SetValue(ref field, value); }
 
-        public ReportManifestDto? Manifest { get; private set => SetValue(ref field, value); }
+        public ReportManifestDto? Manifest { get; private set => SetValue(ref field, value, OnManifestChanged); }
 
         public ObservableCollection<ColumnOption> AvailableColumns { get; set; } = [];
         public ObservableCollection<ColumnVisibilityItem> ColumnVisibility { get; } = [];
@@ -82,26 +83,27 @@ namespace ReportManager.Client.ViewModels
         public SortSpecsViewModel SortSpecsVM { get; private set => SetValue(ref field, value); }
 
         public ObservableCollection<PresetInfoDto> Presets { get; } = [];
-        public PresetInfoDto? SelectedPreset { get; set => SetValue(ref field, value); }
-        public string NewPresetName { get; set; } = "My view";
+        public PresetInfoDto? SelectedPreset { get; set => SetValue(ref field, value, OnSelectedPresetChanged); }
+
+        public string NewPresetName { get; set => SetValue(ref field, value, OnNewPresetNameChanged); } = "My view";
 
         #endregion
 
         #region Commands
 
-        public ICommand LoadManifestCommand { get; }
-        public ICommand QueryCommand { get; }
-        public ICommand ClearServerQueryCommand { get; }
-        public ICommand PrevPageCommand { get; }
-        public ICommand NextPageCommand { get; }
-        public ICommand LoadPresetCommand { get; }
-        public ICommand SavePresetCommand { get; }
-		public ICommand OverwritePresetCommand { get; }
-        public ICommand DownloadReportCsvCommand { get; }
-        public ICommand DownloadReportXlsxCommand { get; }
-        public ICommand DownloadReportPdfCommand { get; }
-        public ICommand DownloadReportJsonCommand { get; }
-        public ICommand DownloadPrimaryKeysCommand { get; }
+        public RelayCommand LoadManifestCommand { get; }
+        public RelayCommand QueryCommand { get; }
+        public RelayCommand ClearServerQueryCommand { get; }
+        public RelayCommand PrevPageCommand { get; }
+        public RelayCommand NextPageCommand { get; }
+        public RelayCommand LoadPresetCommand { get; }
+        public RelayCommand SavePresetCommand { get; }
+		public RelayCommand OverwritePresetCommand { get; }
+        public RelayCommand DownloadReportCsvCommand { get; }
+        public RelayCommand DownloadReportXlsxCommand { get; }
+        public RelayCommand DownloadReportPdfCommand { get; }
+        public RelayCommand DownloadReportJsonCommand { get; }
+        public RelayCommand DownloadPrimaryKeysCommand { get; }
 
         #endregion
 
@@ -198,7 +200,14 @@ namespace ReportManager.Client.ViewModels
 			};
 		}
 
-		private void LoadManifest()
+        #region LoadManifestCommand
+
+        private bool CanLoadManifest()
+        {
+			return !string.IsNullOrWhiteSpace(ReportKey);
+        }
+
+        private void LoadManifest()
 		{
 			try
 			{
@@ -252,7 +261,9 @@ namespace ReportManager.Client.ViewModels
 			}
 		}
 
-		private void Query()
+        #endregion
+
+        private void Query()
 		{
 			if (Manifest == null) return;
 
@@ -338,13 +349,18 @@ namespace ReportManager.Client.ViewModels
 			Query();
 		}
 
-		private void LoadPreset()
+        #region LoadPresetCommand
+
+        private bool CanLoadPreset()
+        {
+            return SelectedPreset != null;
+        }
+
+        private void LoadPreset()
 		{
 			try
 			{
-				if (SelectedPreset == null) return;
-
-				var preset = _svc.GetPreset(SelectedPreset.PresetId, UserId);
+				var preset = _svc.GetPreset(SelectedPreset!.PresetId, UserId);
 				var content = preset.Content ?? new PresetContentDto();
 
 				// 1) apply query
@@ -384,13 +400,20 @@ namespace ReportManager.Client.ViewModels
 			}
 		}
 
-		private void SavePreset()
-		{
-			if (Manifest == null) return;
+        #endregion
 
+        #region SavePresetCommand
+
+        private bool CanSavePreset()
+        {
+            return Manifest != null && !string.IsNullOrWhiteSpace(NewPresetName);
+        }
+
+        private void SavePreset()
+		{
 			try
             {
-                var savedId = SavePreset(Manifest, Guid.Empty, string.IsNullOrWhiteSpace(NewPresetName) ? "My view" : NewPresetName);
+                var savedId = SavePreset(Manifest!, Guid.Empty, NewPresetName);
                 if (savedId == null)
                 {
                     return;
@@ -405,23 +428,24 @@ namespace ReportManager.Client.ViewModels
 			}
 		}
 
+        #endregion
+
+        #region OverwritePresetCommand
+
+        private bool CanOverwritePreset()
+        {
+            if (Manifest == null) return false;
+			if (SelectedPreset == null) return false;
+            if (SelectedPreset.IsSystem) return false;
+
+			return true;
+        }
+
         private void OverwritePreset()
 		{
-			if (Manifest == null) return;
-			if (SelectedPreset == null)
-			{
-				StatusText = "OverwritePreset error: No preset selected.";
-				return;
-			}
-			if (SelectedPreset.IsSystem)
-			{
-				StatusText = "OverwritePreset error: System preset cannot be overwritten.";
-				return;
-			}
-
 			try
 			{
-				var savedId = SavePreset(Manifest, SelectedPreset.PresetId, SelectedPreset.Name);
+				var savedId = SavePreset(Manifest!, SelectedPreset!.PresetId, SelectedPreset.Name);
 				if (savedId == null)
 				{
 					return;
@@ -436,7 +460,9 @@ namespace ReportManager.Client.ViewModels
 			}
 		}
 
-		private Guid? SavePreset(ReportManifestDto manifest, Guid presetId, string presetName)
+        #endregion
+
+        private Guid? SavePreset(ReportManifestDto manifest, Guid presetId, string presetName)
 		{
             var query = BuildQuerySpec(manifest);
             if (query == null) return null;
@@ -471,6 +497,36 @@ namespace ReportManager.Client.ViewModels
             Presets.Clear();
             foreach (var p in _svc.GetPresets(ReportKey, UserId))
                 Presets.Add(p);
+        }
+
+        private void OnManifestChanged(ReportManifestDto? dto)
+        {
+			RaiseCanExecuteChanged();
+        }
+
+        private void OnSelectedPresetChanged(PresetInfoDto? dto)
+        {
+			RaiseCanExecuteChanged();
+        }
+
+        private void OnNewPresetNameChanged(string newPresetName)
+        {
+            RaiseCanExecuteChanged();
+        }
+
+        private void OnReportKeyChanged(string reportKey)
+        {
+			RaiseCanExecuteChanged();
+        }
+
+        private void RaiseCanExecuteChanged()
+		{
+			GetType().GetProperties()
+				.Where(p => typeof(ICommand).IsAssignableFrom(p.PropertyType))
+				.Select(p => p.GetValue(this) as ICommand)
+				.Where(cmd => cmd != null)
+				.ToList()
+				.ForEach(cmd => (cmd as RelayCommand)?.RaiseCanExecuteChanged());
         }
 
         #endregion
