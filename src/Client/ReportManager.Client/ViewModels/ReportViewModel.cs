@@ -83,7 +83,7 @@ namespace ReportManager.Client.ViewModels
 
         public ObservableCollection<PresetInfoDto> Presets { get; } = [];
         public PresetInfoDto? SelectedPreset { get; set => SetValue(ref field, value); }
-        public string NewPresetName { get; set; } = "Můj pohled";
+        public string NewPresetName { get; set; } = "My view";
 
         #endregion
 
@@ -232,7 +232,7 @@ namespace ReportManager.Client.ViewModels
                 ColumnVisibility.Clear();
 				foreach (var c in Manifest.Columns)
 				{
-					// uživatel smí ovládat jen sloupce, které jsou "běžně viditelné" a nejsou alwaysSelect
+					// the user can only control columns that are "normally visible" and not alwaysSelect
 					if (c.Hidden) continue;
 					if (c.AlwaysSelect) continue;
 
@@ -240,11 +240,11 @@ namespace ReportManager.Client.ViewModels
 					{
 						Key = c.Key,
 						DisplayName = c.DisplayName,
-						IsVisible = true // default: viditelné
+						IsVisible = true // default: visible
 					});
 				}
 
-				StatusText = $"Manifest načten: {Manifest.ReportKey})";
+				StatusText = $"Manifest loaded: {Manifest.ReportKey})";
 			}
 			catch (Exception ex)
 			{
@@ -295,15 +295,15 @@ namespace ReportManager.Client.ViewModels
 
             var q = new QuerySpecDto();
 
-			// Selected columns = viditelné sloupce z gridu + vždy AlwaysSelect
+			// Selected columns = visible columns from the grid + AlwaysSelect always included
 			q.SelectedColumns.Clear();
 
-			// 1) viditelné (user toggle)
+			// 1) visible (user toggle)
 			foreach (var c in manifest.Columns)
 			{
 				if (c.Hidden) continue;
 
-				// pokud je to user-toggle sloupec, respektuj checkbox
+				// if this is a user-toggle column, respect the checkbox
 				if (!c.AlwaysSelect)
 				{
 					var vis = ColumnVisibility.FirstOrDefault(x => x.Key.Equals(c.Key, StringComparison.OrdinalIgnoreCase));
@@ -311,11 +311,11 @@ namespace ReportManager.Client.ViewModels
 						continue;
 				}
 
-				// je viditelný => tahat
+				// visible => include
 				q.SelectedColumns.Add(c.Key);
 			}
 
-			// 2) alwaysSelect vždy přidat (i když hidden)
+			// 2) alwaysSelect always add (even if hidden)
 			foreach (var c in manifest.Columns.Where(x => x.AlwaysSelect))
 			{
 				if (!q.SelectedColumns.Contains(c.Key, StringComparer.OrdinalIgnoreCase))
@@ -390,13 +390,13 @@ namespace ReportManager.Client.ViewModels
 
 			try
             {
-                var savedId = SavePreset(Manifest, Guid.Empty, string.IsNullOrWhiteSpace(NewPresetName) ? "Můj pohled" : NewPresetName);
+                var savedId = SavePreset(Manifest, Guid.Empty, string.IsNullOrWhiteSpace(NewPresetName) ? "My view" : NewPresetName);
                 if (savedId == null)
                 {
                     return;
                 }
 
-                StatusText = "Preset uložen: " + savedId;
+                StatusText = "Preset saved: " + savedId;
                 RefreshPresets();
             }
             catch (Exception ex)
@@ -410,12 +410,12 @@ namespace ReportManager.Client.ViewModels
 			if (Manifest == null) return;
 			if (SelectedPreset == null)
 			{
-				StatusText = "OverwritePreset error: Není vybraný preset.";
+				StatusText = "OverwritePreset error: No preset selected.";
 				return;
 			}
 			if (SelectedPreset.IsSystem)
 			{
-				StatusText = "OverwritePreset error: Systémový preset nelze přepsat.";
+				StatusText = "OverwritePreset error: System preset cannot be overwritten.";
 				return;
 			}
 
@@ -427,7 +427,7 @@ namespace ReportManager.Client.ViewModels
 					return;
 				}
 
-				StatusText = "Preset přepsán: " + savedId;
+				StatusText = "Preset overwritten: " + savedId;
                 RefreshPresets();
             }
 			catch (Exception ex)

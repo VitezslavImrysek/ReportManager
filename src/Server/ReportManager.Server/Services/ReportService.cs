@@ -342,7 +342,7 @@ namespace ReportManager.Server.Services
 			// Map columns by key
 			var cols = model.Columns.ToDictionary(x => x.Key, StringComparer.OrdinalIgnoreCase);
 
-			// 1) Grid.HiddenColumns: dovol jen sloupce, které jsou default-visible a nejsou alwaysSelect
+			// 1) Grid.HiddenColumns: allow only columns that are default-visible and not alwaysSelect
 			var allowedHide = model.Columns
 				.Where(c => !c.Flags.HasFlag(ReportColumnFlagsJson.Hidden) && !c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect))
 				.Select(c => c.Key)
@@ -353,7 +353,7 @@ namespace ReportManager.Server.Services
 				.Distinct(StringComparer.OrdinalIgnoreCase)
 				.ToList();
 
-			// 2) Query.Filters: vyházej nevalidní
+			// 2) Query.Filters: drop invalid entries
 			var normalizedFilters = new List<FilterSpecDto>();
 			foreach (var f in content.Query.Filters ?? [])
 			{
@@ -384,7 +384,7 @@ namespace ReportManager.Server.Services
 				}
 				else if (f.Operation == FilterOperation.In || f.Operation == FilterOperation.NotIn)
 				{
-					// soft limit (upravit dle potřeby)
+					// soft limit (adjust as needed)
 					if (values.Count == 0) continue;
 					values = values.Distinct(StringComparer.OrdinalIgnoreCase).Take(500).ToList();
 				}

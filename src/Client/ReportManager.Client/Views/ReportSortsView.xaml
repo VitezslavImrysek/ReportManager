@@ -8,7 +8,7 @@
              mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:SortSpecsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
-        <TextBlock FontWeight="SemiBold" Text="Řazení"/>
+        <TextBlock FontWeight="SemiBold" Text="Sorting"/>
         <ItemsControl ItemsSource="{Binding Sorts}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -20,12 +20,12 @@
                             <ComboBox Margin="0,6,0,0"
                           ItemsSource="{Binding Directions}"
                           SelectedItem="{Binding SelectedDirection, Mode=TwoWay}"/>
-                            <Button Margin="0,8,0,0" Padding="8,3" Content="Odebrat" Command="{Binding RemoveCommand}"/>
+                            <Button Margin="0,8,0,0" Padding="8,3" Content="Remove" Command="{Binding RemoveCommand}"/>
                         </StackPanel>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <Button Margin="0,8,0,0" Padding="10,4" Content="+ Přidat řazení" Command="{Binding AddSortCommand}"/>
+        <Button Margin="0,8,0,0" Padding="10,4" Content="+ Add sorting" Command="{Binding AddSortCommand}"/>
     </StackPanel>
 </UserControl>
