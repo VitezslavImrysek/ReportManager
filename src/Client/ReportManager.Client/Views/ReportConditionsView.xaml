@@ -7,39 +7,48 @@
              xmlns:vm="clr-namespace:ReportManager.Client.ViewModels" xmlns:behaviors="clr-namespace:ReportManager.Client.Behaviors"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:QueryConditionsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="#DDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Background" Value="#FAFAFA"/>
+        </Style>
+    </UserControl.Resources>
     <StackPanel>
-        <TextBlock FontWeight="SemiBold" Text="Conditions"/>
         <ItemsControl ItemsSource="{Binding Conditions}">
+            <ItemsControl.ItemContainerStyle>
+                <Style TargetType="ContentPresenter">
+                    <Setter Property="Margin" Value="0,6,0,0"/>
+                </Style>
+            </ItemsControl.ItemContainerStyle>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,6,0,0">
+                    <Border Style="{StaticResource CardBorderStyle}">
                         <StackPanel>
                             <ComboBox ItemsSource="{Binding AvailableColumns}"
                           DisplayMemberPath="DisplayName"
                           SelectedItem="{Binding SelectedColumn, Mode=TwoWay}"/>
 
-                            <ComboBox Margin="0,6,0,0"
-                          ItemsSource="{Binding AvailableOps}"
+                            <ComboBox ItemsSource="{Binding AvailableOps}"
                           SelectedItem="{Binding SelectedOp, Mode=TwoWay}"/>
 
                             <!-- Value1: non-lookup -->
-                            <TextBox Margin="0,6,0,0"
-                         Height="24"
+                            <TextBox
                          Text="{Binding Value1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Visibility="{Binding TextValue1Visibility}"
                          ToolTip="Value 1 (for IN you can enter: A,B,C or one per line)"/>
 
                             <!-- Lookup: single (Eq/Ne) -->
-                            <ComboBox Margin="0,6,0,0"
-                          ItemsSource="{Binding SelectedColumn.LookupItems}"
+                            <ComboBox ItemsSource="{Binding SelectedColumn.LookupItems}"
                           DisplayMemberPath="Text"
                           SelectedItem="{Binding SelectedLookupItem, Mode=TwoWay}"
                           Visibility="{Binding LookupSingleVisibility}"
                           ToolTip="Pick a value from the lookup"/>
 
                             <!-- Lookup: multiselect for In/NotIn -->
-                            <ListBox Margin="0,6,0,0"
-                         ItemsSource="{Binding SelectedColumn.LookupItems}"
+                            <ListBox ItemsSource="{Binding SelectedColumn.LookupItems}"
                          DisplayMemberPath="Text"
                          SelectionMode="Extended"
                          Visibility="{Binding LookupMultiVisibility}"
@@ -49,19 +58,18 @@
                                 </behaviors:LookupMultiSelectBehavior.LookupMultiSelector>
                             </ListBox>
 
-                            <TextBox Margin="0,6,0,0"
-                         Height="24"
+                            <TextBox
                          Text="{Binding Value2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Visibility="{Binding BetweenValue2Visibility}"
                          ToolTip="Value 2 (only for BETWEEN)"/>
 
-                            <Button Margin="0,8,0,0" Padding="8,3" Content="Remove" Command="{Binding RemoveCommand}"/>
+                            <Button Content="Remove" Command="{Binding RemoveCommand}"/>
                         </StackPanel>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Button Margin="0,8,0,0" Padding="10,4" Content="+ Add condition" Command="{Binding AddConditionCommand}"/>
+        <Button Content="+ Add condition" Command="{Binding AddConditionCommand}"/>
     </StackPanel>
 </UserControl>

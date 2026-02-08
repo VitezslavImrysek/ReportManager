@@ -17,73 +17,96 @@
         </Grid.ColumnDefinitions>
 
         <!-- Server Query Panel -->
-        <DockPanel Grid.Column="0">
-            <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
                 <TextBlock FontSize="16" FontWeight="SemiBold" Text="DB filter / sorting (server query)"/>
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
                     <TextBlock VerticalAlignment="Center" Text="ReportKey:"/>
-                    <TextBox Width="180" Margin="8,0,0,0" Text="{Binding ReportKey, UpdateSourceTrigger=PropertyChanged}"/>
-                    <Button Margin="8,0,0,0" Padding="10,4" Content="Load definition" Command="{Binding LoadManifestCommand}"/>
-                </StackPanel>
+                    <TextBox Grid.Column="1" Margin="8,0,0,0" Text="{Binding ReportKey, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Grid.Column="2" Margin="8,0,0,0" Content="Load definition" Command="{Binding LoadManifestCommand}"/>
+                </Grid>
 
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
                     <TextBlock VerticalAlignment="Center" Text="UserId:"/>
-                    <TextBox Width="240" Margin="8,0,0,0" Text="{Binding UserIdText, UpdateSourceTrigger=PropertyChanged}"/>
-                </StackPanel>
+                    <TextBox Grid.Column="1" Margin="8,0,0,0" Text="{Binding UserIdText, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
 
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <Button Padding="10,4" Content="Load data" Command="{Binding QueryCommand}"/>
-                    <Button Margin="8,0,0,0" Padding="10,4" Content="Clear DB filter" Command="{Binding ClearServerQueryCommand}"/>
+                    <Button Margin="0" Content="Load data" Command="{Binding QueryCommand}"/>
+                    <Button Margin="8,0,0,0" Content="Clear DB filter" Command="{Binding ClearServerQueryCommand}"/>
                 </StackPanel>
 
-                <Separator Margin="0,10,0,10"/>
+                <GroupBox Header="Conditions">
+                    <views:ReportConditionsView DataContext="{Binding ConditionsVM}" />
+                </GroupBox>
 
-                <views:ReportConditionsView DataContext="{Binding ConditionsVM}" />
+                <GroupBox Header="Sorting">
+                    <views:ReportSortsView DataContext="{Binding SortSpecsVM}" />
+                </GroupBox>
 
-                <Separator Margin="0,10,0,10"/>
+                <GroupBox Header="Columns">
+                    <ItemsControl ItemsSource="{Binding ColumnVisibility}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsVisible, Mode=TwoWay}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </GroupBox>
 
-                <views:ReportSortsView DataContext="{Binding SortSpecsVM}" />
+                <GroupBox Header="Presets">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox Grid.Row="0" Grid.Column="0"
+                                  ItemsSource="{Binding Presets}"
+                                  DisplayMemberPath="Name"
+                                  SelectedItem="{Binding SelectedPreset}"/>
+                        <Button Grid.Row="0" Grid.Column="1" Margin="8,0,0,0" Content="Load" Command="{Binding LoadPresetCommand}"/>
+                        <Button Grid.Row="0" Grid.Column="2" Margin="8,0,0,0" Content="Overwrite" Command="{Binding OverwritePresetCommand}"/>
 
-                <Separator Margin="0,10,0,10"/>
-
-                <TextBlock FontWeight="SemiBold" Text="Columns"/>
-                <ItemsControl ItemsSource="{Binding ColumnVisibility}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsVisible, Mode=TwoWay}"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-
-                <Separator Margin="0,10,0,10"/>
-
-                <TextBlock FontWeight="SemiBold" Text="Presets"/>
-                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                    <ComboBox Width="230"
-                          ItemsSource="{Binding Presets}"
-                          DisplayMemberPath="Name"
-                          SelectedItem="{Binding SelectedPreset}"/>
-                    <Button Margin="8,0,0,0" Padding="8,3" Content="Load" Command="{Binding LoadPresetCommand}"/>
-                    <Button Margin="8,0,0,0" Padding="8,3" Content="Overwrite" Command="{Binding OverwritePresetCommand}"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                    <TextBox Width="230" Text="{Binding NewPresetName, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Margin="8,0,0,0" Padding="8,3" Content="Save" Command="{Binding SavePresetCommand}"/>
-                </StackPanel>
+                        <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding NewPresetName, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Row="1" Grid.Column="1" Margin="8,0,0,0" Content="Save" Command="{Binding SavePresetCommand}"/>
+                    </Grid>
+                </GroupBox>
             </StackPanel>
-        </DockPanel>
+        </ScrollViewer>
 
         <GridSplitter Grid.Column="1" Width="12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
         <!-- DataGrid -->
         <DockPanel Grid.Column="2">
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
                 <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding StatusText}"/>
-                <Button Margin="12,0,0,0" Padding="10,4" Content="&lt;&lt; Previous" Command="{Binding PrevPageCommand}"/>
-                <Button Margin="8,0,0,0" Padding="10,4" Content="Next >>" Command="{Binding NextPageCommand}"/>
-                <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Text="PageSize:"/>
-                <TextBox Width="60" Margin="6,0,0,0" Text="{Binding PageSizeText, UpdateSourceTrigger=PropertyChanged}"/>
-                <Button Margin="8,0,0,0" local:ContextMenuServiceEx.OpenOnLeftClick="True" Padding="10,4">
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Margin="0" Content="&lt;&lt; Previous" Command="{Binding PrevPageCommand}"/>
+                    <Button Margin="8,0,0,0" Content="Next >>" Command="{Binding NextPageCommand}"/>
+                    <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Text="PageSize:"/>
+                    <TextBox Width="60" Margin="6,0,0,0" Text="{Binding PageSizeText, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+                <Button Grid.Column="2" Margin="12,0,0,0" local:ContextMenuServiceEx.OpenOnLeftClick="True">
                     <Button.Content>
                         <DockPanel LastChildFill="True">
                             <TextBlock Text="Download" />
@@ -102,7 +125,7 @@
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
-            </StackPanel>
+            </Grid>
 
             <DataGrid x:Name="ReportGrid"
                   ItemsSource="{Binding RowsView}"
@@ -111,6 +134,9 @@
                   CanUserSortColumns="True"
                   CanUserReorderColumns="True"
                   CanUserResizeColumns="True"
+                  AlternatingRowBackground="#F7F7F7"
+                  GridLinesVisibility="Horizontal"
+                  RowHeaderWidth="0"
                   ColumnReordered="ReportGrid_OnColumnReordered"/>
         </DockPanel>
     </Grid>

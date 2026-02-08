@@ -3,5 +3,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
   <Application.Resources>
+    <Thickness x:Key="ControlPadding">10,4</Thickness>
+    <Thickness x:Key="FieldSpacing">0,6,0,0</Thickness>
+
+    <Style TargetType="TextBlock">
+      <Setter Property="FontSize" Value="13"/>
+    </Style>
+
+    <Style TargetType="TextBox">
+      <Setter Property="MinWidth" Value="160"/>
+      <Setter Property="Height" Value="26"/>
+      <Setter Property="Margin" Value="{StaticResource FieldSpacing}"/>
+    </Style>
+
+    <Style TargetType="ComboBox">
+      <Setter Property="MinWidth" Value="160"/>
+      <Setter Property="Height" Value="26"/>
+      <Setter Property="Margin" Value="{StaticResource FieldSpacing}"/>
+    </Style>
+
+    <Style TargetType="Button">
+      <Setter Property="Padding" Value="{StaticResource ControlPadding}"/>
+      <Setter Property="Margin" Value="0,6,0,0"/>
+    </Style>
+
+    <Style TargetType="GroupBox">
+      <Setter Property="Margin" Value="0,0,0,10"/>
+      <Setter Property="Padding" Value="10"/>
+    </Style>
+
+    <Style TargetType="Separator">
+      <Setter Property="Margin" Value="0,8,0,8"/>
+    </Style>
   </Application.Resources>
 </Application>
