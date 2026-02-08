@@ -7,25 +7,37 @@
              xmlns:vm="clr-namespace:ReportManager.Client.ViewModels"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance vm:SortSpecsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="#DDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Background" Value="#FAFAFA"/>
+        </Style>
+    </UserControl.Resources>
     <StackPanel>
-        <TextBlock FontWeight="SemiBold" Text="Sorting"/>
         <ItemsControl ItemsSource="{Binding Sorts}">
+            <ItemsControl.ItemContainerStyle>
+                <Style TargetType="ContentPresenter">
+                    <Setter Property="Margin" Value="0,6,0,0"/>
+                </Style>
+            </ItemsControl.ItemContainerStyle>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,6,0,0">
+                    <Border Style="{StaticResource CardBorderStyle}">
                         <StackPanel>
                             <ComboBox ItemsSource="{Binding AvailableColumns}"
                           DisplayMemberPath="DisplayName"
                           SelectedItem="{Binding SelectedColumn, Mode=TwoWay}"/>
-                            <ComboBox Margin="0,6,0,0"
-                          ItemsSource="{Binding Directions}"
+                            <ComboBox ItemsSource="{Binding Directions}"
                           SelectedItem="{Binding SelectedDirection, Mode=TwoWay}"/>
-                            <Button Margin="0,8,0,0" Padding="8,3" Content="Remove" Command="{Binding RemoveCommand}"/>
+                            <Button Content="Remove" Command="{Binding RemoveCommand}"/>
                         </StackPanel>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <Button Margin="0,8,0,0" Padding="10,4" Content="+ Add sorting" Command="{Binding AddSortCommand}"/>
+        <Button Content="+ Add sorting" Command="{Binding AddSortCommand}"/>
     </StackPanel>
 </UserControl>
