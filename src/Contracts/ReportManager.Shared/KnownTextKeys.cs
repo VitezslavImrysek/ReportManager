@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace ReportManager.Shared
+﻿namespace ReportManager.Shared
 {
     public static class KnownTextKeys
     {
@@ -13,14 +10,9 @@ namespace ReportManager.Shared
             return $"col.{columnKey}";
         }
 
-        public static string GetColumnCategoryPathKey(IEnumerable<string> categoryPath)
+        public static string GetColumnCategoryKey(string categoryKey)
         {
-            var normalized = categoryPath
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Select(x => x.Trim())
-                .ToList();
-
-            return $"colcat.{string.Join("/", normalized)}";
+            return $"colcat.{categoryKey?.Trim() ?? string.Empty}";
         }
     }
 }

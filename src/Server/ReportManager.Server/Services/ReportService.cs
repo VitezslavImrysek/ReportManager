@@ -55,11 +55,9 @@ namespace ReportManager.Server.Services
 					.Select(x => x.Trim())
 					.Where(x => x.Length > 0)
 					.ToList();
-				for (var i = 0; i < sourceCategoryPath.Count; i++)
+				foreach (var segment in sourceCategoryPath)
 				{
-					var segment = sourceCategoryPath[i];
-					var pathPrefix = sourceCategoryPath.Take(i + 1).ToList();
-					var categoryTextKey = KnownTextKeys.GetColumnCategoryPathKey(pathPrefix);
+					var categoryTextKey = KnownTextKeys.GetColumnCategoryKey(segment);
 					var resolvedCategory = TextsResolver.ResolveText(model.Texts, categoryTextKey, culture, model.DefaultCulture);
 					categoryPath.Add(string.Equals(resolvedCategory, categoryTextKey, StringComparison.OrdinalIgnoreCase)
 						? segment

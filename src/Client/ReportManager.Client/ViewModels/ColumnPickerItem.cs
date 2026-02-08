@@ -25,8 +25,14 @@ namespace ReportManager.Client.ViewModels
             foreach (var column in columns)
             {
                 var node = root;
-                var categoryPath = column.CategoryPath ?? [];
-                foreach (var segment in categoryPath.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()))
+                var categoryPathSegments = (column.CategoryPath ?? [])
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .SelectMany(x => x.Split(['/'], StringSplitOptions.RemoveEmptyEntries))
+                    .Select(x => x.Trim())
+                    .Where(x => x.Length > 0)
+                    .ToList();
+
+                foreach (var segment in categoryPathSegments)
                 {
                     if (!node.Children.TryGetValue(segment, out var child))
                     {

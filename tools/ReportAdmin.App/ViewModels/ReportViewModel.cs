@@ -313,14 +313,17 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
             expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
         }
 
-        var categoryPathPrefixes = definition.Columns
-            .SelectMany(col => GetCategoryPathPrefixes(col.CategoryPath))
+        var categorySegments = definition.Columns
+            .SelectMany(col => col.CategoryPath ?? [])
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim())
+            .Where(x => x.Length > 0)
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Select(path => path.Split(['/'], StringSplitOptions.RemoveEmptyEntries).ToList());
+            .ToList();
 
-        foreach (var categoryPath in categoryPathPrefixes)
+        foreach (var categorySegment in categorySegments)
         {
-            expectedTextKeys[KnownTextKeys.GetColumnCategoryPathKey(categoryPath)] = Humanize(categoryPath.Last());
+            expectedTextKeys[KnownTextKeys.GetColumnCategoryKey(categorySegment)] = Humanize(categorySegment);
         }
 
         // For each culture, ensure all expected text keys exist and remove any unknown keys
@@ -360,25 +363,6 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
 		var s = Regex.Replace(key, "([a-z])([A-Z])", "$1 $2");
 		return ToTitle(s);
 	}
-
-    private static IEnumerable<string> GetCategoryPathPrefixes(IReadOnlyList<string>? categoryPath)
-    {
-        if (categoryPath == null)
-        {
-            yield break;
-        }
-
-        var normalizedPath = categoryPath
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x.Trim())
-            .Where(x => x.Length > 0)
-            .ToList();
-
-        for (var i = 1; i <= normalizedPath.Count; i++)
-        {
-            yield return string.Join("/", normalizedPath.Take(i));
-        }
-    }
 
 	private static string ToTitle(string s) => string.IsNullOrWhiteSpace(s) ? s : char.ToUpperInvariant(s[0]) + s[1..];
 

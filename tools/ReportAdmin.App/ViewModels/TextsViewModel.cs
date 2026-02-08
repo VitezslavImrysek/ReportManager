@@ -168,14 +168,17 @@ namespace ReportAdmin.App.ViewModels
                     expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
                 }
 
-                var categoryPathPrefixes = msg.Columns
-                    .SelectMany(col => GetCategoryPathPrefixes(col.CategoryPath))
+                var categorySegments = msg.Columns
+                    .SelectMany(col => col.CategoryPath ?? [])
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(x => x.Trim())
+                    .Where(x => x.Length > 0)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .Select(path => path.Split(['/'], StringSplitOptions.RemoveEmptyEntries).ToList());
+                    .ToList();
 
-                foreach (var categoryPath in categoryPathPrefixes)
+                foreach (var categorySegment in categorySegments)
                 {
-                    expectedTextKeys[KnownTextKeys.GetColumnCategoryPathKey(categoryPath)] = Humanize(categoryPath.Last());
+                    expectedTextKeys[KnownTextKeys.GetColumnCategoryKey(categorySegment)] = Humanize(categorySegment);
                 }
 
                 return expectedTextKeys;
@@ -309,25 +312,6 @@ namespace ReportAdmin.App.ViewModels
             }
 
             return KnownTextKeys.GetColumnHeaderKey(columnKey);
-        }
-
-        private static IEnumerable<string> GetCategoryPathPrefixes(IReadOnlyList<string>? categoryPath)
-        {
-            if (categoryPath == null)
-            {
-                yield break;
-            }
-
-            var normalizedPath = categoryPath
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Select(x => x.Trim())
-                .Where(x => x.Length > 0)
-                .ToList();
-
-            for (var i = 1; i <= normalizedPath.Count; i++)
-            {
-                yield return string.Join("/", normalizedPath.Take(i));
-            }
         }
 
         private void OnCultureChangedMessageReceived(CultureChangedMessage message)
