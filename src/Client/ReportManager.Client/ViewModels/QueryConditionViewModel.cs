@@ -25,7 +25,7 @@ namespace ReportManager.Client.ViewModels
 		public Visibility TextValue1Visibility =>
 			IsLookupColumn ? Visibility.Collapsed : Visibility.Visible;
 
-		// Between Value2 jen pro non-lookup sloupce
+		// Between Value2 only for non-lookup columns
 		public Visibility BetweenValue2Visibility =>
 			(!IsLookupColumn && SelectedOp == FilterOperation.Between)
 				? Visibility.Visible
@@ -47,7 +47,7 @@ namespace ReportManager.Client.ViewModels
 				OnPropertyChanged(nameof(TextValue1Visibility));
 				OnPropertyChanged(nameof(BetweenValue2Visibility));
 
-				// když přepneš z lookup na non-lookup nebo op, vyčisti hodnoty, ať tam nezůstane bordel
+				// when switching from lookup to non-lookup or vice versa, clear values to avoid leftovers
 				if (IsLookupColumn)
 				{
 					if (SelectedOp == FilterOperation.IsNull || SelectedOp == FilterOperation.NotNull)
@@ -67,7 +67,7 @@ namespace ReportManager.Client.ViewModels
 			{
 				SetValue(ref field, value);
 
-				// pro Eq/Ne držíme v Value1 "Key"
+				// for Eq/Ne we keep the "Key" in Value1
 				if (value != null)
 					Value1 = value.Key ?? string.Empty;
 			}
@@ -190,11 +190,11 @@ namespace ReportManager.Client.ViewModels
             OnPropertyChanged(nameof(TextValue1Visibility));
             OnPropertyChanged(nameof(BetweenValue2Visibility));
 
-            // vyber první op
+            // select the first op
             if (AvailableOps.Count > 0)
                 SelectedOp = AvailableOps[0];
 
-            // reset hodnot při změně sloupce
+            // reset values when the column changes
             Value1 = string.Empty;
             Value2 = string.Empty;
             SelectedLookupItem = null;

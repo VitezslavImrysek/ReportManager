@@ -45,7 +45,7 @@ namespace ReportManager.Server.Services.ReportExporters
 			// --- ROWS ---
 			foreach (DataRow row in table.Rows)
 			{
-				// Zalomení stránky
+				// Page break
 				if (y + rowHeight > page.Height - margin)
 				{
 					page = document.AddPage();

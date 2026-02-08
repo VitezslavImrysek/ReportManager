@@ -81,7 +81,7 @@ namespace ReportManager.Client.Behaviors
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            // naplníme Value1 jako "A,B,C" -> GetValuesForDto už to umí rozparsovat
+            // populate Value1 as "A,B,C" -> GetValuesForDto can already parse it
             behavior.SetCurrentValue(BoundTextProperty, string.Join(",", keys));
         }
 

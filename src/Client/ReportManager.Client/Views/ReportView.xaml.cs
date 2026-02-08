@@ -23,7 +23,7 @@ namespace ReportManager.Client.Views
 
         protected virtual DataGridColumn OnBuildVirtualColumn(ReportColumnManifestDto reportColumn)
         {
-            // výchozí implementace – stejné jako běžný sloupec
+            // default implementation - same as a regular column
             var column = new DataGridTemplateColumn();
 
             var cellTemplate = TryFindResource($"{reportColumn.Key}_CellTemplate");
@@ -54,7 +54,7 @@ namespace ReportManager.Client.Views
                 vm.ColumnVisibility.CollectionChanged += (_, __) => WireColumnVisibility(vm);
                 WireColumnVisibility(vm);
 
-                // pokud je manifest už načtený v konstruktoru VM, postav sloupce hned
+                // if the manifest is already loaded in the VM constructor, build columns immediately
                 if (vm.Manifest != null)
                     BuildColumns(vm.Manifest);
             }
@@ -88,11 +88,11 @@ namespace ReportManager.Client.Views
 
             foreach (var reportColumn in manifest.Columns)
             {
-                // respektuj Hidden
+                // respect Hidden
                 if (reportColumn.Hidden)
                     continue;
 
-                // typově zvol editor/column type
+                // choose editor/column type by data type
                 var gridColumn = BuildColumn(reportColumn);
 
                 ReportGrid.Columns.Add(gridColumn);
@@ -137,11 +137,11 @@ namespace ReportManager.Client.Views
 
         private void ApplyColumnVisibility(ReportViewModel vm)
         {
-            // default: vše viditelné (včetně alwaysSelect sloupců – ty tu nejsou v listu)
+            // default: everything visible (including alwaysSelect columns - those are not in the list)
             foreach (var kv in _gridColumnsByKey)
                 kv.Value.Visibility = Visibility.Visible;
 
-            // skryj pouze to, co user vypnul (jen non-hidden & non-alwaysSelect sloupce)
+            // hide only what the user disabled (non-hidden & non-alwaysSelect columns)
             foreach (var item in vm.ColumnVisibility)
             {
                 if (_gridColumnsByKey.TryGetValue(item.Key, out var col))
@@ -235,7 +235,7 @@ namespace ReportManager.Client.Views
             column.Binding = new Binding($"[{reportColumn.Key}]");
             column.IsReadOnly = true;
 
-            // typové formátování
+            // type-based formatting
             ApplyFormatting(column, reportColumn.Type);
 
             return column;
@@ -243,19 +243,19 @@ namespace ReportManager.Client.Views
 
         private static void ApplyFormatting(DataGridBoundColumn col, ReportColumnType type)
         {
-            // Nastav podle potřeby – je to jen základ
+            // adjust as needed - this is just a baseline
             switch (type)
             {
                 case ReportColumnType.Date:
-                    col.Binding.StringFormat = "d";      // krátké datum
+                    col.Binding.StringFormat = "d";      // short date
                     break;
 
                 case ReportColumnType.DateTime:
-                    col.Binding.StringFormat = "g";      // datum + čas (short)
+                    col.Binding.StringFormat = "g";      // date + time (short)
                     break;
 
                 case ReportColumnType.Decimal:
-                    col.Binding.StringFormat = "N2";     // 2 desetinná místa
+                    col.Binding.StringFormat = "N2";     // 2 decimal places
                     break;
 
                 case ReportColumnType.Double:
@@ -263,7 +263,7 @@ namespace ReportManager.Client.Views
                     break;
 
                 default:
-                    // bez formátu
+                    // no format
                     break;
             }
         }
