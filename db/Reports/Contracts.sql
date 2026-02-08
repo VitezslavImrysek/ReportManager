@@ -1,5 +1,5 @@
 /* REPORT: Contracts */
-/* GENERATED: 2026-01-24T16:04:53Z */
+/* GENERATED: 2026-02-08T22:03:05Z */
 /* DO NOT EDIT BY HAND */
 
 BEGIN TRY
@@ -23,7 +23,10 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
       "col.typ_zakaznika": "Typ zákazníka",
       "col.typ_zakaznika_text": "Typ zákazníka",
       "col.zakaznik": "Zákazník",
-      "report.title": "Smlouvy"
+      "report.title": "Smlouvy",
+      "colcat.Contract": "Smlouva",
+      "colcat.Contract/Invoice": "Faktura",
+      "colcat.Customer": "Zákazník"
     },
     "en": {
       "col.castka": "Amount",
@@ -33,12 +36,16 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
       "col.typ_zakaznika": "Customer type",
       "col.typ_zakaznika_text": "Customer type",
       "col.zakaznik": "Customer",
-      "report.title": "Contracts"
+      "report.title": "Contracts",
+      "colcat.Contract": "Contract",
+      "colcat.Contract/Invoice": "Invoice",
+      "colcat.Customer": "Customer"
     }
   },
   "columns": [
     {
       "key": "id_smlouva",
+      "categoryPath": [],
       "type": "integer",
       "flags": "alwaysSelect, hidden, primaryKey, sortable",
       "filter": {
@@ -50,6 +57,9 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
     },
     {
       "key": "cislo_smlouvy",
+      "categoryPath": [
+        "Contract"
+      ],
       "type": "string",
       "flags": "filterable, sortable",
       "filter": {
@@ -61,6 +71,9 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
     },
     {
       "key": "zakaznik",
+      "categoryPath": [
+        "Customer"
+      ],
       "type": "string",
       "flags": "filterable, sortable",
       "filter": {
@@ -72,6 +85,9 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
     },
     {
       "key": "typ_zakaznika",
+      "categoryPath": [
+        "Customer"
+      ],
       "type": "integer",
       "flags": "hidden, filterable",
       "filter": {
@@ -89,6 +105,9 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
     },
     {
       "key": "typ_zakaznika_text",
+      "categoryPath": [
+        "Customer"
+      ],
       "type": "string",
       "flags": "sortable",
       "sort": {
@@ -97,6 +116,10 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
     },
     {
       "key": "castka",
+      "categoryPath": [
+        "Contract",
+        "Invoice"
+      ],
       "type": "decimal",
       "flags": "filterable, sortable",
       "filter": {
@@ -108,6 +131,9 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
     },
     {
       "key": "datum_od",
+      "categoryPath": [
+        "Contract"
+      ],
       "type": "date",
       "flags": "filterable, sortable",
       "filter": {
@@ -155,7 +181,13 @@ DECLARE @PresetJson_1 nvarchar(max) = N'{
     "hiddenColumns": [
       "cislo_smlouvy"
     ],
-    "order": []
+    "order": [
+      "cislo_smlouvy",
+      "zakaznik",
+      "typ_zakaznika_text",
+      "castka",
+      "datum_od"
+    ]
   },
   "query": {
     "filters": [],

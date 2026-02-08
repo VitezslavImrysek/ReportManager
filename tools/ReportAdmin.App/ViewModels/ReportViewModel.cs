@@ -316,7 +316,7 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
         var categoryPathPrefixes = definition.Columns
             .SelectMany(col => GetCategoryPathPrefixes(col.CategoryPath))
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Select(path => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ToList());
+            .Select(path => path.Split(['/'], StringSplitOptions.RemoveEmptyEntries).ToList());
 
         foreach (var categoryPath in categoryPathPrefixes)
         {
