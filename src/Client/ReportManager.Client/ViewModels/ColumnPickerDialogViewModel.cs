@@ -84,7 +84,7 @@ namespace ReportManager.Client.ViewModels
             var hasFilter = filter.Length > 0;
 
             var sourceColumns = hasFilter
-                ? _allColumns.Where(c => c.SearchText.Contains(filter, StringComparison.CurrentCultureIgnoreCase)).ToList()
+                ? _allColumns.Where(c => c.SearchText.IndexOf(filter, StringComparison.CurrentCultureIgnoreCase) >= 0).ToList()
                 : _allColumns;
 
             var rootNode = new CategoryBuildNode(string.Empty);

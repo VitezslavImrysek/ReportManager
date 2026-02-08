@@ -1,5 +1,5 @@
 /* REPORT: Contracts */
-/* GENERATED: 2026-02-08T22:03:05Z */
+/* GENERATED: 2026-02-08T22:32:41Z */
 /* DO NOT EDIT BY HAND */
 
 BEGIN TRY
@@ -25,8 +25,8 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
       "col.zakaznik": "Zákazník",
       "report.title": "Smlouvy",
       "colcat.Contract": "Smlouva",
-      "colcat.Contract/Invoice": "Faktura",
-      "colcat.Customer": "Zákazník"
+      "colcat.Customer": "Zákazník",
+      "colcat.Invoice": "Faktura"
     },
     "en": {
       "col.castka": "Amount",
@@ -38,8 +38,8 @@ DECLARE @DefinitionJson nvarchar(max) = N'{
       "col.zakaznik": "Customer",
       "report.title": "Contracts",
       "colcat.Contract": "Contract",
-      "colcat.Contract/Invoice": "Invoice",
-      "colcat.Customer": "Customer"
+      "colcat.Customer": "Customer",
+      "colcat.Invoice": "Invoice"
     }
   },
   "columns": [
