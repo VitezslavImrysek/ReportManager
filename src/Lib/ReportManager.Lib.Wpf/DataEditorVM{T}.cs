@@ -36,6 +36,19 @@ namespace ReportManager.Lib.Wpf
             OnGetData(data);
         }
 
+        public bool Validate()
+        {
+            var sb = new StringBuilder();
+
+            var isOK = Validate(sb);
+            if (!isOK)
+            {
+                MessageBox.Show(sb.ToString());
+            }
+
+            return isOK;
+        }
+
         protected virtual void OnNew(TContext context) { }
         protected abstract void OnSetData(TData data);
         protected abstract void OnGetData(TData data);
@@ -62,19 +75,6 @@ namespace ReportManager.Lib.Wpf
             where TMessage : class
         {
             Messenger.Instance.Register<TMessage>(handler);
-        }
-
-        protected bool Validate()
-        {
-            var sb = new StringBuilder();
-
-            var isOK = Validate(sb);
-            if (!isOK) 
-            {
-                MessageBox.Show(sb.ToString());
-            }
-
-            return isOK;
         }
 
         protected bool Validate(StringBuilder log)

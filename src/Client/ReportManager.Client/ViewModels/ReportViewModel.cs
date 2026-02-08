@@ -36,7 +36,10 @@ namespace ReportManager.Client.ViewModels
                 _downloadSvc = _reportDownloadFactory.CreateChannel();
             }
 
-			LoadManifestCommand = new RelayCommand(LoadManifest);
+			ConditionsVM = new QueryConditionsViewModel();
+			SortSpecsVM = new SortSpecsViewModel();
+
+            LoadManifestCommand = new RelayCommand(LoadManifest);
 			QueryCommand = new RelayCommand(Query);
 			ClearServerQueryCommand = new RelayCommand(ClearServerQuery);
 			PrevPageCommand = new RelayCommand(() => { if (_pageIndex > 0) { _pageIndex--; Query(); } });
@@ -75,8 +78,8 @@ namespace ReportManager.Client.ViewModels
         public ObservableCollection<ColumnVisibilityItem> ColumnVisibility { get; } = [];
         public List<string> ColumnOrder { get; set => SetValue(ref field, value); } = [];
 
-		public QueryConditionsViewModel? ConditionsVM { get; private set => SetValue(ref field, value); }
-        public SortSpecsViewModel? SortSpecsVM { get; private set => SetValue(ref field, value); }
+		public QueryConditionsViewModel ConditionsVM { get; private set => SetValue(ref field, value); }
+        public SortSpecsViewModel SortSpecsVM { get; private set => SetValue(ref field, value); }
 
         public ObservableCollection<PresetInfoDto> Presets { get; } = [];
         public PresetInfoDto? SelectedPreset { get; set => SetValue(ref field, value); }
@@ -280,11 +283,15 @@ namespace ReportManager.Client.ViewModels
 
 		private QuerySpecDto? BuildQuerySpec(ReportManifestDto manifest)
 		{
-			// TODO: Validate
-			//if (!ConditionsViewModel.Validate())
-			//{
-			//	return null;
-			//}
+			if (!ConditionsVM.Validate())
+			{
+				return null;
+			}
+
+			if (!SortSpecsVM.Validate())
+			{
+				return null;
+			}
 
             var q = new QuerySpecDto();
 
@@ -345,7 +352,7 @@ namespace ReportManager.Client.ViewModels
                 SortSpecsVM.SetData(content.Query.Sorting ?? []);
 
                 // 2) apply grid hidden columns + order
-                var hidden = new HashSet<string>(content.Grid?.HiddenColumns ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+                var hidden = new HashSet<string>(content.Grid?.HiddenColumns ?? [], StringComparer.OrdinalIgnoreCase);
                 foreach (var cv in ColumnVisibility)
                     cv.IsVisible = !hidden.Contains(cv.Key);
 
