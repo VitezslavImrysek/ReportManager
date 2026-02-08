@@ -140,7 +140,7 @@ namespace ReportAdmin.App.ViewModels
                 }
             }
 
-            NotifyStatus("Regenerated missing text entries for columns.");
+            NotifyStatus("Regenerated text entries for report definition.");
         }
 
         private Dictionary<string, string> GetExpectedTexts()
@@ -164,6 +164,17 @@ namespace ReportAdmin.App.ViewModels
                 foreach (var col in msg.Columns)
                 {
                     expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
+                }
+
+                var categories = msg.Columns
+                    .Select(x => x.Category?.Trim())
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Cast<string>();
+
+                foreach (var category in categories)
+                {
+                    expectedTextKeys[KnownTextKeys.GetColumnCategoryKey(category)] = Humanize(category);
                 }
 
                 return expectedTextKeys;
@@ -222,59 +233,104 @@ namespace ReportAdmin.App.ViewModels
         private void OnColumnChangedMessageReceived(ColumnChangedMessage message)
         {
             if (Mode != TextsEditorMode.Report)
+            {
                 return;
-
-            string? oldKey = null;
-            string? newKey = null;
+            }
 
             switch (message.ChangeKind)
             {
-                case ColumnChangeKind.Added:
-                    newKey = message.Column.Key;
-                    break;
-                case ColumnChangeKind.Deleted:
-                    oldKey = message.Column.Key;
-                    break;
                 case ColumnChangeKind.Changed:
-                    oldKey = message.PropertyValue!.OldValue as string;
-                    newKey = message.PropertyValue!.NewValue as string;
+                    if (message.PropertyValue == null)
+                    {
+                        return;
+                    }
+
+                    if (message.PropertyValue.Property == ColumnProperty.Key)
+                    {
+                        var oldKey = message.PropertyValue.OldValue as string;
+                        var newKey = message.PropertyValue.NewValue as string;
+                        MoveTextKey(
+                            GetColumnTextKey(oldKey),
+                            GetColumnTextKey(newKey),
+                            string.IsNullOrWhiteSpace(newKey) ? string.Empty : Humanize(newKey));
+                    }
+                    else if (message.PropertyValue.Property == ColumnProperty.Category)
+                    {
+                        var oldCategory = message.PropertyValue.OldValue as string;
+                        var newCategory = message.PropertyValue.NewValue as string;
+                        MoveTextKey(
+                            GetCategoryTextKey(oldCategory),
+                            GetCategoryTextKey(newCategory),
+                            string.IsNullOrWhiteSpace(newCategory) ? string.Empty : Humanize(newCategory));
+                    }
+                    else
+                    {
+                        return;
+                    }
                     break;
                 default:
                     break;
             }
 
-            var oldColumnKey = oldKey != null ? KnownTextKeys.GetColumnHeaderKey(oldKey) : null;
-            var newColumnKey = newKey != null ? KnownTextKeys.GetColumnHeaderKey(newKey) : null;
+            RegenerateAll();
+        }
+
+        private void MoveTextKey(string? oldTextKey, string? newTextKey, string defaultValue)
+        {
+            if (string.Equals(oldTextKey, newTextKey, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
 
             foreach (var vm in CultureTexts)
             {
-                var textVM = oldColumnKey == null ? null : vm.Texts.FirstOrDefault(x => x.Key?.Equals(oldColumnKey, StringComparison.OrdinalIgnoreCase) == true);
+                var textVM = oldTextKey == null
+                    ? null
+                    : vm.Texts.FirstOrDefault(x => x.Key?.Equals(oldTextKey, StringComparison.OrdinalIgnoreCase) == true);
                 if (textVM != null)
                 {
-                    if (newColumnKey == null)
+                    if (newTextKey == null)
                     {
                         vm.Texts.Remove(textVM);
                     }
                     else
                     {
-                        // if old name exists, rename it but keep the value
-                        textVM.Key = newColumnKey;
+                        textVM.Key = newTextKey;
                     }
                 }
-                else if (newColumnKey != null)
+                else if (newTextKey != null)
                 {
-                    var existingNewKeyTextVM = vm.Texts.FirstOrDefault(x => x.Key?.Equals(newColumnKey, StringComparison.OrdinalIgnoreCase) == true);
+                    var existingNewKeyTextVM = vm.Texts.FirstOrDefault(x => x.Key?.Equals(newTextKey, StringComparison.OrdinalIgnoreCase) == true);
                     if (existingNewKeyTextVM == null)
                     {
-                        textVM = new TextEntryViewModel()
+                        vm.Texts.Add(new TextEntryViewModel()
                         {
-                            Key = newColumnKey,
-                            Value = Humanize(newKey!)
-                        };
-                        vm.Texts.Add(textVM);
+                            Key = newTextKey,
+                            Value = defaultValue
+                        });
                     }
                 }
             }
+        }
+
+        private static string? GetColumnTextKey(string? columnKey)
+        {
+            if (string.IsNullOrWhiteSpace(columnKey))
+            {
+                return null;
+            }
+
+            return KnownTextKeys.GetColumnHeaderKey(columnKey);
+        }
+
+        private static string? GetCategoryTextKey(string? category)
+        {
+            if (string.IsNullOrWhiteSpace(category))
+            {
+                return null;
+            }
+
+            return KnownTextKeys.GetColumnCategoryKey(category);
         }
 
         private void OnCultureChangedMessageReceived(CultureChangedMessage message)

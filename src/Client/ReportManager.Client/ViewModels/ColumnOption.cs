@@ -8,6 +8,7 @@ namespace ReportManager.Client.ViewModels
 	{
 		public required string Key { get; set => SetValue(ref field, value); }
 		public required string DisplayName { get; set => SetValue(ref field, value); }
+		public string Category { get; set => SetValue(ref field, value); } = string.Empty;
 		public bool IsHidden { get; set => SetValue(ref field, value); }
 		public ReportColumnType Type { get; set => SetValue(ref field, value); }
 		public required ObservableCollection<FilterOperation> Ops { get; set => SetValue(ref field, value); }

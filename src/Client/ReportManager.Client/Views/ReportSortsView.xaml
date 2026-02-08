@@ -25,11 +25,39 @@
             </ItemsControl.ItemContainerStyle>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
+                    <DataTemplate.Resources>
+                        <CollectionViewSource x:Key="GroupedColumns" Source="{Binding AvailableColumns}">
+                            <CollectionViewSource.GroupDescriptions>
+                                <PropertyGroupDescription PropertyName="Category"/>
+                            </CollectionViewSource.GroupDescriptions>
+                        </CollectionViewSource>
+                    </DataTemplate.Resources>
                     <Border Style="{StaticResource CardBorderStyle}">
                         <StackPanel>
-                            <ComboBox ItemsSource="{Binding AvailableColumns}"
-                          DisplayMemberPath="DisplayName"
-                          SelectedItem="{Binding SelectedColumn, Mode=TwoWay}"/>
+                            <ComboBox ItemsSource="{Binding Source={StaticResource GroupedColumns}}"
+                                      DisplayMemberPath="DisplayName"
+                                      SelectedItem="{Binding SelectedColumn, Mode=TwoWay}">
+                                <ComboBox.GroupStyle>
+                                    <GroupStyle>
+                                        <GroupStyle.HeaderTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Name}" Value="">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </GroupStyle.HeaderTemplate>
+                                    </GroupStyle>
+                                </ComboBox.GroupStyle>
+                            </ComboBox>
                             <ComboBox ItemsSource="{Binding Directions}"
                           SelectedItem="{Binding SelectedDirection, Mode=TwoWay}"/>
                             <Button Content="Remove" Command="{Binding RemoveCommand}"/>

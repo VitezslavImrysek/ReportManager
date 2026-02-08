@@ -311,6 +311,17 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
             expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
         }
 
+        var categories = definition.Columns
+            .Select(x => x.Category?.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Cast<string>();
+
+        foreach (var category in categories)
+        {
+            expectedTextKeys[KnownTextKeys.GetColumnCategoryKey(category)] = Humanize(category);
+        }
+
         // For each culture, ensure all expected text keys exist and remove any unknown keys
         foreach (var culture in definition.Texts.Keys)
         {

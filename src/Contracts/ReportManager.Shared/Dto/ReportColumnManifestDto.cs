@@ -7,6 +7,7 @@ namespace ReportManager.Shared.Dto
 	{
 		[DataMember] public required string Key { get; set; }
 		[DataMember] public required string DisplayName { get; set; }
+		[DataMember] public string Category { get; set; } = string.Empty;
 		[DataMember] public ReportColumnType Type { get; set; }
 		[DataMember] public bool Hidden { get; set; }
 		[DataMember] public bool AlwaysSelect { get; set; }

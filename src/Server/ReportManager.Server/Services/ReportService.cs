@@ -42,11 +42,20 @@ namespace ReportManager.Server.Services
             };
 
             // compute ops by type (server rules)
-            foreach (var c in model.Columns)
+			foreach (var c in model.Columns)
 			{
 				var colType = c.Type;
 				
 				var displayName = TextsResolver.ResolveText(model.Texts, KnownTextKeys.GetColumnHeaderKey(c.Key), culture, model.DefaultCulture);
+				var category = string.Empty;
+				if (!string.IsNullOrWhiteSpace(c.Category))
+				{
+					var categoryTextKey = KnownTextKeys.GetColumnCategoryKey(c.Category);
+					var resolvedCategory = TextsResolver.ResolveText(model.Texts, categoryTextKey, culture, model.DefaultCulture);
+					category = string.Equals(resolvedCategory, categoryTextKey, StringComparison.OrdinalIgnoreCase)
+						? c.Category
+						: resolvedCategory;
+				}
 
 				var filterEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Filterable);
 				var filterHidden = c.Filter?.Flags.HasFlag(FilterConfigFlagsJson.Hidden) == true;
@@ -57,6 +66,7 @@ namespace ReportManager.Server.Services
 				{
 					Key = c.Key,
 					DisplayName = displayName,
+					Category = category,
 					Type = colType,
 					Hidden = c.Flags.HasFlag(ReportColumnFlagsJson.Hidden),
 					AlwaysSelect = c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect),

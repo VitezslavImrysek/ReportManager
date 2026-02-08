@@ -9,5 +9,10 @@
         {
             return $"col.{columnKey}";
         }
+
+        public static string GetColumnCategoryKey(string categoryKey)
+        {
+            return $"colcat.{categoryKey}";
+        }
     }
 }

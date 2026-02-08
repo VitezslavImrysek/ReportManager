@@ -52,6 +52,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Key:" VerticalAlignment="Center"/>
@@ -63,28 +64,32 @@
                       ItemsSource="{Binding ColumnTypeValues}"
                       SelectedItem="{Binding Type, UpdateSourceTrigger=PropertyChanged}"/>
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,0,0" Text="Flags:" VerticalAlignment="Center"/>
-            <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
+            <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,0,0" Text="Category:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0"
+                     Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,8,0,0" Text="Flags:" VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
                 <CheckBox Content="AlwaysSelect" IsChecked="{Binding AlwaysSelect}"/>
                 <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Hidden}"/>
                 <CheckBox Margin="12,0,0,0" Content="PrimaryKey" IsChecked="{Binding PrimaryKey}"/>
                 <CheckBox Margin="12,0,0,0" Content="Virtual" IsChecked="{Binding Virtual}"/>
             </StackPanel>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,8,0,0" Text="Filter:" VerticalAlignment="Center"/>
-            <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
+            <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,8,0,0" Text="Filter:" VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
                 <CheckBox Content="Enabled" IsChecked="{Binding Filterable}"/>
                 <CheckBox Margin="12,0,0,0" Content="HasLookup" IsChecked="{Binding HasLookup}" Visibility="{Binding Filterable, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Filter.Hidden}" Visibility="{Binding Filterable, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,8,0,0" Text="Sort:" VerticalAlignment="Center"/>
-            <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
+            <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,8,0,0" Text="Sort:" VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">
                 <CheckBox Content="Enabled" IsChecked="{Binding Sortable}"/>
                 <CheckBox Margin="12,0,0,0" Content="Hidden" IsChecked="{Binding Sort.Hidden}" Visibility="{Binding Sortable, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
 
-            <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Margin="0,8,0,0" Visibility="{Binding HasLookup, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel Grid.Row="5" Grid.ColumnSpan="3" Margin="0,8,0,0" Visibility="{Binding HasLookup, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock FontWeight="SemiBold" Text="SQL lookup"/>
                 <TextBlock Margin="0,8,0,0" Text="CommandText:"/>
                 <TextBox AcceptsReturn="True" MinLines="4" Text="{Binding Filter.Lookup.Sql.CommandText, UpdateSourceTrigger=PropertyChanged}"/>

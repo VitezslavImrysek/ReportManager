@@ -12,6 +12,7 @@ namespace ReportAdmin.App.ViewModels
         #region Properties
 
         public string Key { get; set => SetValue(ref field, value, OnKeyChanged); } = string.Empty;
+        public string Category { get; set => SetValue(ref field, value, OnCategoryChanged); } = string.Empty;
         public ReportColumnType Type { get; set => SetValue(ref field, value); }
 
         // flags expanded
@@ -35,6 +36,7 @@ namespace ReportAdmin.App.ViewModels
         protected override void OnSetData(ReportColumnJson data)
         {
             Key = data.Key;
+            Category = data.Category;
             Type = data.Type;
 
             Filter = data.Filter == null ? null : (FilterConfigUi)data.Filter;
@@ -53,6 +55,7 @@ namespace ReportAdmin.App.ViewModels
         protected override void OnGetData(ReportColumnJson data)
         {
             data.Key = Key;
+            data.Category = Category;
             data.Type = Type;
             data.Flags = ReportColumnFlagsJson.None;
             if (AlwaysSelect) data.Flags |= ReportColumnFlagsJson.AlwaysSelect;
@@ -119,6 +122,14 @@ namespace ReportAdmin.App.ViewModels
             {
                 // notify key changed
                 SendMessage(new ColumnChangedMessage(this, new ColumnPropertyValue(ColumnProperty.Key, oldKey, newKey)));
+            }
+        }
+
+        private void OnCategoryChanged(string oldCategory, string newCategory)
+        {
+            if (IsInitialized)
+            {
+                SendMessage(new ColumnChangedMessage(this, new ColumnPropertyValue(ColumnProperty.Category, oldCategory, newCategory)));
             }
         }
 

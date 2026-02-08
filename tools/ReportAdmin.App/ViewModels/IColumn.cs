@@ -6,6 +6,7 @@ namespace ReportAdmin.App.ViewModels
     public interface IColumn : INotifyPropertyChanged
     {
         string Key { get; set; }
+        string Category { get; set; }
         bool Hidden { get; set; }
         bool Filterable { get; set; }
         bool Sortable { get; set; }
