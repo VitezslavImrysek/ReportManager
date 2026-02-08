@@ -64,9 +64,10 @@
                       ItemsSource="{Binding ColumnTypeValues}"
                       SelectedItem="{Binding Type, UpdateSourceTrigger=PropertyChanged}"/>
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,0,0" Text="Category:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,0,0" Text="Category path:" VerticalAlignment="Center"/>
             <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0"
-                     Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}"/>
+                     ToolTip="Nested categories separated by /, e.g. Customer/Contract"
+                     Text="{Binding CategoryPathText, UpdateSourceTrigger=PropertyChanged}"/>
 
             <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,8,0,0" Text="Flags:" VerticalAlignment="Center"/>
             <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="8,8,0,0" Orientation="Horizontal">

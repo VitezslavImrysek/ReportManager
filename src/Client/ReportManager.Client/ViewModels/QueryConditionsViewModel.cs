@@ -1,7 +1,8 @@
-﻿using ReportManager.Client.Extensions;
-using ReportManager.Lib.Wpf;
+﻿using ReportManager.Lib.Wpf;
 using ReportManager.Shared.Dto;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using System.Windows.Input;
 
@@ -86,10 +87,10 @@ namespace ReportManager.Client.ViewModels
 
                 var vm = new QueryConditionViewModel
                 {
-                    AvailableColumns = GetFilterableColumns(),
-                    SelectedColumn = col,
-                    SelectedOp = f.Operation
+                    AvailableColumnItems = GetFilterableColumnItems()
                 };
+                vm.SelectColumn(col);
+                vm.SelectedOp = f.Operation;
                 vm.RemoveCommand = new RelayCommand(() => Conditions.Remove(vm));
 
                 if (f.Operation == FilterOperation.Between && f.Values != null && f.Values.Count >= 2)
@@ -143,18 +144,25 @@ namespace ReportManager.Client.ViewModels
         private void AddCondition()
         {
             if (AvailableColumns.Count == 0) return;
+            var availableColumnItems = GetFilterableColumnItems();
+            var firstColumn = availableColumnItems.FirstOrDefault(x => x.IsSelectable)?.Column;
+            if (firstColumn == null)
+            {
+                return;
+            }
+
             var vm = new QueryConditionViewModel
             {
-                AvailableColumns = GetFilterableColumns(),
-                SelectedColumn = GetFilterableColumns().FirstOrDefault(),
+                AvailableColumnItems = availableColumnItems
             };
+            vm.SelectColumn(firstColumn);
             vm.RemoveCommand = new RelayCommand(() => Conditions.Remove(vm));
             Conditions.Add(vm);
         }
 
-        private ObservableCollection<ColumnOption> GetFilterableColumns()
+        private ObservableCollection<ColumnPickerItem> GetFilterableColumnItems()
         {
-            return AvailableColumns.Where(x => x.CanFilter && !x.FilterHidden).ToObservable();
+            return ColumnPickerFactory.Build(AvailableColumns.Where(x => x.CanFilter && !x.FilterHidden));
         }
 
         #endregion

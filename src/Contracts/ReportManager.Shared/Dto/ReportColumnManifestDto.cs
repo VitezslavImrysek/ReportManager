@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using System.Collections.Generic;
 
 namespace ReportManager.Shared.Dto
 {
@@ -7,7 +8,7 @@ namespace ReportManager.Shared.Dto
 	{
 		[DataMember] public required string Key { get; set; }
 		[DataMember] public required string DisplayName { get; set; }
-		[DataMember] public string Category { get; set; } = string.Empty;
+		[DataMember] public List<string> CategoryPath { get; set; } = [];
 		[DataMember] public ReportColumnType Type { get; set; }
 		[DataMember] public bool Hidden { get; set; }
 		[DataMember] public bool AlwaysSelect { get; set; }

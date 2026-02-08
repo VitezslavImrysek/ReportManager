@@ -41,7 +41,7 @@
                   DragOver="DataGrid_DragOver">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Key" Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}" Width="220"/>
-                <DataGridTextColumn Header="Category" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+                <DataGridTextColumn Header="Category path" Binding="{Binding CategoryPathText, UpdateSourceTrigger=PropertyChanged}" Width="240"/>
                 <DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding Type}" Width="150"
                                         ItemsSource="{Binding Source={StaticResource ColumnTypeValues}}"/>
                 <DataGridCheckBoxColumn Header="AlwaysSelect" Binding="{Binding AlwaysSelect}" Width="120"/>

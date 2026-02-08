@@ -1,5 +1,6 @@
 ﻿using ReportManager.Lib.Wpf;
 using ReportManager.Shared.Dto;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace ReportManager.Client.ViewModels
@@ -8,7 +9,7 @@ namespace ReportManager.Client.ViewModels
 	{
 		public required string Key { get; set => SetValue(ref field, value); }
 		public required string DisplayName { get; set => SetValue(ref field, value); }
-		public string Category { get; set => SetValue(ref field, value); } = string.Empty;
+		public List<string> CategoryPath { get; set => SetValue(ref field, value); } = [];
 		public bool IsHidden { get; set => SetValue(ref field, value); }
 		public ReportColumnType Type { get; set => SetValue(ref field, value); }
 		public required ObservableCollection<FilterOperation> Ops { get; set => SetValue(ref field, value); }

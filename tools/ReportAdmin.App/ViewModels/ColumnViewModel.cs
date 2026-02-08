@@ -3,7 +3,9 @@ using ReportAdmin.App.Models.Definition;
 using ReportManager.DefinitionModel.Models.ReportDefinition;
 using ReportManager.Lib.Wpf;
 using ReportManager.Shared.Dto;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace ReportAdmin.App.ViewModels
 {
@@ -12,7 +14,8 @@ namespace ReportAdmin.App.ViewModels
         #region Properties
 
         public string Key { get; set => SetValue(ref field, value, OnKeyChanged); } = string.Empty;
-        public string Category { get; set => SetValue(ref field, value, OnCategoryChanged); } = string.Empty;
+        public string CategoryPathText { get; set => SetValue(ref field, value, OnCategoryPathTextChanged); } = string.Empty;
+        public IReadOnlyList<string> CategoryPath => ParseCategoryPath(CategoryPathText);
         public ReportColumnType Type { get; set => SetValue(ref field, value); }
 
         // flags expanded
@@ -36,7 +39,7 @@ namespace ReportAdmin.App.ViewModels
         protected override void OnSetData(ReportColumnJson data)
         {
             Key = data.Key;
-            Category = data.Category;
+            CategoryPathText = string.Join("/", data.CategoryPath ?? []);
             Type = data.Type;
 
             Filter = data.Filter == null ? null : (FilterConfigUi)data.Filter;
@@ -55,7 +58,7 @@ namespace ReportAdmin.App.ViewModels
         protected override void OnGetData(ReportColumnJson data)
         {
             data.Key = Key;
-            data.Category = Category;
+            data.CategoryPath = ParseCategoryPath(CategoryPathText).ToList();
             data.Type = Type;
             data.Flags = ReportColumnFlagsJson.None;
             if (AlwaysSelect) data.Flags |= ReportColumnFlagsJson.AlwaysSelect;
@@ -125,12 +128,29 @@ namespace ReportAdmin.App.ViewModels
             }
         }
 
-        private void OnCategoryChanged(string oldCategory, string newCategory)
+        private void OnCategoryPathTextChanged(string oldCategoryPathText, string newCategoryPathText)
         {
             if (IsInitialized)
             {
-                SendMessage(new ColumnChangedMessage(this, new ColumnPropertyValue(ColumnProperty.Category, oldCategory, newCategory)));
+                SendMessage(new ColumnChangedMessage(this, new ColumnPropertyValue(
+                    ColumnProperty.CategoryPath,
+                    ParseCategoryPath(oldCategoryPathText),
+                    ParseCategoryPath(newCategoryPathText))));
             }
+        }
+
+        private static IReadOnlyList<string> ParseCategoryPath(string? categoryPathText)
+        {
+            if (string.IsNullOrWhiteSpace(categoryPathText))
+            {
+                return [];
+            }
+
+            return categoryPathText
+                .Split(['/'], StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => x.Length > 0)
+                .ToList();
         }
 
         #endregion

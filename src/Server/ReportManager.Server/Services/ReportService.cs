@@ -4,9 +4,11 @@ using ReportManager.DefinitionModel.Utils;
 using ReportManager.Server.Services.Repository;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Globalization;
+using System.Linq;
 
 namespace ReportManager.Server.Services
 {
@@ -47,14 +49,21 @@ namespace ReportManager.Server.Services
 				var colType = c.Type;
 				
 				var displayName = TextsResolver.ResolveText(model.Texts, KnownTextKeys.GetColumnHeaderKey(c.Key), culture, model.DefaultCulture);
-				var category = string.Empty;
-				if (!string.IsNullOrWhiteSpace(c.Category))
+				var categoryPath = new List<string>();
+				var sourceCategoryPath = (c.CategoryPath ?? [])
+					.Where(x => !string.IsNullOrWhiteSpace(x))
+					.Select(x => x.Trim())
+					.Where(x => x.Length > 0)
+					.ToList();
+				for (var i = 0; i < sourceCategoryPath.Count; i++)
 				{
-					var categoryTextKey = KnownTextKeys.GetColumnCategoryKey(c.Category);
+					var segment = sourceCategoryPath[i];
+					var pathPrefix = sourceCategoryPath.Take(i + 1).ToList();
+					var categoryTextKey = KnownTextKeys.GetColumnCategoryPathKey(pathPrefix);
 					var resolvedCategory = TextsResolver.ResolveText(model.Texts, categoryTextKey, culture, model.DefaultCulture);
-					category = string.Equals(resolvedCategory, categoryTextKey, StringComparison.OrdinalIgnoreCase)
-						? c.Category
-						: resolvedCategory;
+					categoryPath.Add(string.Equals(resolvedCategory, categoryTextKey, StringComparison.OrdinalIgnoreCase)
+						? segment
+						: resolvedCategory);
 				}
 
 				var filterEnabled = c.Flags.HasFlag(ReportColumnFlagsJson.Filterable);
@@ -66,7 +75,7 @@ namespace ReportManager.Server.Services
 				{
 					Key = c.Key,
 					DisplayName = displayName,
-					Category = category,
+					CategoryPath = categoryPath,
 					Type = colType,
 					Hidden = c.Flags.HasFlag(ReportColumnFlagsJson.Hidden),
 					AlwaysSelect = c.Flags.HasFlag(ReportColumnFlagsJson.AlwaysSelect),

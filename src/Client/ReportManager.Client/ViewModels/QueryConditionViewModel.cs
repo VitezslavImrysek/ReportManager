@@ -1,7 +1,9 @@
 ﻿using ReportManager.Lib.Wpf;
 using ReportManager.Shared.Dto;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -31,9 +33,10 @@ namespace ReportManager.Client.ViewModels
 				? Visibility.Visible
 				: Visibility.Collapsed;
 
-		public required ObservableCollection<ColumnOption> AvailableColumns { get; set => SetValue(ref field, value); }
+		public required ObservableCollection<ColumnPickerItem> AvailableColumnItems { get; set => SetValue(ref field, value); }
 		public ObservableCollection<FilterOperation> AvailableOps { get; set => SetValue(ref field, value); } = [];
 
+		public ColumnPickerItem? SelectedColumnItem { get; set => SetValue(ref field, value, OnSelectedColumnItemChanged); }
 		public ColumnOption? SelectedColumn { get; set => SetValue(ref field, value, OnSelectedColumnChanged); }
 
         public FilterOperation SelectedOp
@@ -199,6 +202,29 @@ namespace ReportManager.Client.ViewModels
             Value2 = string.Empty;
             SelectedLookupItem = null;
         }
+
+		private void OnSelectedColumnItemChanged(ColumnPickerItem? pickerItem)
+		{
+			if (pickerItem?.Column == null)
+			{
+				return;
+			}
+
+			SelectedColumn = pickerItem.Column;
+		}
+
+		public void SelectColumn(ColumnOption? column)
+		{
+			if (column == null)
+			{
+				SelectedColumnItem = null;
+				return;
+			}
+
+			SelectedColumnItem = AvailableColumnItems.FirstOrDefault(item =>
+				item.Column != null
+				&& item.Column.Key.Equals(column.Key, StringComparison.OrdinalIgnoreCase));
+		}
 
         private static bool IsValidValue(ReportColumnType type, string raw)
 		{

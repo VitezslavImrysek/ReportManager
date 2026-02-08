@@ -8,7 +8,9 @@ using ReportManager.DefinitionModel.Utils;
 using ReportManager.Lib.Wpf;
 using ReportManager.Shared;
 using ReportManager.Shared.Dto;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 
@@ -311,15 +313,14 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
             expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
         }
 
-        var categories = definition.Columns
-            .Select(x => x.Category?.Trim())
-            .Where(x => !string.IsNullOrWhiteSpace(x))
+        var categoryPathPrefixes = definition.Columns
+            .SelectMany(col => GetCategoryPathPrefixes(col.CategoryPath))
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Cast<string>();
+            .Select(path => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ToList());
 
-        foreach (var category in categories)
+        foreach (var categoryPath in categoryPathPrefixes)
         {
-            expectedTextKeys[KnownTextKeys.GetColumnCategoryKey(category)] = Humanize(category);
+            expectedTextKeys[KnownTextKeys.GetColumnCategoryPathKey(categoryPath)] = Humanize(categoryPath.Last());
         }
 
         // For each culture, ensure all expected text keys exist and remove any unknown keys
@@ -359,6 +360,25 @@ public sealed class ReportViewModel : DataEditorVM<ReportFileItem, ReportContext
 		var s = Regex.Replace(key, "([a-z])([A-Z])", "$1 $2");
 		return ToTitle(s);
 	}
+
+    private static IEnumerable<string> GetCategoryPathPrefixes(IReadOnlyList<string>? categoryPath)
+    {
+        if (categoryPath == null)
+        {
+            yield break;
+        }
+
+        var normalizedPath = categoryPath
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim())
+            .Where(x => x.Length > 0)
+            .ToList();
+
+        for (var i = 1; i <= normalizedPath.Count; i++)
+        {
+            yield return string.Join("/", normalizedPath.Take(i));
+        }
+    }
 
 	private static string ToTitle(string s) => string.IsNullOrWhiteSpace(s) ? s : char.ToUpperInvariant(s[0]) + s[1..];
 

@@ -1,4 +1,5 @@
 ﻿using ReportAdmin.App.Models.Definition;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace ReportAdmin.App.ViewModels
@@ -6,7 +7,7 @@ namespace ReportAdmin.App.ViewModels
     public interface IColumn : INotifyPropertyChanged
     {
         string Key { get; set; }
-        string Category { get; set; }
+        IReadOnlyList<string> CategoryPath { get; }
         bool Hidden { get; set; }
         bool Filterable { get; set; }
         bool Sortable { get; set; }

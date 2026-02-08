@@ -216,7 +216,7 @@ namespace ReportManager.Client.ViewModels
 				{
 					Key = c.Key,
 					DisplayName = c.DisplayName,
-					Category = c.Category ?? string.Empty,
+					CategoryPath = c.CategoryPath ?? [],
 					Type = c.Type,
 					CanFilter = c.FilterEnabled,
 					FilterHidden = c.FilterHidden,

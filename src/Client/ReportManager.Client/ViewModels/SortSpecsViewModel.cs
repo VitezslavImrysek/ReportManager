@@ -1,7 +1,8 @@
-﻿using ReportManager.Client.Extensions;
-using ReportManager.Lib.Wpf;
+﻿using ReportManager.Lib.Wpf;
 using ReportManager.Shared.Dto;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 
 namespace ReportManager.Client.ViewModels
@@ -75,10 +76,10 @@ namespace ReportManager.Client.ViewModels
 
                 var vm = new SortSpecViewModel
                 {
-                    AvailableColumns = GetSortableColumns(),
-                    SelectedColumn = col,
+                    AvailableColumnItems = GetSortableColumnItems(),
                     SelectedDirection = s.Direction
                 };
+                vm.SelectColumn(col);
                 vm.RemoveCommand = new RelayCommand(() => Sorts.Remove(vm));
                 Sorts.Add(vm);
             }
@@ -91,19 +92,26 @@ namespace ReportManager.Client.ViewModels
         private void AddSort()
         {
             if (AvailableColumns.Count == 0) return;
+            var availableColumnItems = GetSortableColumnItems();
+            var firstColumn = availableColumnItems.FirstOrDefault(x => x.IsSelectable)?.Column;
+            if (firstColumn == null)
+            {
+                return;
+            }
+
             var vm = new SortSpecViewModel
             {
-                AvailableColumns = GetSortableColumns(),
-                SelectedColumn = GetSortableColumns().FirstOrDefault(),
+                AvailableColumnItems = availableColumnItems,
                 SelectedDirection = SortDirection.Asc
             };
+            vm.SelectColumn(firstColumn);
             vm.RemoveCommand = new RelayCommand(() => Sorts.Remove(vm));
             Sorts.Add(vm);
         }
 
-        private ObservableCollection<ColumnOption> GetSortableColumns()
+        private ObservableCollection<ColumnPickerItem> GetSortableColumnItems()
         {
-            return AvailableColumns.Where(x => x.CanSort && !x.SortHidden).ToObservable();
+            return ColumnPickerFactory.Build(AvailableColumns.Where(x => x.CanSort && !x.SortHidden));
         }
 
         #endregion

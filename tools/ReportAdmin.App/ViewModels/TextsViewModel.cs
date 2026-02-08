@@ -2,7 +2,9 @@
 using ReportManager.DefinitionModel.Utils;
 using ReportManager.Lib.Wpf;
 using ReportManager.Shared;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace ReportAdmin.App.ViewModels
@@ -166,15 +168,14 @@ namespace ReportAdmin.App.ViewModels
                     expectedTextKeys[KnownTextKeys.GetColumnHeaderKey(col.Key)] = Humanize(col.Key);
                 }
 
-                var categories = msg.Columns
-                    .Select(x => x.Category?.Trim())
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                var categoryPathPrefixes = msg.Columns
+                    .SelectMany(col => GetCategoryPathPrefixes(col.CategoryPath))
                     .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .Cast<string>();
+                    .Select(path => path.Split('/', StringSplitOptions.RemoveEmptyEntries).ToList());
 
-                foreach (var category in categories)
+                foreach (var categoryPath in categoryPathPrefixes)
                 {
-                    expectedTextKeys[KnownTextKeys.GetColumnCategoryKey(category)] = Humanize(category);
+                    expectedTextKeys[KnownTextKeys.GetColumnCategoryPathKey(categoryPath)] = Humanize(categoryPath.Last());
                 }
 
                 return expectedTextKeys;
@@ -254,19 +255,6 @@ namespace ReportAdmin.App.ViewModels
                             GetColumnTextKey(newKey),
                             string.IsNullOrWhiteSpace(newKey) ? string.Empty : Humanize(newKey));
                     }
-                    else if (message.PropertyValue.Property == ColumnProperty.Category)
-                    {
-                        var oldCategory = message.PropertyValue.OldValue as string;
-                        var newCategory = message.PropertyValue.NewValue as string;
-                        MoveTextKey(
-                            GetCategoryTextKey(oldCategory),
-                            GetCategoryTextKey(newCategory),
-                            string.IsNullOrWhiteSpace(newCategory) ? string.Empty : Humanize(newCategory));
-                    }
-                    else
-                    {
-                        return;
-                    }
                     break;
                 default:
                     break;
@@ -323,14 +311,23 @@ namespace ReportAdmin.App.ViewModels
             return KnownTextKeys.GetColumnHeaderKey(columnKey);
         }
 
-        private static string? GetCategoryTextKey(string? category)
+        private static IEnumerable<string> GetCategoryPathPrefixes(IReadOnlyList<string>? categoryPath)
         {
-            if (string.IsNullOrWhiteSpace(category))
+            if (categoryPath == null)
             {
-                return null;
+                yield break;
             }
 
-            return KnownTextKeys.GetColumnCategoryKey(category);
+            var normalizedPath = categoryPath
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Where(x => x.Length > 0)
+                .ToList();
+
+            for (var i = 1; i <= normalizedPath.Count; i++)
+            {
+                yield return string.Join("/", normalizedPath.Take(i));
+            }
         }
 
         private void OnCultureChangedMessageReceived(CultureChangedMessage message)

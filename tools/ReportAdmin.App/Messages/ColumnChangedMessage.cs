@@ -51,7 +51,7 @@ namespace ReportAdmin.App.Messages
     public enum ColumnProperty
     { 
         Key,
-        Category,
+        CategoryPath,
         Hidden,
         Sortable,
         Filterable
