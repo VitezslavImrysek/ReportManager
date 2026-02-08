@@ -76,7 +76,7 @@ namespace ReportManager.Client.ViewModels
 
                 var vm = new SortSpecViewModel
                 {
-                    AvailableColumnItems = GetSortableColumnItems(),
+                    AvailableColumns = GetSortableColumns(),
                     SelectedDirection = s.Direction
                 };
                 vm.SelectColumn(col);
@@ -92,8 +92,8 @@ namespace ReportManager.Client.ViewModels
         private void AddSort()
         {
             if (AvailableColumns.Count == 0) return;
-            var availableColumnItems = GetSortableColumnItems();
-            var firstColumn = availableColumnItems.FirstOrDefault(x => x.IsSelectable)?.Column;
+            var availableColumns = GetSortableColumns();
+            var firstColumn = availableColumns.FirstOrDefault();
             if (firstColumn == null)
             {
                 return;
@@ -101,7 +101,7 @@ namespace ReportManager.Client.ViewModels
 
             var vm = new SortSpecViewModel
             {
-                AvailableColumnItems = availableColumnItems,
+                AvailableColumns = availableColumns,
                 SelectedDirection = SortDirection.Asc
             };
             vm.SelectColumn(firstColumn);
@@ -109,9 +109,9 @@ namespace ReportManager.Client.ViewModels
             Sorts.Add(vm);
         }
 
-        private ObservableCollection<ColumnPickerItem> GetSortableColumnItems()
+        private ObservableCollection<ColumnOption> GetSortableColumns()
         {
-            return ColumnPickerFactory.Build(AvailableColumns.Where(x => x.CanSort && !x.SortHidden));
+            return new ObservableCollection<ColumnOption>(AvailableColumns.Where(x => x.CanSort && !x.SortHidden));
         }
 
         #endregion

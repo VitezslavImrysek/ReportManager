@@ -87,7 +87,7 @@ namespace ReportManager.Client.ViewModels
 
                 var vm = new QueryConditionViewModel
                 {
-                    AvailableColumnItems = GetFilterableColumnItems()
+                    AvailableColumns = GetFilterableColumns()
                 };
                 vm.SelectColumn(col);
                 vm.SelectedOp = f.Operation;
@@ -144,8 +144,8 @@ namespace ReportManager.Client.ViewModels
         private void AddCondition()
         {
             if (AvailableColumns.Count == 0) return;
-            var availableColumnItems = GetFilterableColumnItems();
-            var firstColumn = availableColumnItems.FirstOrDefault(x => x.IsSelectable)?.Column;
+            var availableColumns = GetFilterableColumns();
+            var firstColumn = availableColumns.FirstOrDefault();
             if (firstColumn == null)
             {
                 return;
@@ -153,16 +153,16 @@ namespace ReportManager.Client.ViewModels
 
             var vm = new QueryConditionViewModel
             {
-                AvailableColumnItems = availableColumnItems
+                AvailableColumns = availableColumns
             };
             vm.SelectColumn(firstColumn);
             vm.RemoveCommand = new RelayCommand(() => Conditions.Remove(vm));
             Conditions.Add(vm);
         }
 
-        private ObservableCollection<ColumnPickerItem> GetFilterableColumnItems()
+        private ObservableCollection<ColumnOption> GetFilterableColumns()
         {
-            return ColumnPickerFactory.Build(AvailableColumns.Where(x => x.CanFilter && !x.FilterHidden));
+            return new ObservableCollection<ColumnOption>(AvailableColumns.Where(x => x.CanFilter && !x.FilterHidden));
         }
 
         #endregion

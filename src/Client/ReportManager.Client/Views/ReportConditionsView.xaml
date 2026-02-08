@@ -27,32 +27,18 @@
                 <DataTemplate>
                     <Border Style="{StaticResource CardBorderStyle}">
                         <StackPanel>
-                            <ComboBox ItemsSource="{Binding AvailableColumnItems}"
-                                      SelectedItem="{Binding SelectedColumnItem, Mode=TwoWay}">
-                                <ComboBox.ItemContainerStyle>
-                                    <Style TargetType="ComboBoxItem">
-                                        <Setter Property="IsEnabled" Value="{Binding IsSelectable}"/>
-                                    </Style>
-                                </ComboBox.ItemContainerStyle>
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding DisplayText}" Margin="{Binding Indent}">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="FontWeight" Value="Normal"/>
-                                                    <Setter Property="Opacity" Value="1"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsCategory}" Value="True">
-                                                            <Setter Property="FontWeight" Value="SemiBold"/>
-                                                            <Setter Property="Opacity" Value="0.8"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Column:"/>
+                                <TextBlock Grid.Column="1" Margin="8,0,8,0" VerticalAlignment="Center"
+                                           Text="{Binding SelectedColumnLabel}" TextTrimming="CharacterEllipsis"/>
+                                <Button Grid.Column="2" Margin="0" Padding="8,2"
+                                        Content="Select column..." Command="{Binding SelectColumnCommand}"/>
+                            </Grid>
 
                             <ComboBox ItemsSource="{Binding AvailableOps}"
                           SelectedItem="{Binding SelectedOp, Mode=TwoWay}"/>
