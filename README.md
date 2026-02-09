@@ -5,6 +5,10 @@ Simple implementation of:
 - WPF client (DataGrid) with separate *server query panel* (DB filters/sort) + grid still supports local UX
 - SQL scripts to create DB + sample view + report definition/preset in JSON
 
+## Additional docs
+- `docs/REPO_MAP.md` - architecture map and key entry points
+- `docs/COLUMN_CATEGORIES.md` - category path model, localization keys, and Client picker behavior
+
 ## 1) Create DB
 Run scripts in order on SQL Server:
 
