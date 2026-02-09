@@ -1,7 +1,5 @@
 ﻿using ReportManager.Lib.Wpf;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace ReportManager.Client.ViewModels
 {
@@ -57,11 +55,23 @@ namespace ReportManager.Client.ViewModels
 
             _initialSelectedColumnKey = selectedColumn?.Key;
             RebuildTree();
+
+            CollapseAllCommand = new RelayCommand(CollapseAll);
+            ExpandAllCommand = new RelayCommand(ExpandAll);
         }
 
         #endregion
 
+        #region Commands
+
+        public RelayCommand CollapseAllCommand { get; }
+
+        public RelayCommand ExpandAllCommand { get; }
+
+        #endregion
+
         #region Properties
+
 
         public ObservableCollection<ColumnPickerNodeViewModel> RootNodes { get; } = [];
 
@@ -76,6 +86,28 @@ namespace ReportManager.Client.ViewModels
         #endregion
 
         #region Private Methods
+
+        public void CollapseAll()
+        {
+            SetAllExpanded(RootNodes, false);
+        }
+
+        public void ExpandAll()
+        {
+            SetAllExpanded(RootNodes, true);
+        }
+
+        private static void SetAllExpanded(IEnumerable<ColumnPickerNodeViewModel> nodes, bool isExpanded)
+        {
+            foreach (var node in nodes)
+            {
+                if (node.Children.Count > 0)
+                {
+                    node.IsExpanded = isExpanded;
+                    SetAllExpanded(node.Children, isExpanded);
+                }
+            }
+        }
 
         private void RebuildTree()
         {

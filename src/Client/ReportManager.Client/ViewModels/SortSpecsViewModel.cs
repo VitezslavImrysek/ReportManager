@@ -1,8 +1,10 @@
-﻿using ReportManager.Lib.Wpf;
+﻿using ReportManager.Client.Views;
+using ReportManager.Lib.Wpf;
 using ReportManager.Shared.Dto;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 
 namespace ReportManager.Client.ViewModels
@@ -93,8 +95,15 @@ namespace ReportManager.Client.ViewModels
         {
             if (AvailableColumns.Count == 0) return;
             var availableColumns = GetSortableColumns();
-            var firstColumn = availableColumns.FirstOrDefault();
-            if (firstColumn == null)
+
+            var dialogVm = new ColumnPickerDialogViewModel(availableColumns, null);
+            var dialog = new ColumnPickerDialog
+            {
+                Owner = Application.Current?.MainWindow,
+                DataContext = dialogVm
+            };
+
+            if (dialog.ShowDialog() != true || dialogVm.SelectedColumn == null)
             {
                 return;
             }
@@ -104,7 +113,7 @@ namespace ReportManager.Client.ViewModels
                 AvailableColumns = availableColumns,
                 SelectedDirection = SortDirection.Asc
             };
-            vm.SelectColumn(firstColumn);
+            vm.SelectColumn(dialogVm.SelectedColumn);
             vm.RemoveCommand = new RelayCommand(() => Sorts.Remove(vm));
             Sorts.Add(vm);
         }

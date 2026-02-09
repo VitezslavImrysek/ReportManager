@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:ReportManager.Client"
         xmlns:vm="clr-namespace:ReportManager.Client.ViewModels"
         xmlns:views="clr-namespace:ReportManager.Client.Views"
-        mc:Ignorable="d" 
+        mc:Ignorable="d" WindowStartupLocation="CenterScreen"
         Title="ReportManager" Height="720" Width="1200">
     <Grid>
         <views:ReportView>

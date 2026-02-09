@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:ReportManager.Client.ViewModels"
+        d:DataContext="{d:DesignInstance vm:ColumnPickerDialogViewModel, IsDesignTimeCreatable=False}"
         mc:Ignorable="d"
         Title="Select column"
         Width="520"
@@ -23,6 +24,10 @@
             <TextBox Margin="0,6,0,10"
                      Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
                      ToolTip="Type to filter columns and categories"/>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Expand All" MinWidth="100" Margin="0,0,8,0" Command="{Binding ExpandAllCommand}" />
+                <Button Content="Collapse All" MinWidth="100" Command="{Binding CollapseAllCommand}" />
+            </StackPanel>
         </StackPanel>
 
         <Border Grid.Row="1" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" Padding="6">

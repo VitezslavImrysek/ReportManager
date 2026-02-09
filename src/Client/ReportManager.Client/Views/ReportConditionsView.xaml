@@ -72,13 +72,13 @@
                          Visibility="{Binding BetweenValue2Visibility}"
                          ToolTip="Value 2 (only for BETWEEN)"/>
 
-                            <Button Content="Remove" Command="{Binding RemoveCommand}"/>
+                            <Button Content="Remove" Margin="{StaticResource FieldSpacing}" Command="{Binding RemoveCommand}"/>
                         </StackPanel>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Button Content="+ Add condition" Command="{Binding AddConditionCommand}"/>
+        <Button Content="+ Add condition" Margin="{StaticResource FieldSpacing}" Command="{Binding AddConditionCommand}"/>
     </StackPanel>
 </UserControl>

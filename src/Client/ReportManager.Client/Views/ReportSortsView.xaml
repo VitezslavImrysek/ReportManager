@@ -39,14 +39,13 @@
                                 <Button Grid.Column="2" Margin="0" Padding="8,2"
                                         Content="Select column..." Command="{Binding SelectColumnCommand}"/>
                             </Grid>
-                            <ComboBox ItemsSource="{Binding Directions}"
-                          SelectedItem="{Binding SelectedDirection, Mode=TwoWay}"/>
-                            <Button Content="Remove" Command="{Binding RemoveCommand}"/>
+                            <ComboBox ItemsSource="{Binding Directions}" SelectedItem="{Binding SelectedDirection, Mode=TwoWay}"/>
+                            <Button Content="Remove" Margin="{StaticResource FieldSpacing}" Command="{Binding RemoveCommand}"/>
                         </StackPanel>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <Button Content="+ Add sorting" Command="{Binding AddSortCommand}"/>
+        <Button Content="+ Add sorting" Margin="{StaticResource FieldSpacing}" Command="{Binding AddSortCommand}"/>
     </StackPanel>
 </UserControl>
